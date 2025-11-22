@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="text-primary mb-0">📦 Danh sách Phiếu nhập (Purchase Orders)</h2>
+        <a href="{% url 'invoice_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-file-earmark-text"></i> Hóa đơn
+        </a>
+    </div>
+
+    <!-- 🔍 Bộ lọc -->
+    <form method="get" class="row g-2 mb-3">
+        <div class="col-auto">
+            <input type="text" name="invoice" placeholder="Số hóa đơn" value="{{ search_invoice }}" class="form-control form-control-sm">
+        </div>
+        <div class="col-auto">
+            <input type="text" name="supplier" placeholder="Nhà cung cấp" value="{{ search_supplier }}" class="form-control form-control-sm">
+        </div>
+        <div class="col-auto">
+            <input type="text" name="po_number" placeholder="Số phiếu nhập" value="{{ search_po_number }}" class="form-control form-control-sm">
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-outline-primary btn-sm">🔍 Tìm</button>
+        </div>
+    </form>
+
+    <!-- 🗑 Xóa tất cả -->
+    <form method="post" onsubmit="return confirm('Bạn có chắc muốn xóa toàn bộ phiếu nhập không?');">
+        {% csrf_token %}
+        <button type="submit" name="delete_all" class="btn btn-danger btn-sm mb-3">🗑 Xóa toàn bộ phiếu</button>
+    </form>
+
+    <!-- 💳 Card chứa table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <strong>Danh sách phiếu nhập</strong>
+        </div>
+        <div class="card-body p-0">
+            {% if pos %}
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle text-center mb-0">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>#</th>
+                            <th>Mã PO</th>
+                            <th>Số HĐ</th>
+                            <th>Nhà cung cấp</th>
+                            <th>Tiền hàng</th>
+                            <th>Tiền thuế</th>
+                            <th>Thanh toán</th> <!-- Thêm cột Thanh toán -->
+                            <th>Ngày tạo</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for po in pos %}
+                        <tr>
+                            <td>{{ forloop.counter0|add:pos.start_index }}</td>
+                            <td><strong>{{ po.po_number }}</strong></td>
+                            <td>{{ po.invoice.so_hoa_don }}</td>
+                            <td class="text-start">{{ po.supplier }}</td>
+                            <td class="text-end">{{ po.total_amount|floatformat:1|intcomma }}</td>
+                            <td class="text-end">{{ po.total_tax|floatformat:1|intcomma }}</td>
+<td class="text-end">
+    {{ po.total_payment|floatformat:1|intcomma }}
+</td>
+                            <td>{{ po.created_at |date:"d/m/y" }}</td>
+                            <td>
+                                <a href="{% url 'purchase_order_detail' po_id=po.id %}" 
+                                   class="btn btn-sm btn-outline-info mb-1">
+                                    <i class="bi bi-eye"></i> Xem
+                                </a>
+                                <a href="{% url 'edit_purchase_order' po_id=po.id %}" 
+                                   class="btn btn-sm btn-outline-primary mb-1">
+                                    <i class="bi bi-pencil"></i> Sửa
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 📄 Pagination -->
+            {% if paginator and pos.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-3">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if pos.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ pos.previous_page_number }}&per_page={{ per_page }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
+                    {% endif %}
+
+                    {% for num in pos.paginator.page_range %}
+                        {% if pos.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num >= pos.number|add:'-2' and num <= pos.number|add:'2' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}&per_page={{ per_page }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if pos.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ pos.next_page_number }}&per_page={{ per_page }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+                <div class="alert alert-info m-3">Chưa có phiếu nhập nào.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

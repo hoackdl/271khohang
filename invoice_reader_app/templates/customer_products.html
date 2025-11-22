@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load number_to_text %}
+
+
+
+{% block content %}
+<h2 class="mb-4">📦 Tổng hợp hàng hóa xuất</h2>
+
+
+<!-- FORM IMPORT EXCEL -->
+<form method="post" action="{% url 'customer_product_names_import_excel' %}" enctype="multipart/form-data" class="mb-3 row g-2 align-items-center">
+    {% csrf_token %}
+    <div class="col-auto">
+        <input type="file" name="excel_file" accept=".xlsx,.xls" class="form-control form-control-sm">
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-success btn-sm">📥 Import Excel</button>
+    </div>
+</form>
+
+<!-- FORM TÌM KIẾM + NÚT EXPORT EXCEL -->
+<form method="get" class="mb-3 row g-2 align-items-center">
+    <div class="col-auto">
+        <input type="text" name="search_product" placeholder="Tìm kiếm hàng hóa..." value="{{ search_product }}" class="form-control form-control-sm">
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-primary btn-sm">🔎 Tìm</button>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'customer_product_names_export_excel' %}?search_product={{ search_product }}&search_customer={{ search_customer }}" class="btn btn-outline-success btn-sm">📤 Export Excel</a>
+    </div>
+</form>
+
+<div class="table-responsive">
+<table class="table table-bordered table-hover text-center align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>TT</th>
+            <th class="text-start">Tên hàng xuất</th>
+            <th>Tên gọi chung</th>
+            <th class="text-end">Tổng xuất</th>
+            <th class="text-end">Đơn giá TB</th>
+            <th class="text-end">Tổng tiền</th>
+            <th class="text-end">Tổng tiền thuế</th>
+            <th class="text-end">Thanh toán</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in products %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td class="text-start">{{ item.ten_hang }}</td>
+            <td>{{ item.ten_goi_chung }}</td>
+            <td class="text-end">{{ item.total_so_luong|floatformat:2|intcomma }}</td>
+            <td class="text-end">{{ item.avg_don_gia|floatformat:0|intcomma }}</td>
+            <td class="text-end">{{ item.total_thanh_tien|floatformat:0|intcomma }}</td>
+            <td class="text-end">{{ item.total_tien_thue|floatformat:0|intcomma }}</td>
+            <td class="text-end">{{ item.total_thanh_tien|add:item.total_tien_thue|floatformat:0|intcomma }}</td>
+            <td>
+                {% if item.id %}
+                  <a href="{% url 'customer_products_name_edit' item.id %}" class="btn btn-sm btn-warning">✏️ Sửa</a>
+
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="9" class="text-center text-muted">Không có hàng hóa nào.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<!-- Phân trang hàng hóa -->
+{% if products.has_other_pages %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% if products.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?product_page={{ products.previous_page_number }}&search_product={{ search_product }}">Trước</a>
+            </li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Trước</span></li>
+        {% endif %}
+
+        {% for num in products.paginator.page_range %}
+            {% if products.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?product_page={{ num }}&search_product={{ search_product }}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if products.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?product_page={{ products.next_page_number }}&search_product={{ search_product }}">Sau</a>
+            </li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Sau</span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock content %}

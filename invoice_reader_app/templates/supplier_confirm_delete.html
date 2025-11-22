@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Xóa nhà cung cấp</title>
+</head>
+<body>
+    <h2>Xóa nhà cung cấp</h2>
+    <p>Bạn có chắc muốn xóa nhà cung cấp <strong>{{ supplier.ten_dv_ban }}</strong> ({{ supplier.ma_so_thue }}) không?</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Xóa</button>
+        <a href="{% url 'suppliers' %}">Hủy</a>
+    </form>
+</body>
+</html>
