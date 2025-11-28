@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+{% block title %}📦 Báo cáo Xuất - Nhập - Tồn{% endblock %}
+
+<style>
+html, body { height: 100%; margin: 0; padding: 0; }
+
+.container-fluid { padding: 0 !important; }
+.card { border-radius: 0 !important; border: none !important; }
+.full-screen-container { height: 100vh; display: flex; flex-direction: column; }
+
+.card-body-wrapper {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* quan trọng để flex con overflow hoạt động */
+}
+
+form.search-form { flex: 0 0 auto; margin-bottom: 8px; }
+.pagination-container { flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+
+.table-container {
+  flex: 1 1 auto;
+  overflow: auto;
+  min-height: 0; /* quan trọng cho flex column */
+}
+
+.table-container table {
+  border-collapse: collapse;
+  width: max-content; /* scroll ngang nếu rộng */
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 10;
+}
+
+.table th:first-child,
+.table td:first-child {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 11;
+}
+
+.table th, .table td { padding: 6px 8px !important; font-size: 13px; }
+.truncate-cell { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.full-height-card { height: 80vh; } /* card full màn hình */
+
+.table-sm-custom td,
+.table-sm-custom th {
+    font-size: 11px !important;
+    padding: 4px 6px !important;
+}
+</style>
+
+
+{% block content %}
+<div class="card shadow-sm" style="height: 90vh;"> <!-- hoặc 100vh tùy ý -->
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">📦 Báo cáo Xuất - Nhập - Tồn</h5>
+    <a href="{% url 'inventory_summary_export' %}?search={{ search }}" class="btn btn-success btn-sm">📥 Xuất Excel</a>
+  </div>
+
+  <div class="card-body-wrapper d-flex flex-column" style="min-height:0; height:100%;">
+    <!-- Form tìm kiếm cố định -->
+    <form class="search-form row g-2 align-items-center flex-shrink-0 mb-2">
+      <div class="col">
+        <input type="text" name="search" value="{{ search }}" placeholder="Tìm kiếm hàng hóa..." class="form-control form-control-sm">
+      </div>
+      <div class="col-auto">
+        <select name="per_page" class="form-select form-select-sm" onchange="this.form.submit()">
+          <option value="10" {% if per_page == 10 %}selected{% endif %}>10 / trang</option>
+          <option value="20" {% if per_page == 20 %}selected{% endif %}>20 / trang</option>
+          <option value="50" {% if per_page == 50 %}selected{% endif %}>50 / trang</option>
+          <option value="100" {% if per_page == 100 %}selected{% endif %}>100 / trang</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-outline-primary btn-sm">🔍 Tìm</button>
+      </div>
+    </form>
+
+    <!-- Bảng cuộn -->
+    <div class="table-container flex-grow-1" style="overflow:auto; min-height:0;">
+      <table class="table table-bordered table-hover table-sm-custom">
+        <thead class="table-light">
+          <tr>
+            <th>TT</th>
+            <th>SKU</th>
+            <th class="text-center">Tên gọi chung</th>
+            <th>ĐVT</th>
+            <th class="text-center">Tổng nhập</th>
+            <th class="text-center">Tổng xuất</th>
+            <th class="text-center">Tồn cuối</th>
+            <th class="text-center">Giá TB nhập</th>
+            <th class="text-center">Giá TB xuất</th>
+            <th>Chi tiết</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Tổng cộng -->
+          <tr class="table-secondary fw-bold text-end">
+            <td colspan="4" class="text-center">Tổng cộng</td>
+            <td class="text-end">{{ totals.tong_nhap|floatformat:2|intcomma }}</td>
+            <td class="text-end">{{ totals.tong_xuat|floatformat:2|intcomma }}</td>
+            <td class="text-end">{{ totals.ton_cuoi|floatformat:2|intcomma }}</td>
+            <td class="text-end">{{ totals.gia_tb_nhap|floatformat:0|intcomma }}</td>
+            <td class="text-end">{{ totals.gia_tb_xuat|floatformat:0|intcomma }}</td>
+            <td></td>
+          </tr>
+
+          {% for row in data %}
+          <tr class="{% if row.ton_cuoi < 0 %}table-danger{% endif %}">
+            <td>{{ forloop.counter0|add:data.start_index }}</td>
+            <td>{{ row.sku }}</td>
+            <td class="text-start">{{ row.ten_goi_chung }}</td>
+            <td>{{ row.dvt }}</td>
+            <td class="text-end">{{ row.tong_nhap|floatformat:2|intcomma }}</td>
+            <td class="text-end">{{ row.tong_xuat|floatformat:2|intcomma }}</td>
+            <td class="text-end fw-bold">{{ row.ton_cuoi|floatformat:2|intcomma }}</td>
+            <td class="text-end">{{ row.gia_tb_nhap|floatformat:0|intcomma }}</td>
+            <td class="text-end">{{ row.gia_tb_xuat|floatformat:0|intcomma }}</td>
+            <td>
+              {% if row.chi_tiet %}
+              <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#ct{{ forloop.counter }}" aria-expanded="false">
+                👁️ ({{ row.chi_tiet|length }})
+              </button>
+              {% else %}
+              <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+          </tr>
+
+          {% if row.chi_tiet %}
+          <tr id="ct{{ forloop.counter }}" class="collapse bg-light">
+            <td colspan="10" class="p-2">
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered mb-0 text-center">
+                  <thead class="table-secondary">
+                    <tr>
+                      <th>Mã phiếu</th>
+                      <th>Ngày</th>
+                      <th>Số lượng nhập</th>
+                      <th>Số lượng xuất</th>
+                      <th>Thành tiền nhập</th>
+                      <th>Thành tiền xuất</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for ct in row.chi_tiet %}
+                    <tr>
+                      <td>{{ ct.ma_po }}</td>
+                      <td>{{ ct.ngay|date:"d/m/Y" }}</td>
+                      <td class="text-end">{{ ct.so_luong_nhap|floatformat:2|intcomma }}</td>
+                      <td class="text-end">{{ ct.so_luong_xuat|floatformat:2|intcomma }}</td>
+                      <td class="text-end">{{ ct.thanh_tien_nhap|floatformat:0|intcomma }}</td>
+                      <td class="text-end">{{ ct.thanh_tien_xuat|floatformat:0|intcomma }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </td>
+          </tr>
+          {% endif %}
+
+          {% empty %}
+          <tr><td colspan="10" class="text-muted">Không có dữ liệu.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination + info -->
+    {% if data.paginator %}
+      <div class="d-flex justify-content-between align-items-center flex-shrink-0 p-2">
+        <div class="text-muted small">
+          Trang {{ data.number }} / {{ data.paginator.num_pages }} — Tổng {{ data.paginator.count }} hàng hóa
+        </div>
+        <ul class="pagination mb-0">
+    {% if data.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page=1&{{ query_params }}">« Đầu</a></li>
+      <li class="page-item"><a class="page-link" href="?page={{ data.previous_page_number }}&{{ query_params }}">‹ Trước</a></li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">« Đầu</span></li>
+      <li class="page-item disabled"><span class="page-link">‹ Trước</span></li>
+    {% endif %}
+
+    {% for num in data.paginator.page_range %}
+      {% if num == data.number %}
+        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+      {% elif num > data.number|add:'-3' and num < data.number|add:'3' %}
+        <li class="page-item"><a class="page-link" href="?page={{ num }}&{{ query_params }}">{{ num }}</a></li>
+      {% endif %}
+    {% endfor %}
+
+    {% if data.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ data.next_page_number }}&{{ query_params }}">Sau ›</a></li>
+      <li class="page-item"><a class="page-link" href="?page={{ data.paginator.num_pages }}&{{ query_params }}">Cuối »</a></li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Sau ›</span></li>
+      <li class="page-item disabled"><span class="page-link">Cuối »</span></li>
+    {% endif %}
+  </ul>
+</div>
+{% endif %}
+
+
+  </div>
+</div>
+{% endblock %}

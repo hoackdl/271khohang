@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+{% block title %}Danh sách nhà cung cấp{% endblock %}
+
+{% block extra_head %}
+<style>
+    .supplier-item {
+        display: grid;
+        grid-template-columns: 3fr 3fr 2fr 2fr auto;
+        gap: 10px;
+        align-items: center;
+    }
+    .supplier-header {
+        font-weight: bold;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 5px;
+        margin-bottom: 5px;
+    }
+    .list-group-item {
+        display: contents; /* để grid áp dụng cho toàn bộ item */
+    }
+
+    .supplier-item {
+    display: grid;
+    grid-template-columns: 3fr 3fr 2fr 2fr auto;
+    gap: 10px;
+    align-items: center;
+}
+
+.supplier-header {
+    font-weight: bold;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+}
+
+.list-group-item {
+    display: contents; /* áp dụng grid cho toàn bộ item */
+}
+
+/* optional: sticky header mà không scroll bảng */
+.supplier-header {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="full-screen-container">
+
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+        <!-- Tiêu đề -->
+        <h2 class="mb-0">📋 Danh sách nhà cung cấp</h2>
+
+        <!-- Nút thêm -->
+        <a href="{% url 'supplier_add' %}" class="btn btn-success flex-shrink-0">➕ Thêm nhà cung cấp</a>
+
+        <!-- Form tìm kiếm -->
+        <form method="get" class="d-flex flex-grow-1 gap-2 mb-0">
+            <input type="text" name="search_supplier" placeholder="Tìm kiếm theo MST hoặc tên..." value="{{ search_supplier }}" class="form-control" />
+            <button type="submit" class="btn btn-outline-primary">Tìm</button>
+        </form>
+    </div>
+
+<!-- Header cột -->
+<div class="supplier-item supplier-header text-center">
+    <div>Tên nhà cung cấp</div>
+    <div>Địa chỉ</div>
+    <div>MST</div>
+    <div>Nhóm</div>
+    <div>Hành động</div>
+</div>
+
+<ul class="list-group">
+    {% for supplier in suppliers %}
+        <li class="list-group-item">
+            <div class="supplier-item">
+                <div>{{ supplier.ten_dv_ban }}</div>
+                <div>{{ supplier.dia_chi }}</div>
+                <div>{{ supplier.ma_so_thue }}</div>
+                <div>{{ supplier.phan_loai }}</div>
+                <div class="d-flex gap-1">
+                    <a href="{% url 'supplier_edit' supplier.id %}" class="btn btn-sm btn-warning">✏️ Chỉnh sửa</a>
+                    <a href="{% url 'supplier_delete' supplier.id %}" class="btn btn-sm btn-danger">🗑️ Xóa</a>
+                </div>
+            </div>
+        </li>
+    {% empty %}
+        <li class="list-group-item text-center">Không có nhà cung cấp.</li>
+    {% endfor %}
+</ul>
+
+<!-- Phân trang -->
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if suppliers.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ suppliers.previous_page_number }}&search_supplier={{ search_supplier }}">Trước</a>
+            </li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Trước</span></li>
+        {% endif %}
+
+        {% for num in suppliers.paginator.page_range %}
+            {% if suppliers.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > suppliers.number|add:'-3' and num < suppliers.number|add:'3' %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}&search_supplier={{ search_supplier }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if suppliers.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ suppliers.next_page_number }}&search_supplier={{ search_supplier }}">Sau</a>
+            </li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Sau</span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endblock %}

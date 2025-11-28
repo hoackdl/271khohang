@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}📊 Tổng hợp hóa đơn{% endblock %}
+
+{% block extra_head %}
+<style>
+  .truncate-cell {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+  }
+  th, td { vertical-align: middle; }
+  .text-end { text-align: right; }
+  .text-success { color: green; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card p-4 mb-5 shadow-sm">
+  <h2 class="mb-4 text-primary">📊 Tổng hợp hóa đơn nhập xuất</h2>
+
+  <!-- 🔹 Nút quay lại + xuất Excel -->
+  <div class="d-flex flex-wrap gap-2 mb-4">
+
+<form method="get" action="{% url 'invoice_summary_export_excel' %}" id="exportForm">
+    <input type="hidden" name="invoice_ids" id="invoice_ids">
+    <button type="submit" class="btn btn-success mt-3">📤 Xuất Excel đã chọn</button>
+</form>
+
+  </div>
+
+  <!-- 🔹 Bộ lọc -->
+  <form method="get" class="row g-3 align-items-end mb-4">
+    <div class="col-md-2">
+      <label for="start_date" class="form-label mb-1 small">Từ ngày:</label>
+      <input type="date" id="start_date" name="start_date" value="{{ request.GET.start_date }}" class="form-control">
+    </div>
+
+    <div class="col-md-2">
+      <label for="end_date" class="form-label mb-1 small">Đến ngày:</label>
+      <input type="date" id="end_date" name="end_date" value="{{ request.GET.end_date }}" class="form-control">
+    </div>
+
+    <div class="col-md-4">
+      <label for="search" class="form-label mb-1 small">Tìm kiếm:</label>
+      <input type="text" id="search" name="search" placeholder="Nhập từ khóa..." value="{{ request.GET.search }}" class="form-control">
+    </div>
+
+    <div class="col-md-2">
+      <label for="perPage" class="form-label mb-1 small">Hiển thị:</label>
+      <select name="per_page" id="perPage" class="form-select" onchange="this.form.submit()">
+        <option value="10" {% if request.GET.per_page == '10' or not request.GET.per_page %}selected{% endif %}>10</option>
+        <option value="25" {% if request.GET.per_page == '25' %}selected{% endif %}>25</option>
+        <option value="50" {% if request.GET.per_page == '50' %}selected{% endif %}>50</option>
+        <option value="all" {% if request.GET.per_page == 'all' %}selected{% endif %}>Tất cả</option>
+      </select>
+    </div>
+
+    <div class="col-md-2 d-flex flex-column gap-2">
+      <button type="submit" class="btn btn-outline-primary mt-4">🔎 Lọc</button>
+      <a href="{% url 'invoice_summary' %}" class="btn btn-outline-secondary">🔄 Xóa lọc</a>
+    </div>
+  </form>
+</div>
+{% if data %}
+<div class="table-responsive">
+  <table id="summaryTable" class="table table-bordered table-striped text-center align-middle">
+    <thead class="table-light">
+      <tr>
+        <th><input type="checkbox" id="checkAll"></th>
+
+        <th>STT</th>
+        <th>Tên đơn vị bán</th>
+        <th>Mã số thuế</th>
+        <th>Số hóa đơn</th>
+        <th>Ngày HĐ</th>
+        <th>Tiền hàng</th>
+        <th>Thuế GTGT</th>
+        <th>Tổng tiền</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for invoice in data %}
+      <tr>
+        <td><input type="checkbox" class="checkItem" name="invoice_ids" value="{{ invoice.id }}"></td>
+
+        <td>{{ forloop.counter }}</td>
+        <td class="text-start">{{ invoice.ten_dv_ban }}</td>
+        <td>{{ invoice.ma_so_thue }}</td>
+        <td>{{ invoice.so_hoa_don }}</td>
+        <td>{{ invoice.ngay_hd }}</td>
+        <td class="text-end">{{ invoice.tong_tien_hang|floatformat:0|intcomma }}</td>
+        <td class="text-end">{{ invoice.tien_thue_gtgt|floatformat:0|intcomma }}</td>
+        <td class="text-end text-success fw-bold">{{ invoice.tong_tien|floatformat:0|intcomma }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% else %}
+<p class="text-muted text-center mt-4">Không có dữ liệu để hiển thị.</p>
+{% endif %}
+
+
+{% endblock content %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+    const checkAll = document.getElementById("checkAll");
+    const checkItems = document.querySelectorAll(".checkItem");
+    const exportForm = document.getElementById("exportForm");
+    const invoiceIdsInput = document.getElementById("invoice_ids");
+
+    // Chọn / bỏ chọn tất cả
+    checkAll.addEventListener("change", function(){
+        checkItems.forEach(cb => cb.checked = this.checked);
+    });
+
+    // Khi submit form, gom ID các hóa đơn đã tick
+    exportForm.addEventListener("submit", function(e){
+        const selectedIds = Array.from(checkItems)
+                                .filter(cb => cb.checked)
+                                .map(cb => cb.value);
+        if(selectedIds.length === 0){
+            e.preventDefault();
+            alert("Vui lòng chọn ít nhất một hóa đơn để xuất Excel!");
+            return;
+        }
+        invoiceIdsInput.value = selectedIds.join(",");
+    });
+});
+</script>
