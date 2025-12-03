@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container py-5">
+  <div class="card shadow-lg border-0">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">✏️ Chỉnh sửa hoá đơn số {{ invoice.so_hoa_don }}</h5>
+      <a href="{% url 'invoice_export_list' %}" class="btn btn-light btn-sm">
+        ⬅️ Quay lại
+      </a>
+    </div>
+
+    <div class="card-body bg-light">
+      <form method="post">
+        {% csrf_token %}
+
+        <!-- THÔNG TIN HÓA ĐƠN -->
+        <div class="card mb-4 border-0 shadow-sm">
+          <div class="card-header bg-info text-white fw-bold">
+            🧾 Thông tin hóa đơn
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              {% for field in form %}
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">{{ field.label }}</label>
+                  {{ field }}
+                  {% if field.errors %}
+                    <div class="text-danger small">{{ field.errors }}</div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- DANH SÁCH HÀNG HÓA -->
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-success text-white fw-bold">
+            📦 Danh sách hàng hóa
+          </div>
+          <div class="card-body bg-white">
+            {{ formset.management_form }}
+            <div class="table-responsive">
+              <table class="table table-bordered table-hover table-sm align-middle text-center">
+                <thead class="table-primary">
+                  <tr>
+                    <th>Tên hàng</th>
+                    <th>ĐVT</th>
+                    <th>Số lượng</th>
+                    <th>Đơn giá</th>
+                    <th>Thành tiền</th>
+                    <th>Thuế suất</th>
+                    <th>Tiền thuế</th>
+                    <th>SKU</th>
+                    <th>Tên gọi chung</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for f in formset %}
+                  <tr>
+                    <td>{{ f.ten_hang }}</td>
+                    <td>{{ f.dvt }}</td>
+                    <td>{{ f.so_luong }}</td>
+                    <td>{{ f.don_gia }}</td>
+                    <td>{{ f.thanh_tien }}</td>
+                    <td>{{ f.thue_suat }}</td>
+                    <td>{{ f.tien_thue }}</td>
+                    <td>{{ f.sku }}</td>
+                    <td>{{ f.ten_goi_chung }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-end mt-4">
+          <button type="submit" class="btn btn-primary px-4 py-2">
+            💾 Lưu thay đổi
+          </button>
+          <a href="{% url 'invoice_export_list' %}" class="btn btn-outline-secondary px-4 py-2">
+            ⬅️ Quay lại
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Cải thiện độ rộng form inputs */
+  input, select, textarea {
+    width: 100% !important;
+  }
+  .card {
+    border-radius: 12px;
+  }
+  .card-header {
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+  }
+  .table thead th {
+    vertical-align: middle;
+  }
+  table input, table select {
+    width: 100%;
+    min-width: 100px;
+  }
+</style>
+
+{% endblock %}

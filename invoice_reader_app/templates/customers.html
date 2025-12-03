@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+{% block title %}📋 Danh sách khách hàng{% endblock %}
+
+{% block extra_head %}
+<style>
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+.full-screen-container {
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+.card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.customer-header,
+.list-group-item {
+    display: grid;
+    grid-template-columns: 0.5fr 3fr 3fr 2fr 2fr auto;
+    gap: 10px;
+    align-items: center;
+}
+
+
+.customer-list-scroll {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    border-top: 1px solid #e0e0e0;
+}
+
+.list-group-item {
+    padding: 10px 0;
+}
+
+.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.customer-actions a {
+    margin-right: 5px;
+    white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .customer-header,
+    .list-group-item {
+        grid-template-columns: 2fr 2fr 1fr auto;
+        font-size: 14px;
+    }
+}
+
+</style>
+{% endblock extra_head %}
+
+{% block content %}
+<div class="full-screen-container">
+
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+        <!-- Tiêu đề -->
+        <h2 class="mb-0">📋 Danh sách khách hàng</h2>
+
+        <!-- Nút thêm khách hàng -->
+        <a href="{% url 'customer_add' %}" class="btn btn-success flex-shrink-0">➕ Thêm khách hàng</a>
+
+        <!-- Form tìm kiếm -->
+        <form method="get" class="d-flex flex-grow-1 gap-2 mb-0">
+            <input type="text" name="search_customer" value="{{ search_customer }}" class="form-control" placeholder="Tìm kiếm...">
+            <button type="submit" class="btn btn-outline-primary">Tìm</button>
+        </form>
+    </div>
+
+    <!-- Header cột -->
+<div class="customer-header text-center mb-2 pb-2 border-bottom">
+    <div>TT</div>
+    <div class="text-start">Tên khách hàng</div>
+    <div class="text-start">Địa chỉ</div>
+    <div>MST</div>
+    <div>Nhóm</div>
+    <div class="text-center">Hành động</div>
+</div>
+
+
+<!-- Danh sách khách hàng có scroll -->
+<div class="customer-list-scroll">
+    <ul class="list-group">
+        {% for customer in customers %}
+        <li class="list-group-item">
+            <div class="text-center">{{ forloop.counter0|add:customers.start_index }}</div> 
+            <div class="text-start text-wrap">{{ customer.ten_khach_hang }}</div>
+            <div class="text-start text-wrap">{{ customer.dia_chi }}</div>
+            <div class="text-center">{{ customer.ma_so_thue }}</div>
+            <div class="text-center">{{ customer.phan_loai }}</div>
+            <div class="customer-actions">
+                <a href="{% url 'customer_edit' customer.pk %}" class="btn btn-sm btn-outline-primary">Sửa</a>
+                <a href="{% url 'customer_delete' customer.pk %}" class="btn btn-sm btn-danger">🗑️ Xóa</a>
+            </div>
+        </li>
+        {% endfor %}
+
+    </ul>
+</div>
+
+    <!-- Pagination + info -->
+      {% include "components/pagination.html" with data=customers query_params=query_params %}
+
+
+
+      
+</div>
+{% endblock content %}

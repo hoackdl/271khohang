@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load number_to_text %}
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+
+{% block title %}Danh mục hàng hóa{% endblock %}
+
+{% block extra_head %}
+
+<style>
+html, body {
+    height: 100%;
+    overflow: hidden; /* ❗Khóa cuộn trang */
+}
+
+.full-screen-container {
+    height: 100vh;          /* full màn hình */
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    overflow: hidden;       /* không tràn ra ngoài */
+}
+
+/* Card chứa table */
+.card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;      /* giữ phần bảng bên trong */
+    min-height: 0; /* quan trọng để flex con overflow hoạt động */
+}
+
+
+/* Table responsive */
+.table-responsive {
+    flex: 1;
+    overflow-y: auto;      /* cuộn dọc */
+    overflow-x: auto;      /* cuộn ngang nếu cần */
+}
+
+
+/* Table kiểu card */
+.table {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    min-width: 1000px; /* cuộn ngang nếu cần */
+}
+
+/* Các style khác */
+.table th, .table td { vertical-align: middle; padding: 0.75rem 1rem; }
+.table thead { background-color: #f8f9fa; font-weight: 600; }
+.table-hover tbody tr {
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+.table-hover tbody tr:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background-color: #ffffff;
+}
+.table tbody tr:nth-child(odd) { background-color: #fdfdfd; }
+.table tbody tr:nth-child(even) { background-color: #f9f9f9; }
+.table tbody tr.xuat { background-color: #e0f7fa; }
+.table tbody tr.nhap { background-color: #fff3e0; }
+</style>
+
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+<h2 class="mb-3">📦 Danh mục hàng hóa</h2>
+
+<form method="get" action="" enctype="multipart/form-data" class="mb-3 row g-2 align-items-center">
+    {% csrf_token %}
+        <!-- Thêm sản phẩm mới -->
+    <div class="col-auto">
+        <a href="{% url 'add_product' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i> Thêm sản phẩm mới
+        </a>
+    </div>
+    <!-- Tìm kiếm -->
+    <div class="col">
+        <input type="text" name="search_product" placeholder="Tìm kiếm hàng hóa..." value="{{ search_product }}"
+            class="form-control form-control-sm">
+    </div>
+
+    <!-- Nhóm hàng -->
+    <div class="col-auto">
+        <select name="nhom_hang" class="form-select form-select-sm">
+            <option value="">-- Nhóm hàng --</option>
+            {% for value, label in nhom_hang_choices %}
+                <option value="{{ value }}" {% if value == nhom_hang %}selected{% endif %}>
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Nút tìm -->
+    <div class="col-auto">
+        <button class="btn btn-outline-primary btn-sm">🔎 Tìm</button>
+    </div>
+
+    <!-- Xuất Excel -->
+    <div class="col-auto">
+        <a href="{% url 'dmhh_export_excel' %}?search_product={{ search_product }}&nhom_hang={{ nhom_hang }}"
+            class="btn btn-success btn-sm">📥 Xuất Excel</a>
+    </div>
+
+    <!-- Nhập Excel -->
+    <div class="col-auto">
+        <input type="file" name="excel_file" accept=".xlsx,.xls" class="form-control form-control-sm">
+    </div>
+    <div class="col-auto">
+        <button formaction="{% url 'dmhh_import_excel' %}"
+            class="btn btn-primary btn-sm">📤 Nhập Excel</button>
+    </div>
+
+    <!-- Xóa toàn bộ -->
+    <div class="col-auto">
+        <button formaction="{% url 'dmhh_delete_all' %}" type="submit"
+            onclick="return confirm('Bạn có chắc muốn xóa toàn bộ danh mục hàng hóa?');"
+            class="btn btn-danger btn-sm">🗑️ Xóa toàn bộ</button>
+    </div>
+
+
+</form>
+
+<!-- Bảng cuộn ngang -->
+<div class="table-responsive">
+    <table class="table table-bordered table-hover text-center w-100">
+        <thead class="table-light">
+            <tr>
+                <th>TT</th>
+                <th>SKU</th>
+                <th class="text-start">Tên hàng hóa</th>
+                <th class="text-start">Tên gọi chung</th>
+                <th>Nhóm hàng</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in products %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ item.sku }}</td>
+                <td class="text-start">{{ item.ten_hang }}</td>
+                <td class="text-start">{{ item.ten_goi_chung }}</td>
+                <td>{{ item.get_nhom_hang_display }}</td>
+                <td>
+                    <a href="{% url 'edit_product_dmhh' item.id %}" class="btn btn-sm btn-warning">✏️ Sửa</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">Không có hàng hóa nào.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+    <!-- Pagination + info -->
+      {% include "components/pagination.html" with data=products query_params=query_params %}
+
+</div>
+{% endblock %}

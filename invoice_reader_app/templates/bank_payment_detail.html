@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Chi tiết Bank Payment</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Chọn PO (multiple) -->
+                <div class="mb-3">
+                    <label class="form-label">Chọn PO (có thể chọn nhiều)</label>
+                    <select class="form-select" name="po_id" multiple size="5" id="poSelect">
+                        {% for po in purchase_orders %}
+                        <option value="{{ po.id }}"
+                            {% if po in payment.purchase_orders.all %}selected{% endif %}>
+                            {{ po.po_number }}
+                            {% if po.invoice %} | HĐ: {{ po.invoice }}{% endif %}
+                            {% if po.supplier %} | NCC/KH: {{ po.supplier }}{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">Giữ Ctrl (Cmd trên Mac) để chọn nhiều PO</small>
+                </div>
+
+                <hr>
+
+                <!-- Tìm PO theo MST + Số HĐ -->
+                <div class="mb-3">
+                    <label class="form-label">Tìm PO theo MST + Số HĐ</label>
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="mst" placeholder="Mã số thuế">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="sohd" placeholder="Số hóa đơn (có thể nhiều, cách nhau bằng dấu ,)">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-outline-primary" id="searchPO">Tìm PO</button>
+                        </div>
+                    </div>
+                    <div id="poInfo" class="alert mt-2 d-none"></div>
+                </div>
+
+                <hr>
+
+                <!-- Debit / Credit -->
+                <div class="row">
+                    <div class="mb-3 col-md-6">
+                        <label class="form-label">Debit</label>
+                        <input type="text" class="form-control" name="debit" value="{{ payment.debit|floatformat:2 }}">
+                    </div>
+                    <div class="mb-3 col-md-6">
+                        <label class="form-label">Credit</label>
+                        <input type="text" class="form-control" name="credit" value="{{ payment.credit|floatformat:2 }}">
+                    </div>
+                </div>
+
+                <!-- Nội dung -->
+                <div class="mb-3">
+                    <label class="form-label">Nội dung chi tiết</label>
+                    <textarea class="form-control" name="content" rows="3">{{ payment.content }}</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                <a href="{% url 'bank_payments_manage' %}" class="btn btn-secondary">Quay lại</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const searchBtn = document.getElementById("searchPO");
+    const poSelect = document.getElementById("poSelect");
+    const poInfo = document.getElementById("poInfo");
+
+    searchBtn.addEventListener("click", function () {
+        const mst = document.getElementById("mst").value.trim();
+        const sohd = document.getElementById("sohd").value.trim();
+
+        if (!mst || !sohd) {
+            alert("Hãy nhập Mã số thuế và Số hóa đơn!");
+            return;
+        }
+
+        fetch(`/invoice/api/find-po/?mst=${mst}&sohd=${sohd}`)
+            .then(res => res.json())
+            .then(data => {
+                if (!data.found || !data.pos || data.pos.length === 0) {
+                    poInfo.className = "alert alert-danger mt-2";
+                    poInfo.innerHTML = "❌ Không tìm thấy phiếu nhập phù hợp.";
+                    return;
+                }
+
+                // Hiển thị thông tin tìm thấy
+                poInfo.className = "alert alert-success mt-2";
+                poInfo.innerHTML = `✔ Đã tìm thấy ${data.pos.length} PO`;
+
+                // Lấy các PO đã chọn hiện tại
+                const selectedIds = Array.from(poSelect.selectedOptions).map(opt => opt.value);
+
+                // Thêm các PO mới tìm thấy vào danh sách mà không bỏ PO cũ
+                const foundIds = data.pos.map(po => String(po.id));
+                Array.from(poSelect.options).forEach(option => {
+                    if (foundIds.includes(option.value) && !selectedIds.includes(option.value)) {
+                        option.selected = true;
+                    }
+                });
+            })
+            .catch(err => {
+                poInfo.className = "alert alert-danger mt-2";
+                poInfo.innerHTML = "❌ Lỗi khi tìm PO";
+                console.error(err);
+            });
+    });
+});
+</script>
+{% endblock %}

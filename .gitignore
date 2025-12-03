@@ -1,0 +1,52 @@
+# ======================
+# Python
+# ======================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# ======================
+# Django
+# ======================
+db.sqlite3
+media/
+staticfiles/
+
+# ======================
+# Environment variables (QUAN TRỌNG)
+# ======================
+.env
+*.env
+.env.*
+!.env.example
+
+# ======================
+# Virtual environment
+# ======================
+venv/
+ENV/
+env/
+
+# ======================
+# Logs
+# ======================
+*.log
+
+# ======================
+# IDE / Editor
+# ======================
+.vscode/
+.idea/
+*.swp
+*~
+
+*.sh
+.sh
+
+.ps1
+*.ps1
+
+
+scripts.py
