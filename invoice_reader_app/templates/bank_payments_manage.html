@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block container_class %}container-fluid pt-0 px-3 full-screen-container{% endblock %}
+{% block navbar_title %}Quản lý Bank Payments{% endblock %}
+
+
+{% block content %}
+<div class="card shadow-sm h-100 d-flex flex-column">
+
+
+    <!-- Controls: Upload + Search + Pagination -->
+    <div class="d-flex flex-wrap gap-2 mb-1 align-items-center w-100">
+
+        <!-- Upload Excel -->
+        <form method="post" enctype="multipart/form-data" class="d-flex gap-2 align-items-center w-25 mb-0">
+            {% csrf_token %}
+            <input type="file" name="excel_file" class="form-control form-control-sm flex-grow-1" required>
+            <button class="btn btn-success btn-sm">Upload</button>
+        </form>
+
+        <!-- Search & Per Page -->
+        <form method="get" class="d-flex gap-2 align-items-center flex-grow-1 mb-0">
+            <input type="text" name="search" placeholder="Tìm kiếm content / Doc No / PO..." class="form-control form-control-sm flex-grow-1" value="{{ search }}">
+            <select name="per_page" class="form-select form-select-sm w-auto">
+                {% for option in per_page_options %}
+                    <option value="{{ option }}" {% if per_page|stringformat:"s" == option %}selected{% endif %}>
+                        {% if option == "all" %}Tất cả{% else %}{{ option }}{% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="btn btn-outline-primary btn-sm">🔎 Lọc</button>
+        </form>
+
+        <!-- Pagination -->
+        {% if paginator %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination mb-1">
+                {% if payments.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ payments.previous_page_number }}&per_page={{ per_page }}">Trước</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Trước</span></li>
+                {% endif %}
+
+                {% for num in payments.paginator.page_range %}
+                    {% if num > payments.number|add:'-3' and num < payments.number|add:'3' %}
+                        <li class="page-item {% if payments.number == num %}active{% endif %}">
+                            {% if payments.number == num %}
+                                <span class="page-link">{{ num }}</span>
+                            {% else %}
+                                <a class="page-link" href="?page={{ num }}&per_page={{ per_page }}">{{ num }}</a>
+                            {% endif %}
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if payments.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ payments.next_page_number }}&per_page={{ per_page }}">Sau</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">Sau</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+
+    <!-- Form Nhập số dư đầu kỳ -->
+    <form method="post" class="d-flex gap-2 mb-1 align-items-center">
+        {% csrf_token %}
+        <label class="mb-1">Ngày đầu kỳ:</label>
+        <input type="date" name="opening_date" required class="form-control form-control-sm w-auto">
+        <label class="mb-1">Số dư đầu kỳ:</label>
+        <input type="text" name="opening_balance" required class="form-control form-control-sm w-auto">
+        <button type="submit" class="btn btn-primary btn-sm">Nhập số dư đầu kỳ</button>
+
+    </form>
+
+    <!-- Table + Delete Form -->
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="update_delete" value="1">
+                        <!-- Delete Button -->
+        <div class="mb-1 d-flex justify-content-start">
+            <button type="submit" name="action" value="delete" class="btn btn-danger btn-sm">Xóa các mục đã chọn</button>
+        </div>
+        <div class="table-responsive flex-grow-1 mb-3">
+            <table class="table table-sm table-bordered table-striped table-hover align-middle">
+                <thead class="table-dark sticky-top">
+                    <tr>
+                        <th class="text-center"><input type="checkbox" id="select_all_delete"></th>
+                        <th>STT / No.</th>
+                        <th>Doc No</th>
+                        <th class="text-center">Payment Date</th>
+                        <th class="text-end">Debit</th>
+                        <th class="text-end">Credit</th>
+                        <th class="text-end">Balance</th>
+                        <th class="text-center">Content</th>
+                        <th class="text-center">PO</th>
+                        <th class="text-center">Chi tiết</th>
+                    </tr>
+                    <tr class="table-info fw-bold">
+                        <td colspan="4" class="text-center">SỐ DƯ ĐẦU</td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-end">{{ opening_balance|floatformat:0|intcomma }}</td>
+                        <td colspan="3"></td>
+                    </tr>
+                    <tr class="table-warning fw-bold">
+                        <td colspan="4" class="text-center">TỔNG HỢP</td>
+                        <td class="text-end">{{ total_debit|floatformat:0|intcomma }}</td>
+                        <td class="text-end">{{ total_credit|floatformat:0|intcomma }}</td>
+                        <td class="text-end">{{ closing_balance|floatformat:0|intcomma }}</td>
+                        <td colspan="3"></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in payments %}
+                    <tr>
+                        <td class="text-center">
+                            <input type="checkbox" name="delete_ids" value="{{ p.id }}" class="delete_checkbox">
+                        </td>
+                        <td>{{ forloop.counter }}</td>
+                        <td class="text-center">{{ p.doc_no|default:"-" }}</td>
+                        <td class="text-center">{{ p.payment_date|date:"d/m/Y"|default:"-" }}</td>
+                        <td class="text-end">{{ p.debit|floatformat:0|intcomma }}</td>
+                        <td class="text-end">{{ p.credit|floatformat:0|intcomma }}</td>
+                        <td class="text-end">{{ p.balance|floatformat:0|intcomma }}</td>
+                        <td style="white-space:pre-wrap;">{{ p.content }}</td>
+                        <td class="text-center">
+                            {% for po in p.purchase_orders.all %}
+                                {{ po.po_number }}<br>
+                            {% empty %}-{% endfor %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'bank_payment_detail' p.id %}" class="btn btn-sm btn-info">Chi tiết</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center">Không có dữ liệu</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+
+    </form>
+</div>
+
+<!-- Styles -->
+<style>
+
+
+.table-dark.sticky-top { position: sticky; top: 0; z-index: 5; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.4); }
+.table-responsive { max-height: 75vh; overflow-y: auto; }
+.table td, .table th { padding: 0.3rem 0.5rem; vertical-align: middle; white-space: normal; word-wrap: break-word; }
+</style>
+
+<!-- Scripts -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('select_all_delete');
+    const checkboxes = document.querySelectorAll('.delete_checkbox');
+    selectAll.addEventListener('change', () => {
+        checkboxes.forEach(cb => cb.checked = selectAll.checked);
+    });
+});
+</script>
+{% endblock %}

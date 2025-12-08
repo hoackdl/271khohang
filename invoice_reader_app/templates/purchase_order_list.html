@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block container_class %}
+container-fluid p-0 full-screen-container
+{% endblock %}
+{% block extra_head %}
+<style>
+/* KHÔNG CHO TRANG CUỘN – CHỈ CUỘN TRONG BẢNG */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* CONTAINER TOÀN MÀN HÌNH */
+.full-screen-container {
+    height: calc(100vh - 70px); /* Nếu navbar cao 70px – chỉnh lại nếu cần */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* CARD CHIẾM TOÀN BỘ KHÔNG GIAN */
+.card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+/* CARD HEADER */
+.card-header {
+    padding: 10px 15px !important;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* CARD BODY */
+.card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 !important; 
+    min-height: 0;
+}
+
+/* CHỈ TABLE CUỘN */
+.table-container {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+/* TABLE MODERN */
+.table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+}
+
+/* HEADER STICKY */
+.table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #f0f6ff !important;
+    font-weight: 600;
+}
+
+/* CỘT ĐẦU STICKY */
+.table th:first-child,
+.table td:first-child {
+    position: sticky;
+    left: 0;
+    background: #fff;
+    z-index: 30;
+    font-weight: 600;
+}
+
+/* CỠ CHỮ – GỌN – DỄ ĐỌC */
+.table th, .table td {
+    padding: 13px 13px !important;
+    font-size: 15px;
+}
+
+/* HOVER ĐẸP */
+.table tbody tr:hover {
+    background-color: #eef6ff;
+}
+
+/* RÚT GỌN TEXT */
+.truncate-cell {
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* PAGINATION GỌN GÀNG */
+.pagination .page-link {
+    padding: 10px 10px;
+    font-size: 13px;
+}
+
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="full-screen-container">
+
+    <!-- HEADER TRÊN: Bộ lọc + pagination + nút -->
+    <div class="d-flex justify-content-between align-items-center w-100">
+
+        <!-- BỘ LỌC -->
+        <div class="d-flex gap-2 align-items-center flex-grow-1">
+            <h5 class="mb-0">📦 Danh sách Phiếu nhập</h5>
+
+            <form method="get" class="d-flex gap-2 flex-grow-1 mb-0">
+                <input type="text" name="invoice" class="form-control form-control-sm"
+                       placeholder="Số hóa đơn" value="{{ search_invoice }}">
+                <input type="text" name="supplier" class="form-control form-control-sm"
+                       placeholder="Nhà cung cấp" value="{{ search_supplier }}">
+                <input type="text" name="po_number" class="form-control form-control-sm"
+                       placeholder="Số phiếu nhập" value="{{ search_po_number }}">
+                <button class="btn btn-outline-primary btn-sm">🔍 Tìm</button>
+            </form>
+        </div>
+
+        <!-- NÚT -->
+        <div class="d-flex gap-2 ms-2">
+            <a href="{% url 'invoice_list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-file-earmark-text"></i> Hóa đơn
+            </a>
+        </div>
+    </div>
+
+    <!-- CARD TABLE -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            Danh sách phiếu nhập
+        </div>
+
+        <div class="card-body">
+
+            {% if pos %}
+            <div class="table-container">
+                <table class="table table-hover table-bordered text-center">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Mã PO</th>
+                            <th>Số HĐ</th>
+                            <th>Nhà cung cấp</th>
+                            <th>MST nhà cung cấp</th> <!-- Thêm cột MST -->
+                            <th>Tiền hàng</th>
+                            <th>Tiền thuế</th>
+                            <th>Thanh toán</th>
+                            <th>Ngày tạo</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for po in pos %}
+                        <tr>
+                            <td>{{ forloop.counter0|add:pos.start_index }}</td>
+                            <td><strong>{{ po.po_number }}</strong></td>
+                            <td>{{ po.invoice.so_hoa_don }}</td>
+                            <td class="text-start text-wrap">{{ po.invoice.ten_dv_ban }}</td>
+                            <td class="text-start text-wrap">{{ po.invoice.ma_so_thue }}</td>
+
+                            <td class="text-end">{{ po.total_amount|floatformat:1|intcomma }}</td>
+                            <td class="text-end">{{ po.total_tax|floatformat:1|intcomma }}</td>
+                            <td class="text-end">{{ po.total_payment|floatformat:1|intcomma }}</td>
+                            <td>{{ po.invoice.ngay_hd|date:"d/m/y" }}</td>
+                            <td>
+                                <a href="{% url 'purchase_order_detail' po.id %}" class="btn btn-sm btn-outline-info">👁</a>
+                                <a href="{% url 'edit_purchase_order' po.id %}" class="btn btn-sm btn-outline-primary">✏️</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+
+                </table>
+            </div>
+
+            {% else %}
+                <div class="alert alert-info m-3">Chưa có phiếu nhập nào.</div>
+            {% endif %}
+        </div>
+    </div>
+  <!-- Pagination + info -->
+      {% include "components/pagination.html" with data=pos query_params=query_params label=label %}
+
+</div>
+
+{% endblock %}
