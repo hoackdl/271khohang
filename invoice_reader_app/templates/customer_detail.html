@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load custom_tags %}
+{% load humanize %}
+{% load static number_to_text %}
+{% block navbar_title %}CHI TIẾT KHÁCH HÀNG-CÔNG NỢ{% endblock %}
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+
+{% block content %}
+
+<h5 class="mb-3">{{ customer.ten_khach_hang }}</h5>
+
+<form method="get" class="mb-4 d-flex gap-2 align-items-center flex-wrap">
+    <label>Ngày bắt đầu:
+        <input type="date" name="start_date" value="{{ start_date }}" class="form-control form-control-sm">
+    </label>
+    <label>Ngày kết thúc:
+        <input type="date" name="end_date" value="{{ end_date }}" class="form-control form-control-sm">
+    </label>
+    <button type="submit" class="btn btn-success btn-sm fw-bold px-4">Lọc</button>
+    <a href="{% url 'customer_detail' customer.id %}" class="btn btn-secondary btn-sm fw-bold px-4">Reset</a>
+</form>
+
+<table class="table table-bordered table-striped shadow-sm rounded">
+    <thead class=" text-center table-primary">
+        <tr>
+            <th>TT</th>
+            <th>Số hóa đơn</th>
+            <th>Ngày hóa đơn</th>
+            <th>Tổng hóa đơn</th>
+            <th>Phiếu thu</th>
+            <th>Đã thu</th>
+
+        </tr>
+
+    </thead>
+    <tbody>
+                <!-- Dòng số dư đầu kỳ -->
+        <tr style="font-weight:bold; background:#f0f0f0;" class="text-end">
+            <td colspan="3">Số dư đầu kỳ Phải thu/Phải trả</td>
+            <td>
+                {% if opening_balance >= 0 %}
+                    {{ opening_balance|floatformat:0 |intcomma}} 
+                {% else %}
+                    {{ opening_balance|floatformat:0|abs |intcomma}} 
+                {% endif %}
+            </td>
+            <td>-</td>
+        </tr>
+        <!-- Tổng hợp -->
+        <tr class="fw-bold table-secondary text-center">
+            <td colspan="3">Tổng</td>
+            <td class="text-end">{{ total_invoice|floatformat:0|intcomma }}</td>
+            <td></td>
+            <td class="text-end">{{ total_paid_all|floatformat:0|intcomma }}</td>
+           
+        </tr>
+
+
+         <!-- Tổng thu thực tế = tổng hóa đơn + số dư đầu kỳ -->
+        <tr style="font-weight:bold; background:#f0d0d0;" class="text-end">
+            <td colspan="2">Số dư cuối kỳ (Phải thu/Phải trả) </td>
+            <td colspan="2">
+                {{ closing_balance|floatformat:0 |intcomma }}
+            </td>
+        </tr>
+
+
+
+        {% for inv_data in invoice_data %}
+        <tr class="align-middle">
+            <td class="text-center">{{ forloop.counter }}</td>
+            <td class="text-center">{{ inv_data.invoice.so_hoa_don }}</td>
+            <td class="text-center">{{ inv_data.invoice.ngay_hd|date:"d/m/Y" }}</td>
+            <td class="text-end">{{ inv_data.invoice.tong_tien|floatformat:0|intcomma }}</td>
+            
+            <!-- Phiếu thu -->
+            <td>
+                {% if inv_data.payments %}
+                <table class="table table-sm mb-0">
+                    {% for p in inv_data.payments %}
+                    <tr>
+                        <td style="white-space: pre-wrap;">{{ p.content }}</td>
+                        
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% else %}
+                    <span class="text-muted">Chưa có phiếu thu</span>
+                {% endif %}
+            </td>
+
+            <!-- Thực thu (merge) -->
+            <td class="text-end text-success fw-bold">
+                {% if inv_data.merged_total_paid %}
+                    {{ inv_data.merged_total_paid|floatformat:0|intcomma }}
+                {% elif inv_data.has_shared_payment %}
+                    <span class="text-muted">Thu chung chứng từ</span>
+                {% endif %}
+            </td>
+
+
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7" class="text-center">Chưa có hóa đơn</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<nav aria-label="Invoice pagination">
+  <ul class="pagination justify-content-center">
+    {% if invoice_data.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ invoice_data.previous_page_number }}&{{ query_params }}">Previous</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Previous</span></li>
+    {% endif %}
+
+    <li class="page-item disabled">
+      <span class="page-link">
+        Page {{ invoice_data.number }} of {{ invoice_data.paginator.num_pages }}
+      </span>
+    </li>
+
+    {% if invoice_data.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ invoice_data.next_page_number }}&{{ query_params }}">Next</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Next</span></li>
+    {% endif %}
+  </ul>
+</nav>
+
+</div>
+
+
+{% endblock content %}
