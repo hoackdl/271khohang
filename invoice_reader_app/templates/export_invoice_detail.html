@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-3">
+
+<h4 class="mb-3">🧾 <b>CHI TIẾT FILE XUẤT HÓA ĐƠN</b></h4>
+
+<div class="mb-3">
+    <b>Trạng thái:</b>
+    {% if invoice.trang_thai == "CHO_XUAT" %}
+        <span class="badge bg-warning text-dark ms-2">
+            ⏳ Chờ xuất hoá đơn
+        </span>
+    {% else %}
+        <span class="badge bg-success ms-2">
+            ✔ Đã hoàn thành
+        </span>
+    {% endif %}
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <p><b>Số HĐ:</b> {{ invoice.id }}</p>
+        <p><b>Ngày:</b> {{ invoice.ngay_hd|date:"d/m/Y" }}</p>
+        <p><b>Khách hàng:</b> {{ invoice.ten_nguoi_mua }}</p>
+    </div>
+    <div class="col-md-6">
+        <p><b>MST:</b> {{ invoice.ma_so_thue_mua }}</p>
+        <p><b>Địa chỉ:</b> {{ invoice.dia_chi_mua }}</p>
+        <p><b>Email:</b> {{ invoice.email }}</p>
+    </div>
+</div>
+
+<table class="table table-bordered table-sm align-middle">
+    <thead class="table-light text-center">
+        <tr>
+            <th style="width:8%">SKU</th>
+            <th>Tên hàng</th>
+            <th style="width:6%">ĐVT</th>
+            <th style="width:6%">SL</th>
+            <th style="width:10%">Đơn giá</th>
+            <th style="width:12%">Thành tiền</th>
+            <th style="width:8%">Thuế suất</th>
+            <th style="width:12%">Tiền thuế</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i in items %}
+        <tr>
+            <td>{{ i.sku }}</td>
+            <td>{{ i.ten_hang }}</td>
+            <td class="text-center">{{ i.dvt }}</td>
+            <td class="text-end">{{ i.so_luong|floatformat:2 }}</td>
+            <td class="text-end">{{ i.don_gia|intcomma }}</td>
+            <td class="text-end">{{ i.thanh_tien|intcomma }}</td>
+            <td class="text-end">{{ i.thue_suat }}%</td>
+            <td class="text-end">{{ i.tien_thue|floatformat:0|intcomma }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="8" class="text-center text-muted">
+                Không có dòng hàng
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="row mt-3">
+    <div class="col-md-6"></div>
+    <div class="col-md-6">
+        <table class="table table-borderless text-end">
+    <tr>
+        <th>Tổng tiền hàng:</th>
+        <td>{{ invoice.tong_tien_hang|floatformat:0|intcomma }}</td>
+    </tr>
+    <tr>
+        <th>Thuế GTGT:</th>
+        <td>{{ invoice.tong_tien_thue|floatformat:0|intcomma }}</td>
+    </tr>
+    <tr class="fs-5">
+        <th class="text-danger">Thanh toán:</th>
+        <td class="text-danger fw-bold">
+            {{ invoice.tong_tien|floatformat:0|intcomma }}
+        </td>
+    </tr>
+</table>
+
+    </div>
+</div>
+
+<div class="text-end mt-4 d-flex justify-content-end gap-2">
+    <button type="button"
+            class="btn btn-outline-secondary px-4"
+            onclick="history.back()">
+        ⬅ Quay lại chỉnh sửa
+    </button>
+
+    <a href="{% url 'export_export_invoice_excel' invoice.id %}"
+       class="btn btn-success px-4">
+        📥 Tải Excel
+    </a>
+</div>
+{% if invoice.trang_thai != "DA_XUAT" %}
+<form method="post"
+      action="{% url 'export_invoice_mark_done' invoice.id %}"
+      class="d-inline">
+    {% csrf_token %}
+    <button class="btn btn-warning px-4"
+            onclick="return confirm('Xác nhận đánh dấu đã xuất hoá đơn?')">
+        ✅ Đánh dấu đã hoàn thành
+    </button>
+</form>
+{% else %}
+<span class="badge bg-success fs-6">
+    ✔ Đã xuất hoá đơn
+</span>
+{% endif %}
+
+
+</div>
+{% endblock %}

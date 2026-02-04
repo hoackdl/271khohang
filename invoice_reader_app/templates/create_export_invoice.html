@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block navbar_title %}LẬP PHIẾU XUẤT{% endblock %}
+{% block container_class %}container-fluid px-3{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <small class="opacity-95">Nhập thông tin & danh sách hàng xuất</small>
+    </div>
+
+    <div class="card-body">
+        <form method="post">
+        {% csrf_token %}
+
+<div class="row">
+
+<!-- ===== KHÁCH HÀNG ===== -->
+<div class="col-md-3 border-end">
+    <h6 class="text-uppercase text-muted mb-3">👤 NHẬP KHÁCH HÀNG</h6>
+
+    <label class="form-label small">Điền mã số thuế vào ô dưới</label>
+    <input type="text" id="mst" name="mst"
+           class="form-control mb-2"
+           placeholder="Nhập MST TỰ TRA CỨU">
+
+    <input type="hidden" id="customer_id" name="customer_id">
+
+    <label class="form-label small">Tên khách hàng</label>
+    <textarea id="ten_khach_hang"
+            name="ten_khach_hang"
+            class="form-control mb-2"
+            rows="2"
+            readonly></textarea>
+
+    <label class="form-label small">Địa chỉ</label>
+    <textarea id="dia_chi" name="dia_chi"
+              class="form-control mb-2" rows="2" readonly></textarea>
+
+    <label class="form-label small">Email</label>
+    <input type="email" id="email" name="email"
+           class="form-control mb-2"
+           >
+
+    <label class="form-label small mt-2">Ngày hóa đơn</label>
+    <input type="date" name="ngay_hd"
+           class="form-control" required>
+</div>
+
+<!-- ===== HÀNG HÓA ===== -->
+<div class="col-md-9">
+    <h5>📦 Danh sách hàng xuất</h5>
+
+<table class="table table-bordered" id="items-table">
+<thead class="table-light text-center">
+<tr>
+    <th style="width:8%">SKU</th>
+    <th style="width:25%">Tên hàng</th>
+    <th style="width:6%">ĐVT</th>
+    <th style="width:5%">SL</th>
+    <th style="width:8%">Đơn giá</th>
+    <th style="width:8%">Thành tiền</th>
+    <th style="width:6%">Thuế</th>
+    <th style="width:8%">Tiền thuế</th>
+    <th style="width:8%">Thanh toán</th>
+    <th style="width:4%"></th>
+</tr>
+</thead>
+
+<tbody></tbody>
+
+<tfoot class="table-light text-end">
+<tr>
+    <th colspan="5">TỔNG</th>
+    <th><span id="total_thanh_tien">0</span></th>
+    <th></th>
+    <th><span id="total_tien_thue">0</span></th>
+    <th class="fw-bold text-danger">
+        <span id="total_thanh_toan">0</span>
+    </th>
+    <th></th>
+</tr>
+</tfoot>
+</table>
+
+<button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow()">➕ Thêm dòng</button>
+<input type="hidden" name="items_count" id="items_count" value="0">
+
+<div class="text-end mt-3">
+    <button class="btn btn-success px-4">💾 Lập phiếu xuất</button>
+
+
+</div>
+
+
+</div>
+</div>
+</form>
+
+<!-- ================= JS ================= -->
+
+<script>
+let rowIndex = 0;
+
+function addRow() {
+    const tbody = document.querySelector("#items-table tbody");
+    const r = rowIndex;
+
+    tbody.insertAdjacentHTML("beforeend", `
+<tr>
+<td class="position-relative">
+    <input name="sku_${r}" class="form-control"
+           oninput="searchProduct(this, ${r})" autocomplete="off" required>
+    <div class="list-group position-absolute d-none"
+        id="sku-suggest-${r}"
+        style="
+            min-width: 480px;
+            max-width: 700px;
+            max-height: 320px;
+            overflow-y: auto;
+            z-index: 3000;
+        ">
+    </div>
+</td>
+<td><input name="ten_goi_chung_${r}" class="form-control" readonly></td>
+<td><input name="dvt_${r}" class="form-control" readonly></td>
+<td><input type="number" name="so_luong_${r}" class="form-control"
+           value="1" oninput="calcRow(${r})"></td>
+<td><input type="number" name="don_gia_${r}" class="form-control"
+           oninput="calcRow(${r})"></td>
+<td><input name="thanh_tien_${r}" class="form-control text-end" readonly></td>
+<td>
+<select name="thue_suat_${r}" class="form-select" onchange="calcRow(${r})">
+    <option value="0">0%</option>
+    <option value="5">5%</option>
+    <option value="8" selected>8%</option>
+    <option value="10">10%</option>
+</select>
+</td>
+<td><input name="tien_thue_${r}" class="form-control text-end" readonly></td>
+<td><input name="thanh_toan_${r}" class="form-control text-end fw-bold" readonly></td>
+<td><button type="button" class="btn btn-sm btn-danger"
+            onclick="this.closest('tr').remove();calcTotals()">✕</button></td>
+</tr>`);
+
+    rowIndex++;
+    items_count.value = rowIndex;
+}
+</script>
+
+<script>
+function parseVN(v){
+    return parseFloat((v||"0").replace(/\./g,'').replace(',','.'))||0;
+}
+
+function calcRow(i){
+    const q = +document.querySelector(`[name="so_luong_${i}"]`).value||0;
+    const p = +document.querySelector(`[name="don_gia_${i}"]`).value||0;
+    const v = +document.querySelector(`[name="thue_suat_${i}"]`).value||0;
+
+    const tt  = Math.round(q * p);
+    const th  = Math.round(tt * v / 100);
+    const pay = tt + th;
+
+
+    document.querySelector(`[name="thanh_tien_${i}"]`).value =
+        tt.toLocaleString("vi-VN", { maximumFractionDigits: 0 });
+
+    document.querySelector(`[name="tien_thue_${i}"]`).value =
+        th.toLocaleString("vi-VN", { maximumFractionDigits: 0 });
+
+    document.querySelector(`[name="thanh_toan_${i}"]`).value =
+        pay.toLocaleString("vi-VN", { maximumFractionDigits: 0 });
+
+    calcTotals();
+}
+
+function calcTotals(){
+    let a=0,b=0,c=0;
+    document.querySelectorAll('[name^="thanh_tien_"]').forEach(e=>a+=parseVN(e.value));
+    document.querySelectorAll('[name^="tien_thue_"]').forEach(e=>b+=parseVN(e.value));
+    document.querySelectorAll('[name^="thanh_toan_"]').forEach(e=>c+=parseVN(e.value));
+
+    total_thanh_tien.innerText =
+        Math.round(a).toLocaleString("vi-VN", { maximumFractionDigits: 0 });
+
+    total_tien_thue.innerText =
+        Math.round(b).toLocaleString("vi-VN", { maximumFractionDigits: 0 });
+
+    total_thanh_toan.innerText =
+        Math.round(c).toLocaleString("vi-VN", { maximumFractionDigits: 0 });
+
+}
+</script>
+<script>
+let searchTimer=null;
+
+function searchProduct(input,i){
+    const q=input.value.trim();
+    const box=document.getElementById(`sku-suggest-${i}`);
+    if(q.length<2){
+        box.classList.add("d-none");
+        return;
+    }
+
+    clearTimeout(searchTimer);
+    searchTimer=setTimeout(async()=>{
+        const r=await fetch(`/invoice/api/products-search/?q=${q}`);
+        const res=await r.json();
+
+        const d = res.results || [];   // 👈 QUAN TRỌNG
+
+        box.innerHTML="";
+        if(!d.length){
+            box.classList.add("d-none");
+            return;
+        }
+
+        d.forEach(p=>{
+            const a=document.createElement("a");
+            a.className="list-group-item list-group-item-action";
+            a.innerHTML = `
+                <div class="fw-semibold">
+                    ${p.sku} – ${p.ten_goi_chung}
+                </div>
+                <div class="text-muted small">
+                    ĐVT: ${p.dvt} | Tồn: ${p.ton_cuoi}
+                </div>
+            `;
+
+            a.onclick=()=>selectProduct(p,i);
+            box.appendChild(a);
+        });
+
+        box.classList.remove("d-none");
+    },300);
+}
+
+function selectProduct(p, i){
+    console.log("PRODUCT:", p);
+
+    document.querySelector(`[name="sku_${i}"]`).value = p.sku;
+    document.querySelector(`[name="ten_goi_chung_${i}"]`).value = p.ten_goi_chung;
+    document.querySelector(`[name="dvt_${i}"]`).value = p.dvt;
+    document.querySelector(`[name="don_gia_${i}"]`).value = Math.round(p.gia_tb_xuat || p.gia_tb_nhap || 0);
+
+    document.getElementById(`sku-suggest-${i}`).classList.add("d-none");
+    calcRow(i);
+}
+</script>
+
+
+<script>
+let mstTimer = null;
+
+document.getElementById("mst").addEventListener("input", function () {
+    clearTimeout(mstTimer);
+    const mst = this.value.trim();
+
+    if (mst.length < 8) return;
+
+    mstTimer = setTimeout(async () => {
+        try {
+            const res = await fetch(`/invoice/api/customer-by-mst/?mst=${mst}`);
+
+            if (!res.ok) {
+                console.error("API error:", res.status);
+                return;
+            }
+
+            const data = await res.json();
+
+            if (data.not_found) {
+                alert("❌ Không tìm thấy MST");
+                return;
+            }
+
+            document.getElementById("customer_id").value = data.id;
+            document.getElementById("ten_khach_hang").value = data.ten_khach_hang;
+            document.getElementById("dia_chi").value = data.dia_chi;
+
+        } catch (err) {
+            console.error("Fetch failed:", err);
+        }
+    }, 500);
+});
+
+
+
+</script>
+
+
+
+        </form>
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+

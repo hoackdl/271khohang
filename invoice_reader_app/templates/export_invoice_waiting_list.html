@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">
+        📄 Phiếu chờ xuất hoá đơn
+        <span class="badge bg-secondary">{{ invoices.paginator.count }}</span>
+    </h5>
+
+    <button type="submit"
+            form="bulk-delete-form"
+            class="btn btn-sm btn-outline-danger"
+            onclick="return confirm('Xoá các phiếu đã chọn?')">
+        🗑 Xoá đã chọn
+    </button>
+</div>
+
+<form id="bulk-delete-form"
+      method="post"
+      action="{% url 'export_invoice_bulk_delete' %}">
+{% csrf_token %}
+
+<table class="table table-sm table-bordered table-hover align-middle">
+<thead class="table-light text-center small">
+<tr>
+    <th width="40">
+        <input type="checkbox" id="check-all">
+    </th>
+    <th width="60">#</th>
+    <th width="95">Ngày</th>
+    <th>Khách hàng</th>
+    <th width="130">MST</th>
+    <th width="130" class="text-end">Thanh toán</th>
+    <th width="110">Trạng thái</th>
+    <th width="120"></th>
+</tr>
+</thead>
+
+<tbody>
+{% for inv in invoices %}
+<tr>
+    <td class="text-center">
+        {% if inv.trang_thai != "DA_XUAT" %}
+        <input type="checkbox"
+               name="invoice_ids"
+               value="{{ inv.id }}"
+               class="row-check">
+        {% endif %}
+    </td>
+
+    <td class="text-center">{{ inv.id }}</td>
+    <td class="text-center">{{ inv.ngay_hd|date:"d/m/Y" }}</td>
+
+    <td>
+        <div class="fw-semibold">{{ inv.ten_nguoi_mua }}</div>
+    </td>
+
+    <td class="text-center text-muted small">
+        {{ inv.ma_so_thue_mua }}
+    </td>
+
+    <td class="text-end fw-bold text-danger">
+        {{ inv.tong_tien|floatformat:0|intcomma }}
+    </td>
+
+    <td class="text-center">
+        {% if inv.trang_thai == "DA_XUAT" %}
+            <span class="badge bg-success">✔ Đã hoàn thành</span>
+        {% else %}
+            <span class="badge bg-warning text-dark">⏳ Chờ xuất</span>
+        {% endif %}
+    </td>
+
+    <td class="text-center">
+        <a href="{% url 'export_invoice_detail' inv.id %}"
+           class="btn btn-sm btn-outline-primary me-1"
+           title="Xem chi tiết">
+            👁
+        </a>
+
+        <a href="{% url 'export_export_invoice_excel' inv.id %}"
+           class="btn btn-sm btn-outline-success"
+           title="Tải Excel">
+            📥
+        </a>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="8" class="text-center text-muted py-4">
+        📭 Không có phiếu nào chờ xuất
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</form>
+
+<!-- PHÂN TRANG -->
+{% if invoices.paginator.num_pages > 1 %}
+<nav>
+<ul class="pagination pagination-sm justify-content-end mb-0">
+    {% if invoices.has_previous %}
+    <li class="page-item">
+        <a class="page-link" href="?page={{ invoices.previous_page_number }}">«</a>
+    </li>
+    {% endif %}
+
+    <li class="page-item active">
+        <span class="page-link">
+            {{ invoices.number }} / {{ invoices.paginator.num_pages }}
+        </span>
+    </li>
+
+    {% if invoices.has_next %}
+    <li class="page-item">
+        <a class="page-link" href="?page={{ invoices.next_page_number }}">»</a>
+    </li>
+    {% endif %}
+</ul>
+</nav>
+{% endif %}
+
+<!-- JS chọn tất cả -->
+<script>
+document.getElementById("check-all")?.addEventListener("change", function () {
+    document.querySelectorAll(".row-check").forEach(cb => {
+        cb.checked = this.checked;
+    });
+});
+</script>
+
+{% endblock %}

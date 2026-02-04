@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+{% load static humanize number_to_text %}
+{% block navbar_title %}Danh sách hóa đơn vào{% endblock %}
+
+
+{% block extra_head %}
+<meta name="csrf-token" content="{{ csrf_token }}">
+<style>
+html, body {height: 100%; margin: 0; padding: 0;}
+.container-fluid {padding: 0 !important;}
+.card {
+  flex: 1 1 auto;           /* Card co giãn */
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  border-radius: 0;
+}
+.card-body {padding: 0 !important;}
+.full-screen-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-body-wrapper {
+  flex: 1 1 auto;           /* Chiếm toàn bộ không gian còn lại */
+  min-height: 0;            /* Quan trọng để scroll bên trong hoạt động */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex: 1 1 auto;           /* Chiếm hết không gian còn lại */
+  overflow-y: auto;         /* Scroll dọc */
+  overflow-x: auto;         /* Scroll ngang */
+  min-height: 0;            /* Quan trọng để flex-scroll hoạt động */
+}
+
+.table {
+    min-width: max-content;   /* bảng to đúng theo nội dung */
+    width: max-content;
+}
+
+.table-container thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 10;
+}
+.table th, .table td {padding: 6px 8px !important; font-size: 13px;}
+.table thead th {position: sticky; top: 0; background: #fff; z-index: 10;}
+.truncate-cell {max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+</style>
+{% endblock %}
+
+{% block content %}
+<select class="form-select w-auto"
+        onchange="location.href=this.value">
+    {% for y in year_list %}
+        <option value="{% url 'set_fiscal_year' y %}"
+                {% if y == current_year %}selected{% endif %}>
+            Năm {{ y }}
+        </option>
+    {% endfor %}
+</select>
+
+
+
+<div class="card shadow-sm border-0 flex-fill d-flex flex-column">
+  <div class="card-header text-blue d-flex justify-content-between align-items-center flex-wrap">
+
+    <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
+      <button id="exportExcelBtn" class="btn btn-success btn-sm">📤 Xuất Excel</button>
+      <button id="deleteSelectedBtn" class="btn btn-danger btn-sm">🗑️ Xoá đã chọn</button>
+      <button id="createSelectedBtn" class="btn btn-warning btn-sm">📄 Tạo phiếu nhập</button>
+    </div>
+ 
+
+<form method="get" class="d-flex flex-wrap align-items-center gap-3 mb-2">
+    <!-- Từ ngày -->
+    <div class="d-flex align-items-center gap-3">
+        <label class="form-label mb-0 small">Từ ngày:</label>
+        <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="form-control form-control-sm">
+    </div>
+
+    <!-- Đến ngày -->
+    <div class="d-flex align-items-center gap-3">
+        <label class="form-label mb-0 small">Đến ngày:</label>
+        <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control form-control-sm">
+    </div>
+  <div class="d-flex align-items-center gap-3">
+    <label class="form-label mb-0 small">Tìm kiếm:</label>
+    <input type="text" name="search" placeholder="MST / Tên / Số HĐ..." value="{{ request.GET.search }}" class="form-control form-control-sm">
+  </div>
+  <div class="d-flex align-items-center gap-3">
+    <label class="form-label mb-0 small">Hiển thị:</label>
+    <select name="per_page" id="perPage" class="form-select form-select-sm">
+      <option value="10" {% if request.GET.per_page == '10' or not request.GET.per_page %}selected{% endif %}>10</option>
+      <option value="25" {% if request.GET.per_page == '25' %}selected{% endif %}>25</option>
+      <option value="50" {% if request.GET.per_page == '50' %}selected{% endif %}>50</option>
+      <option value="all" {% if request.GET.per_page == 'all' %}selected{% endif %}>Tất cả</option>
+    </select>
+  </div>
+  <div class="d-flex align-items-center gap-1">
+    <label class="form-label mb-0 small">&nbsp;</label>
+    <div class="d-flex gap-1">
+      <button type="submit" class="btn btn-outline-primary btn-sm">🔎 Lọc</button>
+      <a href="{% url 'invoice_list' %}" class="btn btn-outline-secondary btn-sm">🔄 Xóa lọc</a>
+    </div>
+  </div>
+
+  <!-- Phân trang -->
+  <div class="d-flex align-items-center gap-1">
+    <nav aria-label="Page navigation">
+      <ul class="pagination mb-0">
+        {% if invoices.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ invoices.previous_page_number }}">Trước</a></li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">Trước</span></li>
+        {% endif %}
+        {% for num in invoices.paginator.page_range %}
+          {% if num > invoices.number|add:'-3' and num < invoices.number|add:'3' %}
+            <li class="page-item {% if invoices.number == num %}active{% endif %}">
+              {% if invoices.number == num %}<span class="page-link">{{ num }}</span>
+              {% else %}<a class="page-link" href="?page={{ num }}">{{ num }}</a>{% endif %}
+            </li>
+          {% endif %}
+        {% endfor %}
+        {% if invoices.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ invoices.next_page_number }}">Sau</a></li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">Sau</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+</form>
+ </div>
+
+    {% if invoices %}
+      <div class="table-container">
+        <table class="table table-bordered table-hover table-striped align-middle text-center">
+
+        <thead class="table-light">
+          <tr>
+            <th><input type="checkbox" id="selectAll"></th>
+            <th>TT</th>
+            <th>File</th>
+            <th>Tạo phiếu</th>
+            <th>Đã trả/Còn nợ</th>
+            <th>Ký hiệu</th>
+            <th>Mẫu số</th>
+            <th>Số HĐ</th>
+            <th>Ngày HĐ</th>
+            <th>HT Thanh toán</th>
+            <th>Tên đơn vị bán</th>
+            <th>MST</th>
+            <th>Địa chỉ</th>
+            <th>Nội dung HĐ</th>
+            <th>ĐVT</th>
+            <th>Số lượng</th>
+            <th>Đơn giá</th>
+            <th>Thành tiền</th>
+            <th>Thuế suất</th>
+            <th>Tiền thuế</th>
+            <th>Chiết khấu</th>
+            <th>Tổng tiền</th>
+          </tr>
+        </thead>
+<tbody>
+
+<!-- Dòng tổng cộng trên cùng -->
+<tr class="table-info fw-bold">
+    <td colspan="15">Tổng cộng</td>
+    <td class="text-end">{{ totals.tong_so_luong|floatformat:2|intcomma }}</td>
+    <td class="text-end">-</td>
+    <td class="text-end">{{ totals.tong_thanh_tien|floatformat:0|intcomma }}</td>
+    <td class="text-end">-</td>
+    <td class="text-end">{{ totals.tong_tien_thue|floatformat:0|intcomma }}</td>
+    <td class="text-end">{{ totals.tong_chiet_khau|floatformat:0|intcomma }}</td>
+    <td class="text-end">{{ totals.tong_thanh_toan|floatformat:0|intcomma }}</td>
+</tr>
+
+{% for invoice in invoices %}
+    {% for item in invoice.items.all %}
+    <tr>
+
+        <!-- Checkbox chọn hóa đơn -->
+        {% if forloop.first %}
+            <td><input type="checkbox" class="selectInvoice" data-invoice-id="{{ invoice.id }}"></td>
+        {% else %}
+            <td></td>
+        {% endif %}
+
+        <td>{{ forloop.parentloop.counter }}.{{ forloop.counter }}</td>
+        <td class="truncate-cell" title="{{ invoice.file_name }}">{{ invoice.file_name }}</td>
+
+        {% if forloop.first %}
+        <td>
+            {% if invoice.purchase_orders.exists %}
+                {% with po=invoice.purchase_orders.first %}
+                    <a href="{% url 'edit_purchase_order' po_id=po.id %}" class="btn btn-sm btn-success mb-1">👁️</a>
+                {% endwith %}
+                <br><span class="badge bg-success">Đã tạo</span>
+            {% else %}
+                <a href="{% url 'open_or_create_po' invoice_id=invoice.id %}" class="btn btn-sm btn-warning mb-1">➕ Tạo</a>
+                <br><span class="badge bg-warning text-dark">Chưa tạo</span>
+            {% endif %}
+        </td>
+        {% else %}<td></td>{% endif %}
+
+        {% if forloop.first %}
+        <td class="text-end">
+            {{ invoice.total_debit|floatformat:0|intcomma }} /
+            {{ invoice.remaining|floatformat:0|intcomma }}
+        </td>
+        {% else %}<td></td>{% endif %}
+
+        <td>{{ invoice.ky_hieu }}</td>
+        <td>{{ invoice.mau_so }}</td>
+        <td>{{ invoice.so_hoa_don }}</td>
+        <td>{{ invoice.ngay_hd|date:"d/m/y" }}</td>
+        <td>{{ invoice.hinh_thuc_tt }}</td>
+        <td class="truncate-cell" title="{{ invoice.ten_dv_ban }}">{{ invoice.ten_dv_ban }}</td>
+        <td>{{ invoice.ma_so_thue }}</td>
+        <td class="truncate-cell" title="{{ invoice.dia_chi }}">{{ invoice.dia_chi }}</td>
+
+        <td class="truncate-cell" title="{{ item.ten_hang }}">{{ item.ten_hang }}</td>
+        <td>{{ item.dvt }}</td>
+
+        <!-- Số lượng -->
+        <td class="text-end">
+            {% if not item.so_luong and not item.don_gia %}
+                -
+            {% else %}
+                {{ item.so_luong|floatformat:2|intcomma }}
+            {% endif %}
+        </td>
+
+        <!-- Đơn giá -->
+        <td class="text-end">
+            {% if not item.so_luong and not item.don_gia %}
+                -
+            {% else %}
+                {{ item.don_gia|floatformat:0|intcomma }}
+            {% endif %}
+        </td>
+
+        <!-- Thành tiền -->
+        <td class="text-end">
+            {{ item.thanh_tien|floatformat:0|intcomma }}
+        </td>
+
+        <!-- Thuế suất -->
+        <td>{{ item.thue_suat }}</td>
+
+        <!-- Tiền thuế -->
+        <td class="text-end">
+            {{ item.tien_thue|floatformat:0|intcomma }}
+        </td>
+
+        <!-- Chỉ hiện tổng chiết khấu & tổng thanh toán 1 lần -->
+        {% if forloop.first %}
+            <td class="text-end">{{ invoice.tong_chiet_khau|floatformat:0|intcomma }}</td>
+            <td class="text-end">{{ invoice.tong_thanh_toan|floatformat:0|intcomma }}</td>
+        {% else %}
+            <td></td><td></td>
+        {% endif %}
+
+    </tr>
+    {% endfor %}
+{% endfor %}
+</tbody>
+
+
+
+
+      </table>
+    </div>
+
+
+
+    {% else %}
+    <p class="text-muted">Không có hóa đơn nào được lưu.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+  document.getElementById("perPage").addEventListener("change", function () { this.form.submit(); });
+
+  document.getElementById("selectAll").addEventListener("change", function () {
+    document.querySelectorAll(".selectInvoice").forEach(cb => cb.checked = this.checked);
+  });
+
+  document.getElementById("deleteSelectedBtn").addEventListener("click", async () => {
+    const selected = Array.from(document.querySelectorAll(".selectInvoice:checked")).map(cb => cb.dataset.invoiceId);
+    if (!selected.length) return alert("⚠️ Chưa chọn hóa đơn!");
+    if (!confirm(`Xoá ${selected.length} hoá đơn?`)) return;
+    const res = await fetch("{% url 'delete_selected_invoices' %}", {
+      method: "POST", headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+      body: JSON.stringify({ ids: selected })
+    });
+    const data = await res.json();
+    if (data.success) { alert(`✅ Đã xoá ${data.deleted_count} hoá đơn!`); location.reload(); }
+    else alert("❌ Lỗi: " + (data.error || "Không xác định"));
+  });
+
+  document.getElementById("createSelectedBtn").addEventListener("click", async () => {
+    const selected = Array.from(document.querySelectorAll(".selectInvoice:checked")).map(cb => cb.dataset.invoiceId);
+    if (!selected.length) return alert("⚠️ Chưa chọn hóa đơn!");
+    if (!confirm(`Tạo phiếu nhập từ ${selected.length} hóa đơn đã chọn?`)) return;
+    const res = await fetch("{% url 'create_selected_invoices' %}", {
+      method: "POST", headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+      body: JSON.stringify({ ids: selected })
+    });
+    const data = await res.json();
+    if (data.success) { alert(`✅ Đã tạo ${data.created_count} phiếu nhập thành công!`); window.location.href = "/purchase-order/list/"; }
+    else alert("❌ Lỗi: " + (data.error || "Không xác định"));
+  });
+
+  document.getElementById("exportExcelBtn").addEventListener("click", () => {
+    const form = document.querySelector("form");
+    const params = new URLSearchParams(new FormData(form)).toString();
+    window.location.href = "{% url 'export_invoices_excel' %}?" + params;
+  });
+});zz
+</script>
+{% endblock %}
