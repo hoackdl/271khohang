@@ -1,0 +1,59 @@
+# ======================
+# Python
+# ======================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# ======================
+# Django
+# ======================
+db.sqlite3
+media/
+staticfiles/
+
+# ======================
+# Environment variables (QUAN TRỌNG)
+# ======================
+.env
+*.env
+.env.*
+!.env.example
+
+# ======================
+# Virtual environment
+# ======================
+venv/
+ENV/
+env/
+
+# ======================
+# Logs
+# ======================
+*.log
+
+# ======================
+# IDE / Editor
+# ======================
+.vscode/
+.idea/
+*.swp
+*~
+
+*.sh
+.sh
+
+.ps1
+*.ps1
+
+
+scripts.py
+local_db_settings.py
+reset_khohang271.py
+run_upload_local.bat
+upload_cron.log
+upload_invoice_cron.py
+upload_invoices_cron.bat
+scripts_local/

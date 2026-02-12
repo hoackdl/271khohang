@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load humanize %}
+
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+
+<style>
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* KHÔNG CUỘN TOÀN TRANG */
+}
+
+.full-screen-container {
+    height: 85vh; /* 85% viewport */
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+}
+
+/* Card thông tin PO – co theo nội dung */
+.card-po-info {
+    flex: 0 0 auto;
+}
+
+/* Card bảng hàng hóa – chiếm phần còn lại */
+.card-po-items {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* quan trọng để con flex cuộn */
+}
+
+/* Table wrapper – cuộn bên trong card */
+.table-scroll {
+    flex: 1 1 auto;
+    min-height: 0; /* bắt buộc để flex cuộn */
+    overflow-y: auto;
+    border: 1px solid #ddd;
+}
+
+
+
+/* Table scroll */
+.table-scroll {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    min-height: 0;
+    border: 1px solid #ddd;
+}
+
+/* Sticky header */
+.table thead th {
+    position: sticky;
+    top: 0;
+    background: #f1f4ff;
+    z-index: 10;
+}
+</style>
+
+{% block content %}
+
+<div class="full-screen-container">
+    <h5 class="mb-3 text-primary">🧾 Chỉnh sửa Phiếu nhập X (PO)</h5>
+
+    <!-- Card thông tin PO -->
+    <div class="card card-po-info shadow-sm border-primary">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <p><strong>📌 Mã PO:</strong> {{ po.po_number }}</p>
+                    <p><strong>📝 Mẫu số:</strong> {{ po.invoice.mau_so }}</p>
+                    <p><strong>🔖 Ký hiệu:</strong> {{ po.invoice.ky_hieu }}</p>
+                    <p><strong>📄 Số hóa đơn:</strong> {{ po.invoice.so_hoa_don }}</p>
+                    <p><strong>📅 Ngày hóa đơn:</strong> {{ po.invoice.ngay_hd|date:"d/m/Y" }}</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <p><strong>🏷️ Mã số thuế:</strong> {{ po.invoice.ma_so_thue }}</p>
+                    <p><strong>🏭 Nhà cung cấp:</strong> {{ po.supplier }}</p>
+                    <p><strong>📍 Địa chỉ:</strong> {{ po.invoice.dia_chi }}</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <p><strong>🏷️ Mã số thuế:</strong> {{ po.invoice.ma_so_thue_mua }}</p>
+                    <p><strong>👤 Khách hàng:</strong> {{ po.invoice.ten_nguoi_mua }}</p>
+                    <p><strong>📍 Địa chỉ:</strong> {{ po.invoice.dia_chi_mua }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+<form method="post" action="{% url 'edit_purchase_order' po.id %}">
+    {% csrf_token %}
+    <!-- Card bảng hàng hóa -->
+    <div class="card card-po-items shadow-sm border-secondary">
+        <div class="table-scroll">
+            <table class="table table-bordered table-striped align-middle text-center">
+                <thead class="table-primary">
+                    <tr>
+                        <th>#</th>
+                        <th>Tên hàng</th>
+                        <th>SKU</th>
+                        <th>Tên gọi chung</th>
+                        <th>ĐVT</th>
+                        <th>Số lượng</th>
+                        <th>Slg quy đổi</th>
+                        <th>Đơn giá</th>
+                        <th>Thành tiền</th>
+                        <th>Chiết khấu</th>
+                        <th>TL CK (%)</th>
+                        <th>Thành tiền sau CK</th>
+                        <th>Thuế suất (%)</th>
+                        <th>Tiền thuế</th>
+                        <th>Thanh toán</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td class="text-start">{{ item.product_name }}</td>
+                        <td>
+                            <input type="text" name="sku_{{ item.id }}" class="form-control text-center sku-input" value="{{ item.sku_auto }}" placeholder="Nhập SKU">
+                        </td>
+                        <td>
+                            <textarea name="ten_goi_chung_{{ item.id }}" class="form-control" rows="2">{{ item.ten_goi_chung_auto }}</textarea>
+                        </td>
+                        <td>{{ item.unit }}</td>
+                        <td><input type="number" step="1" name="so_luong_{{ item.id }}" class="form-control text-end qty-input" value="{{ item.quantity }}"></td>
+                        <td><input type="number" step="1" name="so_luong_quy_doi_{{ item.id }}" class="form-control text-end" value="{{ item.so_luong_quy_doi }}"></td>
+                        <td><input type="text" name="don_gia_{{ item.id }}" class="form-control text-end price-input" value="{{ item.unit_price|floatformat:0 }}"></td>
+                        <td class="text-end total-cell">{{ item.total_price|floatformat:0|intcomma }}</td>
+                        <td><input type="text" name="chiet_khau_{{ item.id }}" class="form-control text-end" value="{{ item.chiet_khau|default_if_none:0 }}"></td>
+                        <td><input type="text" name="tl_ck_{{ item.id }}" class="form-control text-end" value="{{ item.tl_ck|default_if_none:0 }}"></td>
+                        <td class="text-end">{{ item.total_after_discount|floatformat:0|intcomma }}</td>
+                        <td class="text-end" data-tax-rate="{{ item.thue_suat_field }}">{{ item.thue_suat_field }}</td>
+                        <td class="text-end tax-cell">{{ item.tien_thue_field|floatformat:0|intcomma }}</td>
+                        <td class="text-end">{{ item.final_amount|floatformat:0|intcomma }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="table-secondary fw-bold">
+                        <td colspan="8" class="text-end">Tổng cộng:</td>
+                        <td id="total_sum" class="text-end">{{ po.total_amount|floatformat:0|intcomma }}</td>
+                        <td id="total_discount_sum" class="text-end">{{ po.total_discount|floatformat:0|intcomma }}</td>
+                        <td>-</td>
+                        <td id="total_after_discount_sum" class="text-end">{{ po.total_amount|floatformat:0|intcomma }}</td>
+                        <td>-</td>
+                        <td id="tax_sum" class="text-end">{{ po.total_tax|floatformat:2|intcomma }}</td>
+                        <td id="final_sum" class="text-end">{{ po.total_final_amount|floatformat:0|intcomma }}</td>
+                    </tr>
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+
+    <!-- Form submit -->
+    
+    <div class="d-flex justify-content-between align-items-center mt-2">
+        <a href="{% url 'export_order_list' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
+        <div>
+            <button type="submit" id="save-btn" class="btn btn-success px-4"><i class="bi bi-save"></i> Lưu thay đổi</button>
+            <button type="button" id="edit-btn" class="btn btn-primary px-4" style="display:none;"><i class="bi bi-pencil"></i> Chỉnh sửa</button>
+        </div>
+    </div>
+</div>
+</form>
+<script src="{% static 'js/dmhh.js' %}"></script>
+
+{% endblock %}

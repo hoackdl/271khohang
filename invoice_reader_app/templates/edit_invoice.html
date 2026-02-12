@@ -1,0 +1,457 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% load static humanize number_to_text %}
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+
+{% block navbar_title %}
+📦 ✏️ Chỉnh sửa hoá đơn số <strong>{{ invoice.so_hoa_don }}</strong>
+{% endblock %}
+
+{% block content %}
+
+<style>
+body, html { height: 100%; }
+.full-screen-container { height: 100vh; display: flex; flex-direction: column; }
+
+/* ======= FORM CARD (NHỎ GỌN) ======= */
+.small-card .form-label { font-size: 12px !important; }
+.small-card input, .small-card select, .small-card textarea { padding: 3px 6px !important; font-size: 13px !important; }
+.small-card .card-body { padding: 10px !important; }
+.small-card .card-header { padding: 6px 10px !important; font-size: 14px !important; }
+
+/* ======= TABLE ======= */
+.table td, .table th { padding: 6px 8px !important; font-size: 13px !important; }
+.wrap-text { white-space: normal !important; word-break: break-word !important; }
+.table input, .table select { font-size: 13px !important; padding: 3px 6px !important; }
+.table td input[type="number"], .text-end { text-align: right !important; }
+.table tbody tr:hover { background-color: #f4f9ff !important; }
+
+/* Buttons */
+.btn { border-radius: 6px !important; }
+
+/* ======= PRINT ======= */
+@media print {
+  body * { visibility: hidden; }
+  #print-quotation, #print-quotation * { visibility: visible; }
+  #print-quotation { position: absolute; left: 0; top: 0; width: 100%; font-size: 12px; font-family: Arial, sans-serif; }
+  table { border-collapse: collapse; width: 100%; }
+  table th, table td { border: 1px solid #000; padding: 5px; }
+  tr { page-break-inside: avoid; }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+}
+#print-quotation table {
+  width: 100%;
+  max-width: 190mm; /* hoặc 18.5cm, phù hợp với lề in A4 */
+  margin: 0 auto;
+  border-collapse: collapse;
+  table-layout: fixed; /* giúp chia đều hoặc theo tỉ lệ cột */
+  word-wrap: break-word; /* xuống dòng từ từ */
+}
+
+
+/* Khi hiển thị bình thường, ẩn bảng tổng cộng riêng */
+.invoice-total {
+  display: none;
+}
+
+/* Khi in, bảng tổng cộng ngoài table hiển thị, 
+   dòng tổng cộng trong table tbody/tfoot có thể ẩn nếu muốn */
+@media print {
+  .invoice-total {
+    display: block;
+    page-break-inside: avoid; /* tránh bị chia trang */
+  }
+
+  /* Nếu muốn ẩn tfoot trong in, tránh lặp */
+  .invoice-table tfoot {
+    display: none;
+  }
+
+  @media print {
+    .page-break { 
+      page-break-before: always; /* Sang trang mới khi in */
+    }
+  }
+  /* Hiển thị ô vuông trên màn hình */
+  .no-print-box {
+    border: 1px solid #000;
+    width: 30px;
+    text-align: center;
+  }
+
+  /* Khi in ra giấy, ẩn viền, chỉ giữ khoảng trống */
+  @media print {
+    .no-print-box {
+      border: none;
+      width: 20px; /* điều chỉnh cho vừa khoảng trống */
+    }
+  }
+
+
+</style>
+
+<div class="full-screen-container">
+
+  <div class="card shadow-lg">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <span>📄 Chỉnh sửa hóa đơn</span>
+      <a href="{% url 'invoice_export_list' %}" class="btn btn-light btn-sm">⬅️ Quay lại</a>
+    </div>
+
+    <div class="card-body bg-light">
+
+      <form method="post">
+  {% csrf_token %}
+
+  <!-- ================= THÔNG TIN HÓA ĐƠN ================= -->
+  <div class="card mb-3 shadow-sm small-card">
+    <div class="card-header bg-info text-white">🧾 Thông tin hóa đơn</div>
+    <div class="card-body">
+      <div class="row gx-2 gy-2">
+        {% for field in form %}
+        <div class="col-md-4">
+          <label class="form-label fw-semibold small mb-1">{{ field.label }}</label>
+
+          <!-- HIỂN THỊ -->
+          <div class="form-control bg-white border small">
+            {{ field.value|default_if_none:"" }}
+          </div>
+
+          <!-- FIELD THẬT (ẨN) -->
+          {{ field.as_hidden }}
+
+          {% if field.errors %}
+            <div class="text-danger small">{{ field.errors }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <button type="button" onclick="printQuotation()">🖨️ In bảng báo giá</button>
+  <button type="button" onclick="printDeliveryNote()">🖨️ In biên bản giao nhận</button>
+
+
+  <!-- ================= DANH SÁCH HÀNG HÓA ================= -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-success text-white">📦 Danh sách hàng hóa</div>
+    <div class="card-body bg-white">
+
+      {{ formset.management_form }}
+
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover table-sm align-middle text-center">
+          <thead class="table-primary">
+            <tr>
+              <th>Tên hàng</th>
+              <th>ĐVT</th>
+              <th>Số lượng</th>
+              <th>Đơn giá</th>
+              <th>Thành tiền</th>
+              <th>Thuế suất</th>
+              <th>Tiền thuế</th>
+              <th>Thanh toán</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for f in formset %}
+            <tr>
+
+              <!-- BẮT BUỘC -->
+              {{ f.id }}
+
+              <td class="text-start wrap-text">
+                {{ f.ten_hang.value }}
+                {{ f.ten_hang.as_hidden }}
+              </td>
+
+              <td>
+                {{ f.dvt.value }}
+                {{ f.dvt.as_hidden }}
+              </td>
+
+              <td>{{ f.so_luong }}</td>
+              <td>{{ f.don_gia }}</td>
+              <td>{{ f.thanh_tien }}</td>
+              <td>{{ f.thue_suat }}</td>
+              <td>{{ f.tien_thue }}</td>
+
+              <td class="text-end">
+                {{ f.thanh_tien.value|add:f.tien_thue.value|default_if_none:"0"|floatformat:0|intcomma }}
+              </td>
+
+            </tr>
+            {% endfor %}
+          </tbody>
+
+          <tfoot>
+            <tr class="fw-bold" style="background:#f0f0f0;">
+              <td colspan="4" class="text-center">Tổng cộng</td>
+              <td class="text-end">{{ total_thanh_tien|floatformat:0|intcomma }}</td>
+              <td></td>
+              <td class="text-end">{{ total_tien_thue|floatformat:0|intcomma }}</td>
+              <td class="text-end">{{ total_thanh_toan|floatformat:0|intcomma }}</td>
+            </tr>
+          </tfoot>
+
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= NÚT LƯU ================= -->
+  <div class="text-end mt-3">
+    <button type="submit" class="btn btn-primary px-3">
+      💾 Lưu thay đổi
+    </button>
+    <a href="{% url 'invoice_export_list' %}" class="btn btn-secondary px-3">
+      ⬅️ Thoát
+    </a>
+  </div>
+
+</form>
+
+
+
+
+
+  <div id="print-quotation" style="display:none;">
+
+  <!-- Nội dung bảng báo giá ở đây -->
+  <h3>CÔNG TY TNHH THƯƠNG MẠI DỊCH VỤ TÂM ANH LOGISTICS</h3>
+  <div>Địa chỉ: 139 Thành Thái, Phường Diên Hồng, Tp. Hồ Chí Minh</div>
+  <div>Mã số thuế: 0314858906</div>
+  <hr>
+  <h4 style="text-align:center; margin:10px 0;">BẢNG BÁO GIÁ ĐƠN HÀNG</h4>
+  <!-- Thông tin khách hàng -->
+<table style="width:100%; margin-bottom:15px; border-collapse: collapse; border:0;">
+  <tr>
+    <td style="text-align:left; width:30%; border:0;">Kính gửi quý khách hàng:</td>
+    <td style="text-align:left; border:0;">{{ invoice.ten_nguoi_mua }}</td>
+  </tr>
+  <tr>
+    <td style="text-align:left; border:0;">Địa chỉ số:</td>
+    <td style="text-align:left; border:0;">{{ invoice.dia_chi_mua }}</td>
+  </tr>
+  <tr>
+    <td style="text-align:left; border:0;">Điện thoại:</td>
+    <td style="text-align:left; border:0;">{{ invoice.dien_thoai }}</td>
+  </tr>
+</table>
+
+
+ <!-- Bảng hàng hóa cho mẫu in -->
+<!-- Bảng hàng hóa -->
+<table class="invoice-table" style="width:100%; border-collapse: collapse;" border="1">
+  <thead>
+    <tr style="background:#f0f0f0; text-align:center;">
+      <th style="width:5%;">TT</th>
+      <th style="width:auto;">Tên hàng hóa</th>
+      <th style="width:5%;">ĐVT</th>
+      <th style="width:5%;">Số lượng</th>
+      <th style="width:8%;">Đơn giá (VNĐ)</th>
+      <th style="width:10%;">Thành tiền (VNĐ)</th>
+      <th style="width:5%;">Thuế suất (%)</th>
+      <th style="width:8%;">Tiền thuế (VNĐ)</th>
+      <th style="width:13%;">Thanh toán (VNĐ)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for f in formset %}
+    <tr>
+      <td style="text-align:center;">{{ forloop.counter }}</td>
+      <td>{{ f.ten_hang.value }}</td>
+      <td style="text-align:center;">{{ f.dvt.value }}</td>
+      <td style="text-align:right;">{{ f.so_luong.value|default_if_none:"0"|floatformat:0|intcomma }}</td>
+      <td style="text-align:right;">{{ f.don_gia.value|default_if_none:"0"|floatformat:0|intcomma }}</td>
+      <td style="text-align:right;">{{ f.thanh_tien.value|default_if_none:"0"|floatformat:0|intcomma }}</td>
+      <td style="text-align:right;">{{ f.thue_suat.value|default_if_none:"0"|floatformat:0|intcomma }}</td>
+      <td style="text-align:right;">{{ f.tien_thue.value|default_if_none:"0"|floatformat:0|intcomma }}</td>
+      <td style="text-align:right;">
+        {{ f.thanh_tien.value|add:f.tien_thue.value|default_if_none:"0"|floatformat:0|intcomma }}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- Dòng tổng cộng đặt ngoài table, chỉ hiển thị khi in -->
+<div class="invoice-total">
+  <table style="width:100%; border-collapse: collapse;" border="1">
+    <tr style="background:#f9f9f9; font-weight:bold; text-align:right;">
+       <td style="width:5%; border: none"></td> <!-- TT + chữ Tổng cộng -->
+      <td style="width:auto; border: none; text-align:center;" >Tổng cộng</td> <!-- Tên hàng -->
+      <td style="width:5%; border: none;"></td> <!-- ĐVT -->
+      <td style="width:5%; border: none;"></td> <!-- Số lượng -->
+      <td style="width:8%; border: none;"></td> <!-- Đơn giá -->
+      <td style="width:10%; text-align:right;">{{ total_thanh_tien|floatformat:0|intcomma }}</td> <!-- Thành tiền -->
+      <td style="width:5%; border: none;"></td> <!-- Thuế suất -->
+      <td style="width:8%; text-align:right;">{{ total_tien_thue|floatformat:0|intcomma }}</td> <!-- Tiền thuế -->
+      <td style="width:13%; text-align:right;">{{ total_thanh_toan|floatformat:0|intcomma }}</td> <!-- Thanh toán -->
+    </tr>
+  </table>
+
+</div>
+
+<p>Ghi chú:</p>
+<p>- Bảng báo giá trên có hiệu lực trong vòng 15 ngày kể từ ngày bên bán gửi báo giá cho bên mua. Sau thời gian này, nếu Quý khách hàng chưa xác nhận đặt hàng cho bên Bán thì số lượng hàng hóa trên sẽ có sự thay đổi (nếu có) theo tình hình thực tế của Bên bán.</p>
+<p>- Bảng giá trên đã bao gồm thuế VAT theo quy định, phí vận chuyển trong bán kính 5km từ Cửa hàng của Bên bán.</p>
+
+
+
+<p style="text-align:right; margin-right:4cm; font-weight:bold; font-size:14px; line-height:1.8;">
+  Tp. Hồ Chí Minh, ngày {{ ngay_tru_3|date:"d" }} tháng {{ ngay_tru_3|date:"m" }} năm {{ ngay_tru_3|date:"Y" }}<br>
+  CÔNG TY TNHH TMDV TÂM ANH LOGISTICS
+</p>
+
+<div id="print-quotation-giao-nhan" style="display:none;">
+<div style="margin-top:15px; font-size:14px;">
+<hr style="margin:25px 0; border-top:2px dashed #000;">
+
+<h4 style="text-align:center; margin:10px 0;">BIÊN BẢN GIAO NHẬN HÀNG HÓA</h4>
+<p style="text-align:right; margin-right:4cm; font-weight:bold; font-size:14px; line-height:1.8;">
+  Tp. Hồ Chí Minh, ngày 
+  <input type="text" name="ngay" size="2" class="no-print-box"> 
+  tháng 
+  <input type="text" name="thang" size="2" class="no-print-box"> 
+  năm 
+  <input type="text" name="nam" size="4" class="no-print-box">
+</p>
+
+
+
+
+
+<!-- Thông tin giao – nhận -->
+<table style="width:100%; margin-bottom:15px; border-collapse: collapse; border:0;">
+  <tr>
+    <td style="width:30%; border:0;">Bên giao hàng:</td>
+    <td style="border:0;">CÔNG TY TNHH TMDV TÂM ANH LOGISTICS</td>
+  </tr>
+  <tr>
+    <td style="border:0;">Địa chỉ:</td>
+    <td style="border:0;">139 Thành Thái, Phường Diên Hồng, Tp. Hồ Chí Minh</td>
+  </tr>
+  <tr>
+    <td style="border:0;">Bên nhận hàng:</td>
+    <td style="border:0;">{{ invoice.ten_nguoi_mua }}</td>
+  </tr>
+  <tr>
+    <td style="border:0;">Địa chỉ nhận:</td>
+    <td style="border:0;">{{ invoice.dia_chi_mua }}</td>
+  </tr>
+</table>
+
+<!-- Bảng hàng hóa giống bảng báo giá -->
+<table style="width:100%; border-collapse: collapse;" border="1">
+  <thead>
+    <tr style="background:#f0f0f0; text-align:center;">
+      <th style="width:10%;">TT</th>
+      <th>Tên hàng hóa</th>
+      <th style="width:15%;">ĐVT</th>
+      <th style="width:15%;">Số lượng</th>
+
+      <th style="width:15%;">Ghi chú </th>
+
+    </tr>
+  </thead>
+  <tbody>
+    {% for f in formset %}
+    <tr>
+      <td style="text-align:center;">{{ forloop.counter }}</td>
+      <td>{{ f.ten_hang.value }}</td>
+      <td style="text-align:center;">{{ f.dvt.value }}</td>
+      <td style="text-align:right;">{{ f.so_luong.value|default_if_none:"0"|floatformat:0|intcomma }}</td>
+      
+      <td></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+
+<!-- Chữ ký -->
+<table style="width:100%; margin-top:25px; text-align:center; font-weight:bold; border-collapse:collapse; border:0;">
+  <tr>
+    <td style="border:0;">BÊN GIAO HÀNG</td>
+    <td style="border:0;">BÊN NHẬN HÀNG</td>
+  </tr>
+  <tr>
+    <td style="height:20px; border:0;">(Ký & ghi rõ họ tên)</td>
+    <td style="height:20px; border:0;">(Ký & ghi rõ họ tên)</td>
+  </tr>
+</table>
+</div>
+</div>
+
+
+
+</div>
+
+<script>
+function printQuotation() {
+  var content = document.getElementById('print-quotation').innerHTML;
+  var printWindow = window.open('', '_blank', 'width=900,height=700');
+  printWindow.document.open();
+  printWindow.document.write(`
+  <html>
+  <head>
+    <title>Bảng báo giá</title>
+    <style>
+      body { font-family: Arial, sans-serif; font-size:13px; margin:20px; }
+      table { width:100%; border-collapse: collapse; table-layout: fixed; word-wrap: break-word; }
+      th, td { border:1px solid #000; padding:5px; }
+      th { background:#f0f0f0; text-align:center; }
+      td:nth-child(1) { text-align:center; }
+      td:nth-child(2) { text-align:left; }
+      td:not(:nth-child(1)):not(:nth-child(2)) { text-align:right; }
+    </style>
+  </head>
+  <body>
+    ${content}
+    <script>
+      window.onload = function() { window.print(); window.onafterprint = function(){ window.close(); } }
+    <\/script>
+  </body>
+  </html>
+  `);
+  printWindow.document.close();
+}
+
+function printDeliveryNote() {
+  var content = document.getElementById('print-quotation-giao-nhan').innerHTML;
+  var printWindow = window.open('', '_blank', 'width=900,height=700');
+  printWindow.document.open();
+  printWindow.document.write(`
+    <html>
+    <head>
+      <title>Biên bản giao nhận</title>
+      <style>
+        body { font-family: Arial, sans-serif; font-size:13px; margin:20px; }
+        table { width:100%; border-collapse: collapse; table-layout: fixed; word-wrap: break-word; }
+        th, td { border:1px solid #000; padding:5px; }
+        th { background:#f0f0f0; text-align:center; }
+        td:nth-child(1) { text-align:center; }
+        td:nth-child(2) { text-align:left; }
+        td:not(:nth-child(1)):not(:nth-child(2)) { text-align:right; }
+        @media print { .page-break { page-break-before: always; } }
+      </style>
+    </head>
+    <body>
+      ${content}
+      <script>
+        window.onload = function() { window.print(); window.onafterprint = function(){ window.close(); } }
+      <\/script>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+}
+</script>
+
+{% endblock %}

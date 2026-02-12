@@ -1,0 +1,412 @@
+{% extends 'base.html' %}
+{% load static humanize number_to_text %}
+
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+{% block navbar_title %}Danh sách hóa đơn xuất{% endblock %}
+
+{% block extra_head %}
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+<style>
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.container-fluid {
+    padding: 0 !important;
+}
+
+.full-screen-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.card {
+    border-radius: 0 !important;
+    border: none !important;
+}
+
+.full-height-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Header */
+.card-header-custom {
+    flex-shrink: 0;
+}
+
+/* Wrapper bảng */
+.card-body-wrapper {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Scrollbar trên */
+.top-scroll {
+    height: 14px;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+.top-scroll > div {
+    height: 1px;
+}
+
+/* Bảng */
+.table-container {
+    flex: 1;
+    overflow: auto;
+}
+
+/* Sticky */
+.table thead th {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10;
+}
+
+.table th:first-child,
+.table td:first-child {
+    position: sticky;
+    left: 0;
+    background: #fff;
+    z-index: 11;
+}
+
+.table th, .table td {
+    padding: 6px 8px !important;
+    font-size: 14px;
+}
+
+.table-sm-custom td,
+.table-sm-custom th {
+    font-size: 14px !important;
+    padding: 4px 6px !important;
+}
+
+/* Scrollbar style */
+.table-container::-webkit-scrollbar,
+.top-scroll::-webkit-scrollbar {
+    height: 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb,
+.top-scroll::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 8px;
+}
+
+.table-container::-webkit-scrollbar-track,
+.top-scroll::-webkit-scrollbar-track {
+    background: #eee;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm full-height-card">
+
+    <!-- HEADER -->
+    <div class="card-body card-header-custom">
+
+  <div class="d-flex align-items-center gap-3 flex-nowrap overflow-auto">
+
+    <!-- Năm tài chính -->
+    <form method="get">
+        <select name="year" onchange="this.form.submit()">
+            {% for y in year_list %}
+                <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>
+                    Năm {{ y }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <!-- Buttons -->
+    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+      <button id="exportExcelBtn" class="btn btn-success btn-sm">Xuất Excel</button>
+      <button id="deleteSelectedBtn" class="btn btn-danger btn-sm">🗑️ Xoá</button>
+    </div>
+
+    <!-- FILTER FORM -->
+    <form method="get"
+          class="d-flex align-items-center gap-2 flex-nowrap flex-grow-1">
+
+      <div class="d-flex align-items-center gap-1">
+        <label class="small mb-0">Từ:</label>
+        <input type="date" name="start_date"
+               value="{{ request.GET.start_date }}"
+               class="form-control form-control-sm">
+      </div>
+
+      <div class="d-flex align-items-center gap-1">
+        <label class="small mb-0">Đến:</label>
+        <input type="date" name="end_date"
+               value="{{ request.GET.end_date }}"
+               class="form-control form-control-sm">
+      </div>
+
+      <input type="text" name="search"
+             value="{{ request.GET.search }}"
+             placeholder="MST / Tên / Ký hiệu / Số HĐ"
+             class="form-control form-control-sm"
+             style="max-width: 220px;">
+
+      <select name="per_page"
+              class="form-select form-select-sm w-auto"
+              onchange="this.form.submit()">
+        <option value="10" {% if request.GET.per_page == '10' or not request.GET.per_page %}selected{% endif %}>10</option>
+        <option value="25" {% if request.GET.per_page == '25' %}selected{% endif %}>25</option>
+        <option value="50" {% if request.GET.per_page == '50' %}selected{% endif %}>50</option>
+        <option value="all" {% if request.GET.per_page == 'all' %}selected{% endif %}>Tất cả</option>
+      </select>
+
+      <button class="btn btn-outline-primary btn-sm">🔎 Lọc</button>
+      <a href="{% url 'invoice_list' %}"
+         class="btn btn-outline-secondary btn-sm">✖ Xoá</a>
+
+    </form>
+
+  </div>
+
+</div>
+
+    {% if invoices %}
+    <!-- TABLE -->
+    <div class="card-body-wrapper">
+        <div class="top-scroll"><div></div></div>
+
+        <div class="table-container">
+            <table class="table table-bordered table-hover table-sm-custom">
+                <thead class="table-light text-center">
+                    <tr>
+                        <th><input type="checkbox" id="selectAll"></th>
+                        <th>File</th>
+                        <th>PX</th>
+                        <th>Ký hiệu</th>
+                        <th>Mẫu số</th>
+                        <th>Số HĐ</th>
+                        <th class="text-end">Đã thu / Tổng</th>
+                        <th>Ngày</th>
+                        <th>HTTT</th>
+                        <th>Khách hàng</th>
+                        <th>MST</th>
+                        <th>Địa chỉ</th>
+                        <th>Nội dung</th>
+                        <th>ĐVT</th>
+                        <th class="text-end">SL</th>
+                        <th class="text-end">Đơn giá</th>
+                        <th class="text-end">Thành tiền</th>
+                        <th>Thuế</th>
+                        <th class="text-end">Tiền thuế</th>
+                        <th class="text-end">Tổng TT</th>
+                        <th>Xoá</th>
+                        <th>Sửa</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+    {# ===== DÒNG TỔNG ĐẦU BẢNG ===== #}
+    <tr style="font-weight:bold; background:#f0f8ff;">
+        <td colspan="6" class="text-end">Tổng cộng/ trang</td>
+        <td class="text-end text-primary">
+            {{ total_tien_page|floatformat:0|intcomma }}
+        </td>
+        <td colspan="15"></td>
+    </tr>
+
+    <tr style="font-weight:bold; background:#e8f5e9;">
+        <td colspan="6" class="text-end">Tổng cộng</td>
+        <td class="text-end text-success">
+            {{ total_tien|floatformat:0|intcomma }}
+        </td>
+        <td colspan="15"></td>
+    </tr>
+
+    {# ===== DỮ LIỆU HÓA ĐƠN ===== #}
+    {% for invoice in invoices %}
+    {% with items=invoice.items.all %}
+        {% if items %}
+            {% for item in items %}
+            <tr>
+                {% if forloop.first %}
+                  <td><input type="checkbox" class="selectInvoice" data-invoice-id="{{ invoice.id }}"></td>
+                {% else %}<td></td>{% endif %}
+
+                <td>{{ invoice.file_name }}</td>
+
+                {% if forloop.first %}
+                <td>
+                    {% if invoice.has_exported %}
+                        <span class="badge bg-success">Đã tạo PX</span>
+                    {% else %}
+                        <a href="{% url 'generate_po_from_invoice' %}?invoice_id={{ invoice.id }}"
+                           class="btn btn-sm btn-warning">📝 PX</a>
+                    {% endif %}
+                </td>
+                {% else %}<td></td>{% endif %}
+
+                <td>{{ invoice.ky_hieu }}</td>
+                <td>{{ invoice.mau_so }}</td>
+                <td>{{ invoice.so_hoa_don }}</td>
+
+                {% if forloop.first %}
+                <td class="text-end">
+                    {{ invoice.total_paid_amount|floatformat:0|intcomma }}
+                    /
+                    {{ invoice.tong_tien|floatformat:0|intcomma }}
+                </td>
+                {% else %}<td></td>{% endif %}
+
+                <td>{{ invoice.ngay_hd|date:"d/m/Y" }}</td>
+                <td>{{ invoice.hinh_thuc_tt }}</td>
+                <td>{{ invoice.ten_nguoi_mua }}</td>
+                <td>{{ invoice.ma_so_thue_mua }}</td>
+                <td>{{ invoice.dia_chi_mua }}</td>
+
+                <td>{{ item.ten_hang }}</td>
+                <td>{{ item.dvt }}</td>
+                <td class="text-end">{{ item.so_luong|floatformat:2 }}</td>
+                <td class="text-end">{{ item.don_gia|floatformat:0|intcomma }}</td>
+                <td class="text-end">{{ item.thanh_tien|floatformat:0|intcomma }}</td>
+                <td>{{ item.thue_suat }}</td>
+                <td class="text-end">{{ item.tien_thue|floatformat:0|intcomma }}</td>
+
+                {% if forloop.first %}
+                    <td class="text-end">{{ invoice.tong_tien|floatformat:0|intcomma }}</td>
+                    <td>
+                        <form method="post" action="{% url 'delete_invoice' invoice.id %}">
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-danger">🗑️</button>
+                        </form>
+                    </td>
+                    <td>
+                        <a href="{% url 'edit_invoice' invoice.id %}"
+                           class="btn btn-sm btn-warning">✏️</a>
+                    </td>
+                {% else %}
+                    <td></td><td></td><td></td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        {% else %}
+            {# 🔥 INVOICE KHÔNG CÓ ITEM VẪN HIỆN #}
+            <tr class="table-warning">
+                <td><input type="checkbox" class="selectInvoice" data-invoice-id="{{ invoice.id }}"></td>
+                <td>{{ invoice.file_name }}</td>
+                <td colspan="4">
+                    <strong>{{ invoice.ky_hieu }} – {{ invoice.so_hoa_don }}</strong>
+                </td>
+                <td class="text-end">
+                    {{ invoice.total_paid_amount|floatformat:0|intcomma }}
+                    /
+                    {{ invoice.tong_tien|floatformat:0|intcomma }}
+                </td>
+                <td colspan="14" class="text-muted fst-italic">
+                    (Hóa đơn chưa có chi tiết hàng hóa)
+                </td>
+            </tr>
+        {% endif %}
+    {% endwith %}
+{% endfor %}
+
+
+</tbody>
+
+            </table>
+            {% if invoices.has_other_pages %}
+<nav class="mt-2">
+  <ul class="pagination pagination-sm justify-content-center mb-0">
+
+    {% if invoices.has_previous %}
+      <li class="page-item">
+        <a class="page-link"
+           href="?page={{ invoices.previous_page_number }}&{{ query_params }}">
+          &laquo;
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">&laquo;</span>
+      </li>
+    {% endif %}
+
+    {% for i in invoices.paginator.page_range %}
+      {% if i >= invoices.number|add:-2 and i <= invoices.number|add:2 %}
+        <li class="page-item {% if invoices.number == i %}active{% endif %}">
+          {% if invoices.number == i %}
+            <span class="page-link">{{ i }}</span>
+          {% else %}
+            <a class="page-link"
+               href="?page={{ i }}&{{ query_params }}">
+              {{ i }}
+            </a>
+          {% endif %}
+        </li>
+      {% endif %}
+    {% endfor %}
+
+    {% if invoices.has_next %}
+      <li class="page-item">
+        <a class="page-link"
+           href="?page={{ invoices.next_page_number }}&{{ query_params }}">
+          &raquo;
+        </a>
+      </li>
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">&raquo;</span>
+      </li>
+    {% endif %}
+
+  </ul>
+</nav>
+{% endif %}
+
+        </div>
+    </div>
+    {% else %}
+        <p class="text-muted p-3">Không có hóa đơn nào.</p>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('selectAll')?.addEventListener('change', function () {
+    document.querySelectorAll('.selectInvoice').forEach(cb => cb.checked = this.checked);
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const topScroll = document.querySelector(".top-scroll");
+    const topScrollInner = document.querySelector(".top-scroll > div");
+    const tableContainer = document.querySelector(".table-container");
+
+    if (!topScroll || !tableContainer) return;
+
+    function syncWidth() {
+        topScrollInner.style.width = tableContainer.scrollWidth + "px";
+    }
+
+    syncWidth();
+    window.addEventListener("resize", syncWidth);
+
+    topScroll.addEventListener("scroll", () => {
+        tableContainer.scrollLeft = topScroll.scrollLeft;
+    });
+
+    tableContainer.addEventListener("scroll", () => {
+        topScroll.scrollLeft = tableContainer.scrollLeft;
+    });
+});
+</script>
+{% endblock %}

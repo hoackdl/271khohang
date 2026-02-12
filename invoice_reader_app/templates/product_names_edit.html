@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>✏️ Sửa tên hàng hóa</h3>
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label>Tên hàng hóa:</label>
+        <input type="text" name="ten_hang" class="form-control" value="{{ product.ten_hang }}">
+    </div>
+    <div class="mb-3">
+        <label>Tên gọi chung:</label>
+        <input type="text" name="ten_goi_chung" class="form-control" value="{{ product.ten_goi_chung }}">
+    </div>
+    <button class="btn btn-primary">💾 Lưu</button>
+    <a href="{% url 'product_names_list' %}" class="btn btn-secondary">⬅️ Quay lại</a>
+</form>
+{% endblock %}

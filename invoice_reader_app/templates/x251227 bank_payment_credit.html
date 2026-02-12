@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static humanize number_to_text %}
+{% block navbar_title %}Chi tiết Bank Payment (CREDIT){% endblock %}
+{% block container_class %}container-fluid pt-0 px-3 full-screen-container{% endblock %}
+
+{% block content %}
+<div class="full-screen-container">
+    <div class="card shadow-lg border-0 h-100">
+
+        <div class="card-header bg-warning-subtle fw-bold d-flex justify-content-between">
+            💰 GIAO DỊCH CREDIT – THU TIỀN
+            {% if payment.is_locked %}
+                <span class="badge bg-danger">ĐÃ KHÓA SỔ</span>
+            {% endif %}
+        </div>
+
+
+        <div class="card-body">
+            <form method="post" id="creditForm">
+                {% csrf_token %}
+                <form method="post" id="creditForm">
+    {% csrf_token %}
+
+    <!-- ================= LOẠI THU ================= -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <label class="fw-bold">Loại thu</label>
+            <select name="payment_type" id="paymentType" class="form-control">
+                <option value="po">Thu theo PO</option>
+                <option value="transfer">Thu chuyển khoản</option>
+                <option value="interest">Thu tiền lãi</option>
+                <option value="opening_customer">Thu nợ đầu kỳ KH</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- ================= THU NỢ ĐẦU KỲ KH ================= -->
+    <div id="openingCustomerBox" class="row mb-3 d-none">
+        <div class="col-md-6">
+            <label>Khách hàng</label>
+            <select name="customer_id" class="form-control">
+                <option value="">-- Chọn khách hàng nợ đầu kỳ --</option>
+                {% for c in customers_with_opening_debt %}
+                    <option value="{{ c.id }}">
+                        {{ c.name }} (Nợ: {{ c.phai_thu_dau_ky|intcomma }})
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+
+        <div class="col-md-6">
+            <label>Số tiền thu</label>
+            <input type="number" name="opening_amount" class="form-control" step="0.01">
+        </div>
+    </div>
+
+
+</div>
+
+
+
+                <!-- ================= SEARCH PO ================= -->
+                <div class="mb-3">
+                    <label class="fw-bold">🔍 Tìm PO theo MST + Số HĐ</label>
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <input type="text" id="mst" class="form-control" placeholder="Mã số thuế">
+                        </div>
+                        <div class="col-md-5">
+                            <input type="text" id="sohd" class="form-control" placeholder="Số hóa đơn (000123,000124)">
+                        </div>
+                        <div class="col-md-4 d-grid">
+                            <button type="button" id="searchPO" class="btn btn-outline-primary">Tìm PO</button>
+                        </div>
+                    </div>
+                    <div id="poInfo" class="alert d-none mt-2"></div>
+                </div>
+
+                <!-- ================= PO TABLE ================= -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Danh sách PO xuất (CREDIT)</label>
+                    <div class="table-responsive" style="max-height:300px; overflow-y:auto;">
+                        <table class="table table-sm table-bordered table-hover mb-0" id="poTable">
+                            <thead class="table-light text-center">
+                                <tr>
+                                    <th width="40">Chọn</th>
+                                    <th>PO</th>
+                                    <th>Khách hàng</th>
+                                    <th>MST</th>
+                                    <th>Số hóa đơn</th>
+                                    <th class="text-end">Số tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody id="poTableBody">
+                                {% for po in purchase_orders %}
+                                    {% if not po.po_number|slice:":2" == "PN" %}
+                                    <tr id="poRow_{{ po.id }}">
+                                        <td class="text-center">
+                                            <input type="checkbox"
+                                                   class="po-checkbox"
+                                                   name="po_id"
+                                                   value="{{ po.id }}"
+                                                   data-amount="{{ po.total_payment }}"
+                                                   data-po="{{ po.po_number }}"
+                                                   {% if po in payment.purchase_orders.all %}checked{% endif %}
+                                                   {% if payment.is_locked %}disabled{% endif %}>
+                                        </td>
+                                        <td class="text-center">{{ po.po_number }}</td>
+                                        <td>{{ po.customer.ten_khach_hang|default:"—" }}</td>
+                                        <td class="text-center">{{ po.customer.ma_so_thue|default:"—" }}</td>
+                                        <td class="text-center">{{ po.invoice.so_hoa_don|default:"—" }}</td>
+                                        <td class="text-end">{{ po.total_payment|floatformat:0|intcomma }}</td>
+                                    </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- ================= CREDIT ================= -->
+                <div class="row mb-2">
+                    <div class="col-md-6">
+                        <label class="fw-bold text-success">💵 Tổng tiền CREDIT</label>
+                        <input type="hidden" name="credit" value="{{ payment.credit }}">
+                        <input type="text"
+                               id="creditInput"
+                               class="form-control"
+                               value="{{ payment.credit|floatformat:0|intcomma }}"
+                               readonly>
+
+                        <small id="creditWarning" class="text-danger d-none">
+                            ⚠ Số tiền CREDIT khác tổng PO
+                        </small>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="fw-bold">Ngày giao dịch</label>
+                        <input type="date"
+                               class="form-control"
+                               value="{{ payment.payment_date|date:'Y-m-d' }}"
+                               disabled>
+                    </div>
+                </div>
+
+                <!-- ================= CONTENT ================= -->
+                <div class="mb-3">
+                    <label class="fw-bold">Nội dung</label>
+                    <textarea name="content"
+                              id="contentInput"
+                              rows="1"
+                              class="form-control"
+                              readonly>{{ payment.content }}</textarea>
+                </div>
+                <!-- ================= NGÀY TẠO PHIẾU ================= -->                
+                <div class="form-group">
+                    <label>Ngày tạo phiếu</label>
+                    <input type="date"
+                        name="payment_date"
+                        class="form-control"
+                        value="{{ payment.payment_date|date:'Y-m-d' }}">
+                </div>
+
+                <!-- ================= ACTION ================= -->
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'bank_payments_manage' %}" class="btn btn-secondary">Quay lại</a>
+                    {% if not payment.is_locked %}
+                    <button type="submit" class="btn btn-warning">💾 Lưu CREDIT</button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.full-screen-container { height: 85vh; }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const paymentType = document.getElementById("paymentType");
+
+    const openingBox = document.getElementById("openingCustomerBox");
+    const transferBox = document.getElementById("transferBox");
+    const interestBox = document.getElementById("interestBox");
+
+    function toggleBoxes() {
+        openingBox.classList.add("d-none");
+        transferBox.classList.add("d-none");
+        interestBox.classList.add("d-none");
+
+        if (paymentType.value === "opening_customer") {
+            openingBox.classList.remove("d-none");
+        }
+        if (paymentType.value === "transfer") {
+            transferBox.classList.remove("d-none");
+        }
+        if (paymentType.value === "interest") {
+            interestBox.classList.remove("d-none");
+        }
+    }
+
+    paymentType.addEventListener("change", toggleBoxes);
+    toggleBoxes(); // chạy khi load trang
+});
+</script>
+
+
+{% endblock %}

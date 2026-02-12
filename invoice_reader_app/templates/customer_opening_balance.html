@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-4">
+    <h2 class="mb-3">Nhập số dư đầu kỳ khách hàng</h2>
+
+    <!-- Tìm kiếm khách hàng -->
+    <form method="get" class="mb-3 row g-2">
+        <div class="col-auto">
+            <input type="text" name="search_customer" class="form-control" placeholder="Tìm khách hàng..." value="{{ search_customer }}">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+        </div>
+    </form>
+
+    <!-- Tổng phải thu / phải trả -->
+    <div class="mb-4">
+        <div class="alert alert-info">
+            <strong>Tổng phải thu: </strong> {{ totals.total_receivable|default:0 }} <br>
+            <strong>Tổng phải trả: </strong> {{ totals.total_payable|default:0 }}
+        </div>
+    </div>
+
+    <!-- Danh sách khách hàng dạng card -->
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        {% for customer in customers %}
+        <div class="col">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ customer.ten_khach_hang }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ customer.ma_so_thue }}</h6>
+                    <form method="post" action="" class="row g-2 align-items-center">
+                        {% csrf_token %}
+                        <div class="col">
+                            <label for="receivable_{{ customer.id }}" class="form-label">Phải thu đầu kỳ</label>
+                            <input type="text" name="receivable_{{ customer.id }}" id="receivable_{{ customer.id }}" value="{{ customer.phai_thu_dau_ky|default_if_none:'0.00' }}" class="form-control text-end">
+                        </div>
+                        <div class="col">
+                            <label for="payable_{{ customer.id }}" class="form-label">Phải trả đầu kỳ</label>
+                            <input type="text" name="payable_{{ customer.id }}" id="payable_{{ customer.id }}" value="{{ customer.phai_tra_dau_ky|default_if_none:'0.00' }}" class="form-control text-end">
+                        </div>
+                        <div class="col-auto mt-4">
+                            <button type="submit" class="btn btn-success">Lưu</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col">
+            <div class="alert alert-warning">Không có khách hàng nào</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Phân trang -->
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if customers.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ customers.previous_page_number }}{% if search_customer %}&search_customer={{ search_customer }}{% endif %}">« Trước</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">« Trước</span></li>
+            {% endif %}
+
+            <li class="page-item disabled"><span class="page-link">Trang {{ customers.number }} / {{ customers.paginator.num_pages }}</span></li>
+
+            {% if customers.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ customers.next_page_number }}{% if search_customer %}&search_customer={{ search_customer }}{% endif %}">Sau »</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Sau »</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}

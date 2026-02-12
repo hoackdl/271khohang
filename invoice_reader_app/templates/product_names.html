@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+
+{% block extra_head %}
+<style>
+    table th, table td { vertical-align: middle; }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2>🏷️ Danh mục tên gọi hàng hóa nhập</h2>
+
+<!-- 🔍 Tìm kiếm -->
+<form method="get" class="mb-3 row g-2 align-items-center">
+    <div class="col-auto">
+        <input type="text" name="search_name" placeholder="Tìm kiếm tên hàng..." value="{{ search_name }}" class="form-control form-control-sm">
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-outline-primary btn-sm">🔎 Tìm</button>
+        <a href="{% url 'product_names_export_excel' %}?search_name={{ search_name }}" class="btn btn-success btn-sm">📥 Xuất Excel</a>
+    </div>
+</form>
+
+<!-- 📤 Import Excel -->
+<form method="post" action="{% url 'product_names_import_excel' %}" enctype="multipart/form-data" class="mb-3 row g-2 align-items-center">
+  {% csrf_token %}
+  <div class="col-auto">
+    <input type="file" name="excel_file" accept=".xlsx,.xls" class="form-control form-control-sm" required>
+  </div>
+  <div class="col-auto">
+    <button type="submit" class="btn btn-primary btn-sm">📤 Nhập Excel</button>
+  </div>
+</form>
+
+<!-- 📋 Bảng dữ liệu -->
+<table class="table table-bordered table-hover text-center">
+    <thead class="table-light">
+        <tr>
+            <th width="5%">TT</th>
+            <th class="text-start">Tên hàng hóa</th>
+            <th class="text-start">Tên gọi chung</th>
+            <th width="10%">Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in product_names %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td class="text-start">{{ row.ten_hang }}</td>
+            <td class="text-start">{{ row.ten_goi_chung }}</td>
+            <td>
+                <a href="{% url 'product_names_edit' row.id %}" class="btn btn-sm btn-warning">✏️ Sửa</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4" class="text-center">Chưa có dữ liệu.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if product_names.paginator %}
+<nav aria-label="Page navigation">
+  <ul class="pagination justify-content-center">
+
+    {# ← Trang trước #}
+    {% if product_names.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page=1&{{ query_params }}">« Đầu</a>
+      </li>
+      <li class="page-item">
+        <a class="page-link" href="?page={{ product_names.previous_page_number }}&{{ query_params }}">‹ Trước</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">« Đầu</span></li>
+      <li class="page-item disabled"><span class="page-link">‹ Trước</span></li>
+    {% endif %}
+
+    {# ← Các trang #}
+    {% for num in product_names.paginator.page_range %}
+      {% if num == product_names.number %}
+        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+      {% elif num >= product_names.number|add:"-2" and num <= product_names.number|add:"2" %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ num }}&{{ query_params }}">{{ num }}</a>
+        </li>
+      {% endif %}
+    {% endfor %}
+
+    {# → Trang tiếp theo #}
+    {% if product_names.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ product_names.next_page_number }}&{{ query_params }}">Sau ›</a>
+      </li>
+      <li class="page-item">
+        <a class="page-link" href="?page={{ product_names.paginator.num_pages }}&{{ query_params }}">Cuối »</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Sau ›</span></li>
+      <li class="page-item disabled"><span class="page-link">Cuối »</span></li>
+    {% endif %}
+
+  </ul>
+</nav>
+{% endif %}
+
+
+{% endblock %}
+

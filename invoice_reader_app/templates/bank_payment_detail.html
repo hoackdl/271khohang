@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block navbar_title %}Chi tiết Bank Payment{% endblock %}
+{% block container_class %}container-fluid pt-0 px-3 full-screen-container{% endblock %}
+
+{% block content %}
+<div class="full-screen-container">
+    <div class="card shadow-lg border-0">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Chọn PO (multiple) -->
+                <div class="mb-3">
+    <label class="form-label fw-bold">Chọn PO (có thể chọn nhiều)</label>
+    <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+        <table class="table table-striped table-bordered table-hover mb-0">
+            <thead class="table-light text-center text-blue">
+                <tr>
+                    <th style="width: 40px;">Chọn</th>
+                    <th>PO Number</th>
+                    <th>Hóa đơn</th>
+                    <th>NCC/KH</th>
+                    <th>MST</th>
+                    <th>Số tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for po in purchase_orders %}
+<tr>
+    <td>
+        <input type="checkbox" name="po_id" value="{{ po.id }}"
+            {% if po in payment.purchase_orders.all %}checked{% endif %}>
+    </td>
+    <td class="text-center" >{{ po.po_number }}</td>
+    <td class="text-center">{% if po.invoice.so_hoa_don %}{{ po.invoice.so_hoa_don }}{% endif %}</td>
+    
+    {% if po.po_number|slice:":2" == "PN" %}
+        <!-- Nếu là PO nhập kho, hiển thị đơn vị bán -->
+        <td >{% if po.invoice.ten_dv_ban %}{{ po.invoice.ten_dv_ban }}{% endif %}</td>
+        <td class="text-center">{% if po.invoice.ma_so_thue %}{{ po.invoice.ma_so_thue }}{% endif %}</td>
+    {% else %}
+        <!-- Ngược lại hiển thị đơn vị mua -->
+        <td>{% if po.customer.ten_khach_hang %}{{ po.customer.ten_khach_hang }}{% endif %}</td>
+        <td class="text-center">{% if po.customer.ma_so_thue %}{{ po.customer.ma_so_thue }}{% endif %}</td>
+    {% endif %}
+    
+    <td class="text-end">{{ po.total_payment|floatformat:0|intcomma }}</td>
+</tr>
+
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <small class="text-muted d-block mt-1">Tích chọn 1 hoặc nhiều PO, cuộn để xem tất cả</small>
+</div>
+
+
+                <!-- Hiển thị PO đã chọn dạng badge -->
+                <div id="selectedPOs" class="mb-3 d-flex flex-wrap gap-1">
+                    {% for po in payment.purchase_orders.all %}
+                        <span class="badge bg-info text-white" data-id="{{ po.id }}">
+                            {{ po.po_number }} <i class="bi bi-x-circle ms-1 remove-badge" style="cursor:pointer;"></i>
+                        </span>
+                    {% endfor %}
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Tìm PO theo MST + Số HĐ -->
+                <div class="mb-1">
+                    <label class="form-label fw-bold">Tìm PO theo MST + Số HĐ</label>
+                    <div class="row g-2">
+                        <div class="col-12 col-md-4">
+                            <input type="text" class="form-control" id="mst" placeholder="Mã số thuế">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <input type="text" class="form-control" id="sohd" placeholder="Số hóa đơn (có thể nhiều, cách nhau bằng dấu ,)">
+                        </div>
+                        <div class="col-12 col-md-4 d-grid">
+                            <button type="button" class="btn btn-outline-primary" id="searchPO">
+                                <i class="bi bi-search me-1"></i> Tìm PO
+                            </button>
+                        </div>
+                    </div>
+                    <div id="poInfo" class="alert mt-2 d-none"></div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Debit / Credit -->
+                <div class="row">
+                    <div class="mb-1 col-md-6">
+                        <label class="form-label fw-bold">Debit</label>
+                        <input type="text" class="form-control" name="debit" value="{{ payment.debit|floatformat:0|intcomma  }}">
+                    </div>
+                    <div class="mb-3 col-md-6">
+                        <label class="form-label fw-bold">Credit</label>
+                        <input type="text" class="form-control" name="credit" value="{{ payment.credit|floatformat:0|intcomma }}">
+                    </div>
+                </div>
+
+                <!-- Nội dung -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nội dung chi tiết</label>
+                    <textarea class="form-control" name="content" rows="3">{{ payment.content }}</textarea>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mb-3">
+                    <a href="{% url 'bank_payments_manage' %}" class="btn btn-secondary">Quay lại</a>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.full-screen-container { height: 85vh; }
+#poSelect { max-height: 200px; overflow-y: auto; }
+#selectedPOs .badge { font-size: 0.9rem; }
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const searchBtn = document.getElementById("searchPO");
+    const poInfo = document.getElementById("poInfo");
+    const selectedPOs = document.getElementById("selectedPOs");
+    const mstInput = document.getElementById("mst");
+    const sohdInput = document.getElementById("sohd");
+
+    // Thêm badge
+    function addBadge(po) {
+        if ([...selectedPOs.querySelectorAll('.badge')].some(b => b.dataset.id === String(po.id))) return;
+        const span = document.createElement('span');
+        span.className = 'badge bg-info text-white me-1 mb-1';
+        span.dataset.id = po.id;
+        span.innerHTML = `${po.po_number} <i class="bi bi-x-circle ms-1 remove-badge" style="cursor:pointer;"></i>`;
+        selectedPOs.appendChild(span);
+    }
+
+    // Xóa badge
+    selectedPOs.addEventListener('click', function(e){
+        if(e.target.classList.contains('remove-badge')){
+            const badge = e.target.closest('.badge');
+            const id = badge.dataset.id;
+            badge.remove();
+            // Uncheck checkbox tương ứng
+            const checkbox = document.querySelector(`input[type="checkbox"][name="po_id"][value="${id}"]`);
+            if (checkbox) checkbox.checked = false;
+        }
+    });
+
+    // Tìm PO
+    searchBtn.addEventListener("click", function () {
+        let mst = mstInput.value.trim();
+        let sohd = sohdInput.value.trim();
+
+        // Nếu MST hoặc Số HĐ rỗng, thử lấy từ nội dung chi tiết
+        if (!mst || !sohd) {
+            const contentField = document.querySelector('textarea[name="content"]');
+            if (contentField) {
+                const content = contentField.value;
+
+                // Regex trích MST và HD
+                const mstMatch = content.match(/MST\s+(\S+)/i);
+                const hdMatch = content.match(/hd\s+(\S+)/i);
+
+                if (mstMatch && !mst) mst = mstMatch[1];
+                if (hdMatch && !sohd) sohd = hdMatch[1];
+
+                // Điền vào input
+                if (mst) mstInput.value = mst;
+                if (sohd) sohdInput.value = sohd;
+            }
+        }
+
+        if (!mst) {
+            alert("Hãy nhập Mã số thuế!");
+            return;
+        }
+
+        // Gọi API
+        fetch(`/invoice/api/find-po/?mst=${mst}&sohd=${sohd}`)
+            .then(res => res.json())
+            .then(data => {
+                if (!data.found || !data.pos || data.pos.length === 0) {
+                    poInfo.className = "alert alert-danger mt-2";
+                    poInfo.innerHTML = "❌ Không tìm thấy phiếu nhập/xuất phù hợp.";
+                    return;
+                }
+
+                poInfo.className = "alert alert-success mt-2";
+                poInfo.innerHTML = `✔ Đã tìm thấy ${data.pos.length} PO`;
+
+                const tbody = document.querySelector("table tbody");
+
+                data.pos.forEach(po => {
+                    // Tích checkbox trong bảng
+                    const checkbox = document.querySelector(`input[type="checkbox"][name="po_id"][value="${po.id}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+
+                        // Di chuyển dòng PO lên đầu bảng
+                        const tr = checkbox.closest("tr");
+                        if (tr && tbody) {
+                            tbody.insertBefore(tr, tbody.firstChild);
+                        }
+                    }
+
+                    // Thêm badge
+                    addBadge(po);
+                });
+            })
+            .catch(err => {
+                poInfo.className = "alert alert-danger mt-2";
+                poInfo.innerHTML = "❌ Lỗi khi tìm PO";
+                console.error(err);
+            });
+    });
+});
+</script>
+
+{% endblock %}

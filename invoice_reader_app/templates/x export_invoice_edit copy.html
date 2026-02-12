@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mt-3">
+
+<h4 class="mb-3">✏️ <b>CHỈNH SỬA FILE XUẤT HÓA ĐƠN (TMP)</b></h4>
+
+<form method="post">
+{% csrf_token %}
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <p><b>Số HĐ:</b> {{ invoice.so_hoa_don }}</p>
+        <p><b>Ngày:</b> {{ invoice.ngay_hd|date:"d/m/Y" }}</p>
+        <p><b>Khách hàng:</b> {{ invoice.ten_nguoi_mua }}</p>
+    </div>
+    <div class="col-md-6">
+        <p><b>MST:</b> {{ invoice.ma_so_thue_mua }}</p>
+        <p><b>Địa chỉ:</b> {{ invoice.dia_chi_mua }}</p>
+        <p><b>Email:</b> {{ invoice.email }}</p>
+    </div>
+</div>
+
+<input type="hidden" name="items_count" value="{{ items|length }}">
+
+<table class="table table-bordered table-sm align-middle">
+    <thead class="table-light text-center">
+        <tr>
+            <th style="width:8%">SKU</th>
+            <th>Tên hàng</th>
+            <th style="width:6%">ĐVT</th>
+            <th style="width:6%">SL</th>
+            <th style="width:10%">Đơn giá</th>
+            <th style="width:8%">Thuế suất</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for i in items %}
+        <tr>
+            <td>
+                <input type="text"
+                       name="sku_{{ forloop.counter0 }}"
+                       value="{{ i.sku }}"
+                       class="form-control form-control-sm">
+            </td>
+
+            <td>
+                <input type="text"
+                       name="ten_hang_{{ forloop.counter0 }}"
+                       value="{{ i.ten_hang }}"
+                       class="form-control form-control-sm">
+            </td>
+
+            <td>
+                <input type="text"
+                       name="dvt_{{ forloop.counter0 }}"
+                       value="{{ i.dvt }}"
+                       class="form-control form-control-sm text-center">
+            </td>
+
+            <td>
+                <input type="number"
+                       step="0.01"
+                       name="so_luong_{{ forloop.counter0 }}"
+                       value="{{ i.so_luong }}"
+                       class="form-control form-control-sm text-end">
+            </td>
+
+            <td>
+                <input type="number"
+                       step="0.01"
+                       name="don_gia_{{ forloop.counter0 }}"
+                       value="{{ i.don_gia }}"
+                       class="form-control form-control-sm text-end">
+            </td>
+
+            <td>
+                <input type="number"
+                       step="0.01"
+                       name="thue_suat_{{ forloop.counter0 }}"
+                       value="{{ i.thue_suat }}"
+                       class="form-control form-control-sm text-end">
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" class="text-center text-muted">
+                Không có dòng hàng
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="text-end mt-4 d-flex justify-content-end gap-2">
+    <a href="{% url 'export_invoice_waiting_list' %}"
+       class="btn btn-outline-secondary px-4">
+        ⬅ Quay lại
+    </a>
+
+    <button type="submit"
+            class="btn btn-primary px-4">
+        💾 Lưu chỉnh sửa
+    </button>
+
+    <a href="{% url 'export_export_invoice_excel' invoice.id %}"
+       class="btn btn-success px-4">
+        📥 Tải Excel
+    </a>
+</div>
+
+</form>
+</div>
+{% endblock %}
