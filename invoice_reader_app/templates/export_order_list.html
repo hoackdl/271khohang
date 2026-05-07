@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static humanize number_to_text %}
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+{% block navbar_title %}📦 Danh sách phiếu xuất{% endblock %}
+
+
+<style>
+html, body {
+    height: 100%;
+    overflow: hidden; /* ❗Khóa cuộn trang */
+}
+
+.full-screen-container {
+    height: 100vh;          /* full màn hình */
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    overflow: hidden;       /* không tràn ra ngoài */
+}
+.container-fluid {padding: 0 !important;}
+.card {border-radius: 0 !important; border: none !important;}
+.card-body {padding: 0 !important;}
+
+
+.card-body-wrapper {
+  flex: 1 1 auto;   /* cho phép co giãn */
+  min-height: 0;    /* quan trọng để scroll hoạt động */
+  display: flex;
+  flex-direction: column;
+}
+
+
+
+/* Header + filter cố định trên cùng */
+.card-header {
+    flex: 0 0 auto;
+    margin-bottom: 8px;
+}
+
+/* Table scroll */
+.table-container {
+    flex: 1 1 auto;
+    min-height: 0; /* cần thiết cho flex scroll */
+    overflow: auto; 
+}
+
+.table-container table {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed; /* giúp các cột align đúng */
+}
+
+
+.table thead th {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10;
+}
+
+.table th:first-child,
+.table td:first-child {
+    position: sticky;
+    left: 0;
+    background: #fff;
+    z-index: 11;
+    width: 40px; /* hoặc 50px tuỳ checkbox */
+    padding-left: 8px;
+    padding-right: 8px;
+    text-align: center;
+}
+
+.table th, .table td {
+    padding: 6px 8px !important;
+    font-size: 13px;
+}
+
+.truncate-cell {
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Pagination cố định dưới */
+.pagination-container {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.table-sm-custom td,
+.table-sm-custom th {
+    font-size: 11px !important;
+    padding: 4px 6px !important;
+}
+</style>
+
+{% block content %}
+<div class="full-screen-container">
+      <!-- Năm tài chính -->
+    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+      <span class="small text-muted">Năm:</span>
+      <select class="form-select form-select-sm w-auto"
+              onchange="location.href=this.value">
+        {% for y in year_list %}
+          <option value="{% url 'set_fiscal_year' y %}"
+                  {% if y == current_year %}selected{% endif %}>
+            {{ y }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+  <div class="card">
+
+    <!-- Header + Actions + Filter -->
+    <div class="card-header d-flex flex-wrap align-items-center gap-2">
+      <h2 class="mb-0"></h2>
+      <button id="deleteSelectedBtn" class="btn btn-danger flex-shrink-0">🗑️ Xoá</button>
+      <button id="deleteAllPXBtn" class="btn btn-danger flex-shrink-0">🗑️ Xoá toàn bộ PX</button>
+
+
+      <a href="{% url 'create_export_order' %}" class="btn btn-success flex-shrink-0">➕ Tạo phiếu xuất mới</a>
+      <a href="{% url 'export_export_orders_excel' %}?start_date={{ request.GET.start_date }}&end_date={{ request.GET.end_date }}&search={{ request.GET.search }}" 
+          class="btn btn-warning flex-shrink-0">📥 Xuất Excel</a>
+
+
+      <form method="get" class="d-flex flex-wrap gap-2 flex-grow-1 mb-0">
+        <div class="d-flex gap-2 align-items-center">
+          <label class="mb-0 small">Từ:</label>
+          <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="form-control form-control-sm">
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+          <label class="mb-0 small">Đến:</label>
+          <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control form-control-sm">
+        </div>
+        <div class="d-flex gap-2 align-items-center flex-grow-1">
+          <label class="mb-0 small">Tìm kiếm:</label>
+          <input type="text" name="search" value="{{ request.GET.search }}" placeholder="PO Number / Khách hàng" class="form-control form-control-sm">
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+          <button class="btn btn-outline-primary btn-sm">🔎 Lọc</button>
+          <a href="{% url 'export_order_list' %}" class="btn btn-outline-secondary btn-sm">🔄 Xóa</a>
+        </div>
+      </form>
+    </div>
+
+    {% if pos %}
+    <!-- Table scroll -->
+    <div class="table-container">
+      <table class="table table-bordered table-hover table-sm-custom">
+        <thead class="table-light">
+          <tr>
+            <th><input type="checkbox" id="selectAll"></th>
+            <th>PO Number</th>
+            <th>Số hóa đơn</th> <!-- thêm cột mới -->
+            <th>Ngày hóa đơn</th>
+            <th>Khách hàng</th>
+            <th>MST</th>
+            <th>Tổng tiền hóa đơn</th>
+            <th>Chi tiết</th>
+            <th>Xoá</th>
+          </tr>
+            <!-- Dòng tổng cộng -->
+          <tr style="background:#f0f0f0; font-weight:bold; text-align:right;">
+            <td colspan="6" class="text-center">Tổng cộng</td>
+            <td>{{ total_tien|floatformat:0|intcomma }}</td>
+            <td colspan="2"></td>
+          </tr>
+
+        </thead>
+        <tbody>
+          {% for po in pos %}
+          <tr class="text-center">
+            <td><input type="checkbox" class="selectPO" data-po-id="{{ po.id }}"></td>
+            <td >{{ po.po_number }}</td>
+            <td>{{ po.invoice.so_hoa_don }}</td> <!-- hiển thị số hóa đơn -->
+            <td>{{ po.invoice.ngay_hd|date:"d/m/y" }}</td>
+            <td >{{ po.invoice.ten_nguoi_mua }}</td>
+            <td>{{ po.invoice.ma_so_thue_mua }}</td>
+            <td class="text-end">{{ po.invoice.tong_tien|floatformat:0|intcomma }}</td>
+            <td>
+              <a href="{% url 'export_order_detail' po_id=po.id %}" class="btn btn-sm btn-info">📄 Chi tiết</a>
+            </td>
+            <td>
+              <form method="post" action="{% url 'delete_export_order' po.id %}" onsubmit="return confirm('Bạn có chắc muốn xoá?');">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-danger">🗑️</button>
+              </form>
+            </td>
+
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container mt-2">
+      {% include "components/pagination.html" with data=pos query_params=query_params %}
+    </div>
+
+    {% else %}
+      <p class="text-muted">Không có phiếu xuất nào.</p>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Select all
+  document.getElementById('selectAll').addEventListener('change', function () {
+    document.querySelectorAll('.selectPO').forEach(cb => cb.checked = this.checked);
+  });
+
+  // Delete selected
+  document.getElementById('deleteSelectedBtn').addEventListener('click', () => {
+    const ids = [...document.querySelectorAll('.selectPO:checked')].map(cb => cb.dataset.poId);
+    if (!ids.length) return alert("⚠️ Chưa chọn phiếu xuất!");
+    if (!confirm(`Xoá ${ids.length} phiếu xuất?`)) return;
+
+    fetch("{% url 'delete_selected_export_orders' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}",
+      },
+      body: JSON.stringify({ ids })
+    }).then(res => res.ok ? location.reload() : alert("❌ Lỗi khi xoá"));
+  });
+
+document.getElementById('deleteAllPXBtn').addEventListener('click', () => {
+  if (!confirm("⚠️ Bạn có chắc muốn xoá **tất cả phiếu xuất PX**?")) return;
+
+  fetch("{% url 'delete_all_px' %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": "{{ csrf_token }}",
+    }
+  })
+  .then(res => {
+    if (res.ok) {
+      alert("✅ Đã xoá tất cả PX!");
+      location.reload();
+    } else {
+      alert("❌ Lỗi khi xoá PX");
+    }
+  });
+});
+
+
+
+</script>
+{% endblock %}

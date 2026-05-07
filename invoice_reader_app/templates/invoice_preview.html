@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>📋 Xem trước hóa đơn</title>
+</head>
+<body>
+  <h2>📄 Hóa đơn từ file XML</h2>
+  <form method="POST" action="/save_invoice">
+    <table border="1" cellpadding="5">
+      <tr><th>Số hóa đơn</th><td>{{ invoice.number }}</td></tr>
+      <tr><th>Ngày</th><td>{{ invoice.date }}</td></tr>
+      <tr><th>Người bán</th><td>{{ invoice.seller_name }}</td></tr>
+      <tr><th>MST</th><td>{{ invoice.seller_taxcode }}</td></tr>
+      <tr><th>Tổng tiền</th><td>{{ invoice.total_amount }}</td></tr>
+    </table>
+    
+    <!-- Ẩn các giá trị gửi về -->
+    <input type="hidden" name="number" value="{{ invoice.number }}">
+    <input type="hidden" name="date" value="{{ invoice.date }}">
+    <input type="hidden" name="seller_name" value="{{ invoice.seller_name }}">
+    <input type="hidden" name="seller_taxcode" value="{{ invoice.seller_taxcode }}">
+    <input type="hidden" name="total_amount" value="{{ invoice.total_amount }}">
+
+    <br>
+    <button type="submit">💾 Lưu vào CSDL</button>
+  </form>
+</body>
+</html>

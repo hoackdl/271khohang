@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+{% block navbar_title %}📋 Danh sách khách hàng{% endblock %}
+
+{% block extra_head %}
+<style>
+.full-screen-container {
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    overflow: hidden;
+    background: #f6f7fb;
+}
+
+/* TOP BAR */
+.top-bar {
+    background: #fff;
+    padding: 12px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 10px;
+}
+
+/* HEADER */
+.customer-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: #fff;
+    border-radius: 10px;
+    padding: 12px 10px;
+    font-weight: 600;
+    font-size: 13px;
+    color: #555;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+
+    display: grid;
+    grid-template-columns: 60px 2.5fr 3fr 2.5fr 1.5fr 1.5fr 2.5fr 160px;
+    gap: 10px;
+}
+
+/* LIST */
+.customer-list-scroll {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    margin-top: 10px;
+}
+
+/* ROW */
+.list-group-item.customer-row {
+    display: grid;
+    grid-template-columns: 60px 2.5fr 3fr 2.5fr 1.5fr 1.5fr 2.5fr 160px;
+    gap: 10px;
+    align-items: center;
+
+    background: #fff;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    padding: 12px 10px;
+    border: 1px solid #eee;
+
+    transition: all 0.15s ease;
+}
+
+.list-group-item.customer-row:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
+/* TEXT */
+.text-wrap {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 14px;
+}
+
+/* BADGE */
+.badge-soft {
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.badge-mst {
+    background: #e8f0ff;
+    color: #2b6fff;
+}
+
+.badge-group {
+    background: #e9f7ef;
+    color: #1e7e34;
+}
+
+/* ACTION */
+.customer-actions {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+}
+
+.customer-actions a {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .customer-header,
+    .list-group-item.customer-row {
+        grid-template-columns: 40px 1fr 1fr;
+    }
+
+    .hide-mobile {
+        display: none;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="full-screen-container">
+
+    <!-- TOP BAR -->
+    <div class="top-bar d-flex flex-wrap align-items-center justify-content-between gap-2">
+
+        <a href="{% url 'customer_add' %}" class="btn btn-success">
+            ➕ Thêm khách hàng
+        </a>
+
+        <form method="get" class="d-flex flex-grow-1 gap-2">
+            <input type="text"
+                   name="search_customer"
+                   value="{{ search_customer }}"
+                   class="form-control"
+                   placeholder="Tìm kiếm khách hàng, MST, email...">
+            <button type="submit" class="btn btn-outline-primary">
+                Tìm
+            </button>
+        </form>
+
+    </div>
+
+    <!-- HEADER -->
+    <div class="customer-header text-center">
+        <div>TT</div>
+        <div>Tên khách hàng</div>
+        <div>Địa chỉ</div>
+        <div>Email</div>
+        <div class="hide-mobile">MST</div>
+        <div class="hide-mobile">Nhóm</div>
+        <div>Đã thu / Tổng</div>
+        <div>Hành động</div>
+    </div>
+
+    <!-- LIST -->
+    <div class="customer-list-scroll">
+        <ul class="list-group">
+
+            {% for customer in customers %}
+            <li class="list-group-item customer-row"
+                data-customer-id="{{ customer.id }}">
+
+                <div class="text-center fw-bold">
+                    {{ forloop.counter0|add:customers.start_index }}
+                </div>
+
+                <div class="text-wrap fw-semibold">
+                    {{ customer.ten_khach_hang }}
+                </div>
+
+                <div class="text-wrap">
+                    {{ customer.dia_chi }}
+                </div>
+
+                <div class="text-wrap">
+                    {{ customer.email }}
+                </div>
+
+                <div class="hide-mobile">
+                    <span class="badge-soft badge-mst">
+                        {{ customer.ma_so_thue }}
+                    </span>
+                </div>
+
+                <div class="hide-mobile">
+                    <span class="badge-soft badge-group">
+                        {{ customer.phan_loai }}
+                    </span>
+                </div>
+
+                <div class="text-center">
+                    <div class="fw-bold text-success">
+                        {{ customer.total_paid_calc|floatformat:0|intcomma }}
+                    </div>
+                    <div class="small text-muted">
+                        / {{ customer.total_invoice_calc|floatformat:0|intcomma }}
+                        ({{ customer.percent_paid_calc|floatformat:0|intcomma }}%)
+                    </div>
+                </div>
+
+                <div class="customer-actions">
+                    <a href="{% url 'customer_detail' customer.id %}"
+                       class="btn btn-sm btn-outline-primary">
+                        Công nợ
+                    </a>
+
+                    <a href="{% url 'customer_edit' customer.pk %}"
+                       class="btn btn-sm btn-outline-secondary">
+                        Sửa
+                    </a>
+
+                    <a href="{% url 'customer_delete' customer.pk %}"
+                       class="btn btn-sm btn-danger">
+                        🗑
+                    </a>
+                </div>
+
+            </li>
+            {% empty %}
+            <li class="list-group-item text-center">
+                Chưa có khách hàng nào
+            </li>
+            {% endfor %}
+
+        </ul>
+    </div>
+
+    <!-- PAGINATION -->
+    {% if customers.has_other_pages %}
+    <nav class="mt-3">
+        <ul class="pagination justify-content-center">
+
+            {% if customers.has_previous %}
+            <li class="page-item">
+                <a class="page-link"
+                   href="?page={{ customers.previous_page_number }}&{{ query_params }}">
+                    &laquo;
+                </a>
+            </li>
+            {% endif %}
+
+            {% for i in customers.paginator.page_range %}
+                {% if i >= customers.number|add:-2 and i <= customers.number|add:2 or i == 1 or i == customers.paginator.num_pages %}
+                <li class="page-item {% if customers.number == i %}active{% endif %}">
+                    <a class="page-link"
+                       href="?page={{ i }}&{{ query_params }}">
+                        {{ i }}
+                    </a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if customers.has_next %}
+            <li class="page-item">
+                <a class="page-link"
+                   href="?page={{ customers.next_page_number }}&{{ query_params }}">
+                    &raquo;
+                </a>
+            </li>
+            {% endif %}
+
+        </ul>
+    </nav>
+    {% endif %}
+
+</div>
+
+<script>
+document.querySelectorAll('.customer-row').forEach(row => {
+    row.addEventListener('click', () => {
+        const customerId = row.dataset.customerId;
+
+        fetch(`/invoice/customers/${customerId}/detail/`)
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('customerDetailContent').innerHTML = html;
+                new bootstrap.Modal(
+                    document.getElementById('customerDetailModal')
+                ).show();
+            });
+    });
+});
+</script>
+
+{% endblock %}
