@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+{% load custom_tags %}
+{% load humanize %}
+{% load static number_to_text %}
+{% block navbar_title %}CHI TIẾT CÔNG NỢ{% endblock %}
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+
+{% block content %}
+
+<h5 class="mb-3">{{ customer.ten_khach_hang }}</h5>
+
+<form method="get" class="mb-4 d-flex gap-2 align-items-center flex-wrap">
+    <label>Ngày bắt đầu:
+        <input type="date" name="start_date" value="{{ start_date }}" class="form-control form-control-sm">
+    </label>
+    <label>Ngày kết thúc:
+        <input type="date" name="end_date" value="{{ end_date }}" class="form-control form-control-sm">
+    </label>
+    <button type="submit" class="btn btn-success btn-sm fw-bold px-4">Lọc</button>
+    <a href="{% url 'customer_detail' customer.id %}" class="btn btn-secondary btn-sm fw-bold px-4">Reset</a>
+</form>
+
+<table class="table table-bordered table-striped shadow-sm rounded">
+    <thead class=" text-center table-primary">
+        <tr>
+            <th>TT</th>
+            <th>Số hóa đơn</th>
+            <th>Ngày hóa đơn</th>
+            <th>Tổng hóa đơn</th>
+<th>Nội dung thanh toán NH</th>
+<th>Số phiếu thu TM</th>
+            <th>Đã thu</th>
+            <th width="180">Thao tác</th>
+            <th width="180">Còn nợ</th>
+        </tr>
+
+    </thead>
+    <tbody>
+                <!-- Dòng số dư đầu kỳ -->
+        <tr style="font-weight:bold; background:#f0f0f0;" class="text-end">
+            <td colspan="3">Số dư đầu kỳ Phải thu/Phải trả</td>
+            
+            <td>
+                {% if opening_balance >= 0 %}
+                    {{ opening_balance|floatformat:0 |intcomma}} 
+                {% else %}
+                    {{ opening_balance|floatformat:0|abs |intcomma}} 
+                {% endif %}
+            </td>
+            <td>-</td>
+        </tr>
+        {% if opening_payments %}
+
+<h5 class="text-danger">
+    📌 Thu nợ đầu kỳ khách hàng
+</h5>
+
+<table class="table table-bordered table-sm">
+
+<tr>
+    <th>Số phiếu</th>
+    <th>Ngày</th>
+    <th>Nội dung</th>
+    <th class="text-end">Số tiền</th>
+</tr>
+
+
+{% for p in opening_payments %}
+
+<tr>
+
+<td>
+{{ p.doc_no }}
+</td>
+
+<td>
+{{ p.payment_date|date:"d/m/Y" }}
+</td>
+
+<td>
+{{ p.content }}
+</td>
+
+<td class="text-end">
+{{ p.credit|floatformat:0|intcomma }}
+</td>
+
+</tr>
+
+{% endfor %}
+
+
+</table>
+
+{% endif %}
+
+        <!-- Tổng hợp -->
+        <tr class="fw-bold table-secondary text-center">
+            <td colspan="2">Tổng</td>
+            <td></td>
+            <td class="text-end">{{ total_invoice|floatformat:0|intcomma }}</td>
+            <td></td>
+            <td></td>
+            <td class="text-end">{{ total_paid_all|floatformat:0|intcomma }}</td>
+           
+        </tr>
+
+
+         <!-- Tổng thu thực tế = tổng hóa đơn + số dư đầu kỳ -->
+        <tr style="font-weight:bold; background:#f0d0d0;" class="text-end">
+            <td colspan="3">Số dư cuối kỳ (Phải thu/Phải trả) </td>
+            <td colspan="1">
+                {{ closing_balance|floatformat:0 |intcomma }}
+            </td>
+        </tr>
+
+<!-- Thu nợ đầu kỳ -->
+{% for p in opening_payments %}
+<tr class="align-middle bg-light">
+
+    <td class="text-center">
+        -
+    </td>
+
+    <td class="text-center">
+        -
+    </td>
+
+    <td class="text-center">
+        {{ p.payment_date|date:"d/m/Y" }}
+    </td>
+
+    <td class="text-end">
+        -
+    </td>
+
+    <td>
+        <span class="text-danger fw-bold">
+            {{ p.content }}
+        </span>
+        <br>
+        <small>
+            Phiếu: {{ p.doc_no }}
+        </small>
+    </td>
+
+    <td class="text-center">
+        -
+    </td>
+
+    <td class="text-end text-success fw-bold">
+        {{ p.credit|floatformat:0|intcomma }}
+    </td>
+
+    <td class="text-center">
+        -
+    </td>
+
+    <td class="text-end">
+        -
+    </td>
+
+</tr>
+{% endfor %}
+
+
+
+<!-- Thu ngân hàng trực tiếp khách hàng -->
+{% for p in customer_payment_list %}
+
+<tr class="align-middle">
+
+    <td class="text-center">
+        -
+    </td>
+
+    <td class="text-center">
+  
+      {{ p.doc_no }}
+  
+
+    </td>
+
+    <td class="text-center">
+        {{ p.payment_date|date:"d/m/Y" }}
+    </td>
+
+    <td class="text-end">
+        -
+    </td>
+
+
+    <td>
+
+        <span class="text-primary fw-bold">
+            {{ p.content }}
+        </span>
+
+        <br>
+
+
+    </td>
+
+
+    <td class="text-center">
+        -
+    </td>
+
+
+    <td class="text-end text-success fw-bold">
+        {{ p.credit|floatformat:0|intcomma }}
+    </td>
+
+
+    <td class="text-center">
+        -
+    </td>
+
+
+    <td class="text-end">
+        -
+    </td>
+
+
+</tr>
+
+{% endfor %}
+
+        {% for inv_data in invoice_data %}
+        <tr class="align-middle">
+            <td class="text-center">{{ forloop.counter }}</td>
+            <td class="text-center">{{ inv_data.invoice.so_hoa_don }}</td>
+            <td class="text-center">{{ inv_data.invoice.ngay_hd|date:"d/m/Y" }}</td>
+            <td class="text-end">{{ inv_data.invoice.tong_tien|floatformat:0|intcomma }}</td>
+            
+            <!-- Phiếu thu -->
+            <td>
+                {% if inv_data.payments %}
+                <table class="table table-sm mb-0">
+{% for p in inv_data.payments %}
+<tr>
+    <td>
+
+<div class="fw-bold text-primary">
+    Phiếu NH: {{ p.doc_no }}
+</div>
+
+
+<div>
+    <span class="text-danger fw-bold">Nội dung:</span> {{ p.bank_content }}
+</div>
+
+    </td>
+</tr>
+{% endfor %}
+                </table>
+                {% else %}
+                    <span class="text-muted">Chưa có phiếu thu</span>
+                {% endif %}
+            </td>
+<td style="min-width:320px;">
+    {% if inv_data.cash_receipts %}
+    <div class="d-flex flex-column gap-2">
+
+        {% for receipt in inv_data.cash_receipts %}
+        <div class="border rounded p-2 bg-light">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div>
+                    <div class="fw-bold text-primary">
+                        {{ receipt.receipt_no }}
+                    </div>
+
+                    <small class="text-success fw-semibold">
+                        {{ receipt.amount|floatformat:0|intcomma }}
+                    </small>
+                </div>
+
+                <div class="btn-group btn-group-sm">
+
+                    <a href="{% url 'cash_receipt_update' receipt.id %}"
+                       class="btn btn-outline-warning">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+
+                    <form method="post"
+                          action="{% url 'cash_receipt_delete' receipt.id %}"
+                          class="d-inline">
+                        {% csrf_token %}
+                        <button
+                            type="submit"
+                            class="btn btn-outline-danger"
+                            onclick="return confirm('Xóa phiếu thu này?')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+        {% endfor %}
+
+    </div>
+    {% else %}
+    <span class="text-muted fst-italic">
+        Chưa có phiếu thu
+    </span>
+    {% endif %}
+</td>
+            <!-- Thực thu (merge) -->
+<td class="text-end text-success fw-bold">
+    {{ inv_data.total_paid|floatformat:0|intcomma }}
+</td>
+<td class="text-center">
+    {% if inv_data.con_no > 0 %}
+        <a href="{% url 'cash_receipt_create' inv_data.invoice.id %}"
+           class="btn btn-sm btn-success">
+            💵 Thu TM
+        </a>
+    {% else %}
+        <span class="badge bg-dark">✔ Đã thu đủ</span>
+    {% endif %}
+</td>
+<td class="text-end text-danger fw-bold">
+    {{ inv_data.con_no|floatformat:0|intcomma }}
+</td>
+            
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7" class="text-center">Chưa có hóa đơn</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<nav aria-label="Invoice pagination">
+  <ul class="pagination justify-content-center">
+    {% if invoice_data.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ invoice_data.previous_page_number }}&{{ query_params }}">Previous</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Previous</span></li>
+    {% endif %}
+
+    <li class="page-item disabled">
+      <span class="page-link">
+        Page {{ invoice_data.number }} of {{ invoice_data.paginator.num_pages }}
+      </span>
+    </li>
+
+    {% if invoice_data.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?page={{ invoice_data.next_page_number }}&{{ query_params }}">Next</a>
+      </li>
+    {% else %}
+      <li class="page-item disabled"><span class="page-link">Next</span></li>
+    {% endif %}
+  </ul>
+</nav>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% endblock content %}

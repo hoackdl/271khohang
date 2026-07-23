@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+{% block navbar_title %}PHIẾU XUẤT{% endblock %}
+<style>
+html, body { height: 100%; margin: 0; padding: 0; }
+
+.container-fluid { padding: 0 !important; }
+.card { border-radius: 0 !important; border: none !important; }
+.full-screen-container { height: 100vh; display: flex; flex-direction: column; }
+
+.card-body-wrapper {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* quan trọng để flex con overflow hoạt động */
+}
+
+form.search-form { flex: 0 0 auto; margin-bottom: 8px; }
+.pagination-container { flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+
+.table-container {
+  flex: 1 1 auto;
+  overflow: auto;
+  min-height: 0; /* quan trọng cho flex column */
+}
+
+.table-container table {
+  border-collapse: collapse;
+  width: max-content; /* scroll ngang nếu rộng */
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 10;
+}
+
+.table th:first-child,
+.table td:first-child {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 11;
+}
+
+.table th, .table td { padding: 6px 8px !important; font-size: 13px; }
+.truncate-cell { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.full-height-card { height: 80vh; } /* card full màn hình */
+
+.table-sm-custom td,
+.table-sm-custom th {
+    font-size: 11px !important;
+    padding: 4px 6px !important;
+}
+</style>
+
+
+{% block content %}
+<div class="container py-1">
+
+ <!-- Thông tin PO -->
+<div class="card shadow-sm mb-1">
+  <div class="card-header bg-info text-white">
+    <h5 class="mb-0">Thông tin Phiếu xuất</h5>
+  </div>
+
+  <div class="card-body">
+    <div class="row">
+
+      <!-- Cột 1 -->
+      <div class="col-md-6 mb-2">
+        <p class="mb-1"><strong>Phiếu xuất:</strong> {{ po.po_number }}</p>
+      </div>
+
+      <!-- Cột 2 -->
+      <div class="col-md-6 mb-2">
+        <p class="mb-1"><strong>Ngày tạo:</strong> {{ po.created_at|date:"d/m/Y H:i" }}</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Thông tin khách hàng -->
+<div class="card mb-4">
+  <div class="card-header bg-primary text-white">
+    <h5 class="mb-0">Thông tin khách hàng</h5>
+  </div>
+
+  <div class="card-body">
+    <div class="row">
+
+      <!-- Cột trái -->
+      <div class="col-md-6 mb-2">
+        <p class="mb-1"><strong>Khách hàng:</strong> {{ invoice.ten_nguoi_mua|default:'' }}</p>
+        <p class="mb-1"><strong>MST:</strong> {{ invoice.ma_so_thue_mua|default:'' }}</p>
+      </div>
+
+      <!-- Cột phải -->
+      <div class="col-md-6 mb-2">
+        <p class="mb-1"><strong>Địa chỉ:</strong> {{ invoice.dia_chi_mua|default:'' }}</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+  <!-- Chi tiết PO / hóa đơn -->
+  <div class="card">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0">Chi tiết {{ is_invoice|yesno:"hóa đơn,phiếu xuất" }}</h5>
+    </div>
+    <div class="card-body p-0">
+      <form method="post" action="{% url 'save_po_sku' po.id %}">
+        {% csrf_token %}
+        <div class="table-responsive">
+          <table class="table table-striped table-hover mb-0 text-center align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>STT</th>
+                <th>SKU</th>
+                <th>Tên gọi chung</th>
+                <th>ĐVT</th>
+                <th>Số lượng</th>
+                <th>Đơn giá</th>
+                <th>Thành tiền</th>
+                <th>Thuế suất</th>
+                <th>Tiền thuế</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in items %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>
+                  <input type="text"
+                         name="sku_{{ item.id }}"
+                         value="{{ item.sku|default:'' }}"
+                         class="form-control form-control-sm text-center sku-input"
+                         placeholder="Nhập SKU">
+                </td>
+                <td>{{ item.ten_goi_chung|default:item.product_name }}</td>
+                <td>{{ item.unit }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.unit_price|floatformat:0|intcomma }}</td>
+                <td>{{ item.total_price|floatformat:0|intcomma }}</td>
+                <td>{{ item.thue_suat }}</td>
+                <td class="text-end">{{ item.tien_thue|floatformat:0|intcomma }}</td>
+              </tr>
+              {% endfor %}
+
+              <tr class="table-secondary fw-bold">
+                <td colspan="6" class="text-end">Tổng thanh toán</td>
+                <td class="text-end">{{ total_amount|floatformat:0|intcomma }}</td>
+                <td colspan="2"></td>
+            </tr>
+
+            </tbody>
+          </table>
+        </div>
+
+{% if show_save_button %}
+<div class="p-3 text-end">
+  <button class="btn btn-success"><i class="bi bi-save"></i> Lưu lại</button>
+</div>
+{% endif %}
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/dmhh.js' %}"></script>
+{% endblock %}
