@@ -1,0 +1,1793 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Trang chủ - Quản lý kho{% endblock %}
+
+{% block navbar_title %}
+    Quản lý kho
+{% endblock %}
+
+
+{% block extra_head %}
+
+<style>
+
+    /* =========================================================
+       BODY
+    ========================================================= */
+
+    body {
+        background: #f4f6fa;
+    }
+
+    .dashboard-wrapper {
+        padding: 20px;
+    }
+
+
+    /* =========================================================
+       SIDEBAR - BÊN TRÁI
+    ========================================================= */
+
+    .category-panel {
+        background: #ffffff;
+        border-radius: 14px;
+        box-shadow: 0 3px 15px rgba(0, 0, 0, .06);
+        overflow: hidden;
+
+        position: sticky;
+        top: 85px;
+    }
+
+    .category-header {
+        background: linear-gradient(
+            135deg,
+            #0d6efd,
+            #2563eb
+        );
+
+        color: white;
+        padding: 18px 18px;
+    }
+
+    .category-header h5 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 17px;
+    }
+
+    .category-header small {
+        opacity: .85;
+    }
+
+
+    /* =========================================================
+       CATEGORY GROUP
+    ========================================================= */
+
+    .category-group {
+        border-bottom: 1px solid #edf0f4;
+        padding-bottom: 6px;
+    }
+
+    .category-group:last-child {
+        border-bottom: 0;
+    }
+
+    .category-title {
+        padding: 13px 16px 6px;
+
+        font-size: 10px;
+        font-weight: 700;
+
+        text-transform: uppercase;
+        letter-spacing: .8px;
+
+        color: #8b95a7;
+    }
+
+
+    /* =========================================================
+       CATEGORY ITEM
+    ========================================================= */
+
+    .category-item {
+        display: flex;
+
+        align-items: center;
+
+        gap: 11px;
+
+        padding: 9px 14px;
+
+        color: #343a40;
+
+        text-decoration: none;
+
+        border-left: 3px solid transparent;
+
+        transition: all .15s ease;
+    }
+
+    .category-item:hover {
+        background: #f0f5ff;
+
+        color: #0d6efd;
+
+        border-left-color: #0d6efd;
+    }
+
+
+    .category-icon {
+        width: 34px;
+        height: 34px;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 9px;
+
+        background: #f1f4f8;
+
+        font-size: 16px;
+
+        flex-shrink: 0;
+    }
+
+    .category-item:hover .category-icon {
+        background: #dce8ff;
+    }
+
+
+    .category-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .category-name {
+        font-size: 12.5px;
+        font-weight: 600;
+    }
+
+    .category-description {
+        font-size: 10.5px;
+        color: #9aa2af;
+
+        margin-top: 1px;
+    }
+
+    .category-arrow {
+        color: #b2b8c2;
+        font-size: 12px;
+    }
+
+
+    /* =========================================================
+       DASHBOARD HEADER
+    ========================================================= */
+
+    .dashboard-header {
+        margin-bottom: 20px;
+    }
+
+    .dashboard-header h4 {
+        font-weight: 700;
+        margin-bottom: 3px;
+    }
+
+    .dashboard-header small {
+        color: #7c8492;
+    }
+
+
+    /* =========================================================
+       KPI
+    ========================================================= */
+
+    .kpi-card {
+        border: 0;
+
+        border-radius: 14px;
+
+        background: #ffffff;
+
+        box-shadow:
+            0 3px 15px rgba(0, 0, 0, .06);
+
+        padding: 16px;
+
+        height: 100%;
+
+        transition: .2s;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-2px);
+
+        box-shadow:
+            0 7px 20px rgba(0, 0, 0, .10);
+    }
+
+
+    .kpi-top {
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: center;
+    }
+
+
+    .kpi-title {
+        color: #7d8593;
+
+        font-size: 12px;
+
+        margin-bottom: 5px;
+    }
+
+
+    .kpi-value {
+        font-size: 23px;
+
+        font-weight: 700;
+
+        color: #20252b;
+    }
+
+
+    .kpi-icon {
+        width: 45px;
+        height: 45px;
+
+        border-radius: 11px;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        font-size: 21px;
+    }
+
+
+    .kpi-footer {
+        font-size: 12px;
+
+        margin-top: 8px;
+
+        color: #8d95a2;
+    }
+
+
+    /* =========================================================
+       DASHBOARD CARD
+    ========================================================= */
+
+    .dashboard-card {
+        border: 0;
+
+        border-radius: 14px;
+
+        background: #ffffff;
+
+        box-shadow:
+            0 3px 15px rgba(0, 0, 0, .06);
+
+        overflow: hidden;
+    }
+
+
+    .dashboard-card-header {
+        display: flex;
+
+        justify-content: space-between;
+
+        align-items: center;
+
+        padding: 15px 18px;
+
+        border-bottom: 1px solid #edf0f4;
+    }
+
+
+    .dashboard-card-title {
+        margin: 0;
+
+        font-size: 15px;
+
+        font-weight: 700;
+    }
+
+
+    /* =========================================================
+       QUICK ACTION
+    ========================================================= */
+
+    .quick-action {
+        display: block;
+
+        text-align: center;
+
+        text-decoration: none;
+
+        color: #343a40;
+
+        border: 1px solid #e6e9ee;
+
+        border-radius: 10px;
+
+        padding: 12px 8px;
+
+        transition: .2s;
+
+        background: white;
+    }
+
+
+    .quick-action:hover {
+        color: #0d6efd;
+
+        border-color: #0d6efd;
+
+        background: #f7faff;
+
+        transform: translateY(-2px);
+    }
+
+
+    .quick-action-icon {
+        font-size: 20px;
+
+        margin-bottom: 4px;
+    }
+
+
+    .quick-action-title {
+        font-size: 11px;
+
+        font-weight: 600;
+    }
+
+
+    /* =========================================================
+       ACTIVITY
+    ========================================================= */
+
+    .activity-item {
+        display: flex;
+
+        gap: 12px;
+
+        padding: 11px 18px;
+
+        border-bottom: 1px solid #f0f2f5;
+    }
+
+    .activity-item:last-child {
+        border-bottom: 0;
+    }
+
+
+    .activity-icon {
+        width: 34px;
+        height: 34px;
+
+        border-radius: 50%;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        flex-shrink: 0;
+    }
+
+
+    .activity-content {
+        flex: 1;
+    }
+
+
+    .activity-title {
+        font-size: 12.5px;
+
+        font-weight: 600;
+    }
+
+
+    .activity-time {
+        font-size: 10.5px;
+
+        color: #9aa1ad;
+
+        margin-top: 2px;
+    }
+
+
+    /* =========================================================
+       RESPONSIVE
+    ========================================================= */
+
+    @media (max-width: 991px) {
+
+        .category-panel {
+            position: static;
+
+            margin-bottom: 20px;
+        }
+
+    }
+/* =========================================================
+   LEFT MENU - DROPDOWN
+========================================================= */
+
+.category-panel {
+    background: #fff;
+    border-radius: 14px;
+
+    box-shadow:
+        0 3px 15px rgba(0, 0, 0, .06);
+
+    overflow: hidden;
+
+    position: sticky;
+    top: 85px;
+}
+
+
+.category-header {
+    background: linear-gradient(
+        135deg,
+        #0d6efd,
+        #2563eb
+    );
+
+    color: white;
+
+    padding: 17px 18px;
+}
+
+
+.category-header h5 {
+    margin: 0;
+
+    font-weight: 700;
+
+    font-size: 16px;
+}
+
+
+.category-header small {
+    opacity: .85;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   MENU
+========================================================= */
+
+.category-menu {
+    padding: 6px 8px 10px;
+}
+
+
+/* =========================================================
+   DROPDOWN BUTTON
+========================================================= */
+
+.category-dropdown {
+    width: 100%;
+
+    border: 0;
+    border-bottom: 1px solid #edf0f4;
+
+    background: #fff;
+
+    padding: 11px 8px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    text-align: left;
+
+    color: #343a40;
+
+    transition: all .15s ease;
+}
+
+
+.category-dropdown:hover {
+    background: #f5f8ff;
+
+    color: #0d6efd;
+}
+
+
+.category-dropdown-left {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    min-width: 0;
+}
+
+
+/* =========================================================
+   ICON
+========================================================= */
+
+.category-icon {
+    width: 35px;
+    height: 35px;
+
+    border-radius: 9px;
+
+    background: #f1f4f8;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    font-size: 16px;
+
+    flex-shrink: 0;
+}
+
+
+.category-dropdown:hover .category-icon {
+    background: #e2ecff;
+}
+
+
+/* =========================================================
+   TEXT
+========================================================= */
+
+.category-name {
+    display: block;
+
+    font-size: 12.5px;
+
+    font-weight: 600;
+}
+
+
+.category-description {
+    display: block;
+
+    margin-top: 2px;
+
+    font-size: 13px;
+
+    color: #9aa2af;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   ARROW
+========================================================= */
+
+.category-arrow {
+    color: #aeb5c0;
+
+    font-size: 12px;
+
+    transition: transform .2s ease;
+
+    margin-left: 8px;
+}
+
+
+.category-dropdown:not(.collapsed) {
+    background: #f5f8ff;
+
+    color: #0d6efd;
+}
+
+
+.category-dropdown:not(.collapsed) .category-arrow {
+    transform: rotate(180deg);
+
+    color: #0d6efd;
+}
+
+
+/* =========================================================
+   SUBMENU
+========================================================= */
+
+.category-submenu {
+    background: #f7f9fc;
+
+    border-radius: 9px;
+
+    margin: 5px 4px 8px;
+
+    overflow: hidden;
+}
+
+
+.category-submenu a {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 9px 12px;
+
+    color: #4c5562;
+
+    text-decoration: none;
+
+    font-size:13px;
+
+    border-bottom: 1px solid #e9edf2;
+
+    transition: all .15s ease;
+}
+
+
+.category-submenu a:last-child {
+    border-bottom: 0;
+}
+
+
+.category-submenu a:hover {
+    color: #0d6efd;
+
+    background: #e8f1ff;
+
+    padding-left: 17px;
+}
+
+
+.category-submenu a span:last-child {
+    color: #b3bac4;
+
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   UPLOAD XML
+========================================================= */
+
+.category-upload {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 11px 8px;
+
+    margin-top: 4px;
+
+    color: #343a40;
+
+    text-decoration: none;
+
+    border-top: 1px solid #edf0f4;
+
+    transition: .15s;
+}
+
+
+.category-upload:hover {
+    color: #0d6efd;
+
+    background: #f5f8ff;
+}
+
+
+.category-upload .category-icon {
+    background: #e7f1ff;
+}
+
+
+.category-upload > span:last-child {
+    font-size: 12px;
+
+    color: #9da5b1;
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="dashboard-wrapper">
+
+    <div class="row g-4">
+
+<!-- =====================================================
+     BÊN TRÁI - MENU DROPDOWN
+     1/3 MÀN HÌNH
+====================================================== -->
+
+<div class="col-lg-2 col-xl-3">
+
+    <div class="category-panel">
+
+        <!-- HEADER -->
+        <div class="category-header">
+
+            <h5>
+                📌 Chức năng
+            </h5>
+
+            <small>
+                Chọn nhóm nghiệp vụ
+            </small>
+
+        </div>
+
+
+        <div class="category-menu">
+
+<!-- DANH MỤC -->
+<button
+    class="category-dropdown collapsed"
+    type="button"
+    data-bs-toggle="collapse"
+    data-bs-target="#menuDanhMuc"
+    aria-expanded="false">
+
+    <span class="category-dropdown-left">
+
+        <span class="category-icon">
+            📂
+        </span>
+
+        <span>
+            <span class="category-name">
+                Danh mục
+            </span>
+
+            <span class="category-description">
+                Nhà cung cấp, khách hàng, hàng hóa...
+            </span>
+        </span>
+
+    </span>
+
+    <span class="category-arrow">
+        ▼
+    </span>
+
+</button>
+
+
+<div class="collapse" id="menuDanhMuc">
+
+    <div class="category-submenu">
+
+    <a href="{% url 'product_dmhh' %}">
+        <span>📦 Danh mục hàng hóa</span>
+        <span>→</span>
+    </a>
+
+    <a href="{% url 'cost_center_create' %}">
+        <span>💸 Loại hình chi phí</span>
+        <span>→</span>
+    </a>
+
+    <a href="{% url 'activity_type_create' %}">
+        <span>📈 Loại hình doanh thu</span>
+        <span>→</span>
+    </a>
+        <!-- PHƯƠNG TIỆN VẬN TẢI -->
+        <a href="{% url 'vehicles' %}">
+            <span>🚚 Phương tiện vận tải</span>
+            <span>→</span>
+        </a>
+
+    <a href="{% url 'employees' %}">
+        <span>👨‍💼 Nhân sự</span>
+        <span>→</span>
+    </a>
+
+    <a href="{% url 'social_insurance'  %}">
+
+        <span class="employee-menu-left">
+
+            <span class="employee-menu-icon">
+                🛡️
+            </span>
+
+            BHXH - BHYT
+
+        </span>
+
+        <span>→</span>
+
+    </a>
+    <a href="{% url 'suppliers' %}">
+        <span>🏢 Nhà cung cấp</span>
+        <span>→</span>
+    </a>
+
+    <a href="{% url 'customers' %}">
+        <span>👥 Khách hàng</span>
+        <span>→</span>
+    </a>
+
+    <a href="{% url 'coa_result' %}">
+        <span>📊 Danh mục tài khoản (COA)</span>
+        <span>→</span>
+    </a>
+
+    <a href="{% url 'coa_page' %}">
+        <span>
+            <i class="bi bi-cloud-arrow-up"></i>
+            Upload COA
+        </span>
+        <span>→</span>
+    </a>
+
+    <a href="{% url 'coa_import' %}">
+        <span>📥 Import Excel COA</span>
+        <span>→</span>
+    </a>
+
+</div>
+
+
+</div>
+
+
+            <!-- =================================================
+                 NHẬP
+            ================================================== -->
+
+            <button
+                class="category-dropdown collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#menuNhap"
+                aria-expanded="false">
+
+                <span class="category-dropdown-left">
+
+                    <span class="category-icon">
+                        📥
+                    </span>
+
+                    <span>
+
+                        <span class="category-name">
+                            Nhập hàng
+                        </span>
+
+                        <span class="category-description">
+                            Phiếu nhập và hóa đơn đầu vào
+                        </span>
+
+                    </span>
+
+                </span>
+
+                <span class="category-arrow">
+                    ▼
+                </span>
+
+            </button>
+
+
+            <div class="collapse" id="menuNhap">
+
+                <div class="category-submenu">
+
+                    <a href="{% url 'purchase_order_list' %}">
+                        <span>📋 Phiếu nhập</span>
+                        <span>→</span>
+                    </a>
+
+                    <a href="{% url 'invoice_list' %}">
+                        <span>🧾 Hóa đơn nhập</span>
+                        <span>→</span>
+                    </a>
+
+                    <a href="{% url 'bao_cao_mua_hang' %}">
+                        <span>📈 Báo cáo mua hàng</span>
+                        <span>→</span>
+                    </a>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 XUẤT
+            ================================================== -->
+
+            <button
+                class="category-dropdown collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#menuXuat"
+                aria-expanded="false">
+
+                <span class="category-dropdown-left">
+
+                    <span class="category-icon">
+                        📤
+                    </span>
+
+                    <span>
+
+                        <span class="category-name">
+                            Xuất hàng
+                        </span>
+
+                        <span class="category-description">
+                            Hóa đơn và phiếu xuất
+                        </span>
+
+                    </span>
+
+                </span>
+
+                <span class="category-arrow">
+                    ▼
+                </span>
+
+            </button>
+
+
+            <div class="collapse" id="menuXuat">
+
+                <div class="category-submenu">
+
+                    <a href="{% url 'create_export_invoice' %}">
+                        <span>🧾 Lập hóa đơn xuất</span>
+                        <span>→</span>
+                    </a>
+
+                    <a href="{% url 'export_invoice_waiting_list' %}">
+                        <span>⏳ Hóa đơn chờ xuất</span>
+                        <span>→</span>
+                    </a>
+
+                    <a href="{% url 'invoice_export_list' %}">
+                        <span>🧾 Hóa đơn xuất</span>
+                        <span>→</span>
+                    </a>
+
+                    <a href="{% url 'export_order_list' %}">
+                        <span>📋 Phiếu xuất</span>
+                        <span>→</span>
+                    </a>
+
+                    <a href="{% url 'payment_list' %}">
+                        <span>💰 Phiếu thu</span>
+                        <span>→</span>
+                    </a>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 KHO
+            ================================================== -->
+
+            <button
+                class="category-dropdown collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#menuKho"
+                aria-expanded="false">
+
+                <span class="category-dropdown-left">
+
+                    <span class="category-icon">
+                        📦
+                    </span>
+
+                    <span>
+
+                        <span class="category-name">
+                            Kho
+                        </span>
+
+                        <span class="category-description">
+                            Theo dõi nhập - xuất - tồn
+                        </span>
+
+                    </span>
+
+                </span>
+
+                <span class="category-arrow">
+                    ▼
+                </span>
+
+            </button>
+
+
+            <div class="collapse" id="menuKho">
+
+                <div class="category-submenu">
+
+                    <a href="{% url 'inventory_summary' %}">
+                        <span>📊 Nhập - Xuất - Tồn</span>
+                        <span>→</span>
+                    </a>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 NGÂN HÀNG
+            ================================================== -->
+
+            <button
+                class="category-dropdown collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#menuBank"
+                aria-expanded="false">
+
+                <span class="category-dropdown-left">
+
+                    <span class="category-icon">
+                        🏦
+                    </span>
+
+                    <span>
+
+                        <span class="category-name">
+                            Ngân hàng
+                        </span>
+
+                        <span class="category-description">
+                            Quản lý giao dịch ngân hàng
+                        </span>
+
+                    </span>
+
+                </span>
+
+                <span class="category-arrow">
+                    ▼
+                </span>
+
+            </button>
+
+
+            <div class="collapse" id="menuBank">
+
+                <div class="category-submenu">
+
+                    <a href="{% url 'bank_payments_manage' %}">
+                        <span>🏦 Quản lý Bank</span>
+                        <span>→</span>
+                    </a>
+
+                    <a href="{% url 'payment_list' %}">
+                        <span>💳 Phiếu Credit</span>
+                        <span>→</span>
+                    </a>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 BÁO CÁO
+            ================================================== -->
+
+            <button
+                class="category-dropdown collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#menuBaoCao"
+                aria-expanded="false">
+
+                <span class="category-dropdown-left">
+
+                    <span class="category-icon">
+                        📈
+                    </span>
+
+                    <span>
+
+                        <span class="category-name">
+                            Báo cáo
+                        </span>
+
+                        <span class="category-description">
+                            Báo cáo doanh thu và mua hàng
+                        </span>
+
+                    </span>
+
+                </span>
+
+                <span class="category-arrow">
+                    ▼
+                </span>
+
+            </button>
+
+
+            <div class="collapse" id="menuBaoCao">
+
+                <div class="category-submenu">
+
+                    <a href="{% url 'business_type_report' %}">
+                        <span>📈 Báo cáo doanh thu</span>
+                        <span>→</span>
+                    </a>
+
+                    <a href="{% url 'bao_cao_mua_hang' %}">
+                        <span>📊 Báo cáo mua hàng</span>
+                        <span>→</span>
+                    </a>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 UPLOAD XML
+            ================================================== -->
+
+            <a
+                href="{% url 'upload_invoices' %}"
+                class="category-upload">
+
+                <span class="category-dropdown-left">
+
+                    <span class="category-icon upload-icon">
+                        📥
+                    </span>
+
+                    <span>
+
+                        <span class="category-name">
+                            Upload XML
+                        </span>
+
+                        <span class="category-description">
+                            Nhập hóa đơn XML
+                        </span>
+
+                    </span>
+
+                </span>
+
+                <span>
+                    →
+                </span>
+
+            </a>
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+        <!-- =====================================================
+             BÊN PHẢI - DASHBOARD
+             2/3 MÀN HÌNH
+        ====================================================== -->
+
+        <div class="col-lg-10 col-xl-9">
+
+
+            <!-- HEADER -->
+
+            <div class="dashboard-header">
+
+                <h4>
+                    👋 Xin chào, {{ user.username }}
+                </h4>
+
+                <small>
+                    Tổng quan hoạt động quản lý kho và bán hàng
+                </small>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 KPI
+            ================================================== -->
+
+            <div class="row g-3 mb-4">
+
+
+                <!-- SẢN PHẨM -->
+
+                <div class="col-sm-6 col-xl-3">
+
+                    <div class="kpi-card">
+
+                        <div class="kpi-top">
+
+                            <div>
+
+                                <div class="kpi-title">
+                                    Tổng sản phẩm
+                                </div>
+
+                                <div class="kpi-value">
+                                    {{ total_products|default:"0" }}
+                                </div>
+
+                            </div>
+
+                            <div class="kpi-icon
+                                        bg-primary
+                                        bg-opacity-10
+                                        text-primary">
+
+                                📦
+
+                            </div>
+
+                        </div>
+
+                        <div class="kpi-footer">
+                            Danh mục hàng hóa
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- NHÀ CUNG CẤP -->
+
+                <div class="col-sm-6 col-xl-3">
+
+                    <div class="kpi-card">
+
+                        <div class="kpi-top">
+
+                            <div>
+
+                                <div class="kpi-title">
+                                    Nhà cung cấp
+                                </div>
+
+                                <div class="kpi-value">
+                                    {{ total_suppliers|default:"0" }}
+                                </div>
+
+                            </div>
+
+                            <div class="kpi-icon
+                                        bg-warning
+                                        bg-opacity-10
+                                        text-warning">
+
+                                🏢
+
+                            </div>
+
+                        </div>
+
+                        <div class="kpi-footer">
+                            Đối tác nhập hàng
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- KHÁCH HÀNG -->
+
+                <div class="col-sm-6 col-xl-3">
+
+                    <div class="kpi-card">
+
+                        <div class="kpi-top">
+
+                            <div>
+
+                                <div class="kpi-title">
+                                    Khách hàng
+                                </div>
+
+                                <div class="kpi-value">
+                                    {{ total_customers|default:"0" }}
+                                </div>
+
+                            </div>
+
+                            <div class="kpi-icon
+                                        bg-success
+                                        bg-opacity-10
+                                        text-success">
+
+                                👥
+
+                            </div>
+
+                        </div>
+
+                        <div class="kpi-footer">
+                            Danh mục khách hàng
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- HÓA ĐƠN -->
+
+                <div class="col-sm-6 col-xl-3">
+
+                    <div class="kpi-card">
+
+                        <div class="kpi-top">
+
+                            <div>
+
+                                <div class="kpi-title">
+                                    Hóa đơn
+                                </div>
+
+                                <div class="kpi-value">
+                                    {{ total_invoices|default:"0" }}
+                                </div>
+
+                            </div>
+
+                            <div class="kpi-icon
+                                        bg-danger
+                                        bg-opacity-10
+                                        text-danger">
+
+                                🧾
+
+                            </div>
+
+                        </div>
+
+                        <div class="kpi-footer">
+                            Tổng hóa đơn
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 THAO TÁC NHANH
+            ================================================== -->
+
+            <div class="dashboard-card mb-4">
+
+                <div class="dashboard-card-header">
+
+                    <h5 class="dashboard-card-title">
+                        ⚡ Thao tác nhanh
+                    </h5>
+
+                </div>
+
+
+                <div class="p-3">
+
+                    <div class="row g-3">
+
+
+                        <div class="col-6 col-md-3">
+
+                            <a href="{% url 'upload_invoices' %}"
+                               class="quick-action">
+
+                                <div class="quick-action-icon">
+                                    📥
+                                </div>
+
+                                <div class="quick-action-title">
+                                    Upload XML
+                                </div>
+
+                            </a>
+
+                        </div>
+
+
+                        <div class="col-6 col-md-3">
+
+                            <a href="{% url 'purchase_order_list' %}"
+                               class="quick-action">
+
+                                <div class="quick-action-icon">
+                                    📋
+                                </div>
+
+                                <div class="quick-action-title">
+                                    Phiếu nhập
+                                </div>
+
+                            </a>
+
+                        </div>
+
+
+                        <div class="col-6 col-md-3">
+          
+                            <a href="{% url 'invoice_export_list' %}"
+                               class="quick-action">
+
+                                <div class="quick-action-icon">
+                                    🧾
+                                </div>
+
+                                <div class="quick-action-title">
+                                     Hóa đơn xuất
+                                </div>
+
+                            </a>
+
+                        </div>
+
+
+                        <div class="col-6 col-md-3">
+
+                            <a href="{% url 'inventory_summary' %}"
+                               class="quick-action">
+
+                                <div class="quick-action-icon">
+                                    📊
+                                </div>
+
+                                <div class="quick-action-title">
+                                    Xem tồn kho
+                                </div>
+
+                            </a>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 BIỂU ĐỒ + HOẠT ĐỘNG
+            ================================================== -->
+
+            <div class="row g-4">
+
+
+                <!-- BIỂU ĐỒ -->
+
+                <div class="col-xl-7">
+
+                    <div class="dashboard-card">
+
+                        <div class="dashboard-card-header">
+
+                            <h5 class="dashboard-card-title">
+                                📈 Nhập - Xuất kho
+                            </h5>
+
+                            <span class="badge
+                                         bg-light
+                                         text-dark">
+
+                                7 ngày gần nhất
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="p-3">
+
+                            <canvas
+                                id="inventoryChart"
+                                height="170">
+                            </canvas>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- HOẠT ĐỘNG -->
+
+                <div class="col-xl-5">
+
+                    <div class="dashboard-card">
+
+                        <div class="dashboard-card-header">
+
+                            <h5 class="dashboard-card-title">
+                                🕒 Hoạt động gần đây
+                            </h5>
+
+                        </div>
+
+
+                        <div>
+
+                            {% if recent_activities %}
+
+                                {% for activity in recent_activities %}
+
+                                <div class="activity-item">
+
+                                    <div class="activity-icon
+                                                bg-primary
+                                                bg-opacity-10
+                                                text-primary">
+
+                                        📋
+
+                                    </div>
+
+
+                                    <div class="activity-content">
+
+                                        <div class="activity-title">
+                                            {{ activity.title }}
+                                        </div>
+
+                                        <div class="activity-time">
+                                            {{ activity.created_at }}
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                {% endfor %}
+
+                            {% else %}
+
+                                <div class="text-center
+                                            text-muted
+                                            py-5">
+
+                                    Chưa có hoạt động gần đây
+
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+<link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{{ chart_import|default:0|json_script:"chart-import-data" }}
+{{ chart_export|default:0|json_script:"chart-export-data" }}
+
+<script>
+
+const ctx = document.getElementById('inventoryChart');
+
+
+if (ctx) {
+
+    new Chart(ctx, {
+
+        type: 'line',
+
+        data: {
+
+            labels: [
+                'Thứ 2',
+                'Thứ 3',
+                'Thứ 4',
+                'Thứ 5',
+                'Thứ 6',
+                'Thứ 7',
+                'CN'
+            ],
+
+
+            datasets: [
+
+                {
+
+                    label: 'Nhập kho',
+data: [
+    JSON.parse(
+        document.getElementById('chart-import-data').textContent
+    ),
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+],
+
+                    borderColor: '#0d6efd',
+
+                    backgroundColor:
+                        'rgba(13,110,253,.10)',
+
+                    fill: true,
+
+                    tension: .4,
+
+                    borderWidth: 2
+
+                },
+
+
+                {
+
+                    label: 'Xuất kho',
+
+data: [
+    JSON.parse(
+        document.getElementById('chart-export-data').textContent
+    ),
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+],
+
+                    borderColor: '#198754',
+
+                    backgroundColor:
+                        'rgba(25,135,84,.08)',
+
+                    fill: true,
+
+                    tension: .4,
+
+                    borderWidth: 2
+
+                }
+
+            ]
+
+        },
+
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            interaction: {
+
+                intersect: false,
+
+                mode: 'index'
+
+            },
+
+
+            plugins: {
+
+                legend: {
+
+                    position: 'bottom',
+
+                    labels: {
+
+                        usePointStyle: true,
+
+                        padding: 15
+
+                    }
+
+                }
+
+            },
+
+
+            scales: {
+
+                y: {
+
+                    beginAtZero: true,
+
+                    grid: {
+
+                        color: '#eef1f5'
+
+                    }
+
+                },
+
+                x: {
+
+                    grid: {
+
+                        display: false
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    });
+
+}
+
+</script>
+
+{% endblock %}

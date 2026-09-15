@@ -1,0 +1,1216 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    Quản lý BHXH
+{% endblock %}
+
+{% block navbar_title %}
+    Bảo hiểm xã hội
+{% endblock %}
+
+{% block extra_head %}
+
+<style>
+
+body {
+    background: #f4f6fa;
+}
+
+.insurance-wrapper {
+    padding: 20px;
+}
+
+/* =====================================================
+   SIDEBAR
+===================================================== */
+
+.insurance-sidebar {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 3px 15px rgba(0,0,0,.06);
+    overflow: hidden;
+    position: sticky;
+    top: 85px;
+}
+
+.insurance-sidebar-header {
+    background: linear-gradient(
+        135deg,
+        #198754,
+        #157347
+    );
+
+    color: white;
+    padding: 17px 18px;
+}
+
+.insurance-sidebar-header h5 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.insurance-sidebar-header small {
+    font-size: 11px;
+    opacity: .85;
+}
+
+.insurance-menu {
+    padding: 8px;
+}
+
+.insurance-menu a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 10px 11px;
+
+    border-radius: 8px;
+
+    color: #414955;
+    text-decoration: none;
+
+    font-size: 12px;
+
+    transition: .15s;
+}
+
+.insurance-menu a:hover {
+    background: #eaf7ef;
+    color: #198754;
+}
+
+.insurance-menu a.active {
+    background: #e8f7ee;
+    color: #198754;
+    font-weight: 600;
+}
+
+.insurance-menu-left {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.insurance-menu-icon {
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+
+    background: #f1f4f8;
+
+    font-size: 15px;
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.insurance-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 18px;
+}
+
+.insurance-page-header h4 {
+    margin: 0;
+
+    font-size: 20px;
+    font-weight: 700;
+
+    color: #20252b;
+}
+
+.insurance-page-header small {
+    color: #7d8593;
+    font-size: 12px;
+}
+
+.btn-add-insurance {
+    border: 0;
+
+    background: #198754;
+    color: white;
+
+    border-radius: 8px;
+
+    padding: 9px 14px;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    text-decoration: none;
+}
+
+.btn-add-insurance:hover {
+    background: #157347;
+    color: white;
+}
+
+
+/* =====================================================
+   STAT
+===================================================== */
+
+.insurance-stat {
+    background: white;
+
+    border-radius: 12px;
+
+    padding: 14px 16px;
+
+    box-shadow: 0 3px 15px rgba(0,0,0,.05);
+
+    height: 100%;
+}
+
+.insurance-stat-title {
+    font-size: 13px;
+    color: #7d8593;
+
+    margin-bottom: 4px;
+}
+
+.insurance-stat-value {
+    font-size: 22px;
+
+    font-weight: 700;
+
+    color: #20252b;
+}
+
+.insurance-warning {
+    color: #f59f00;
+}
+
+.insurance-danger {
+    color: #dc3545;
+}
+
+
+/* =====================================================
+   TOOLBAR
+===================================================== */
+
+.insurance-toolbar {
+    background: white;
+
+    border-radius: 12px;
+
+    padding: 12px;
+
+    margin-top: 18px;
+    margin-bottom: 15px;
+
+    box-shadow: 0 3px 15px rgba(0,0,0,.05);
+}
+
+.insurance-search {
+    width: 100%;
+
+    border: 1px solid #dfe3e8;
+
+    border-radius: 8px;
+
+    padding: 9px 12px;
+
+    font-size: 12px;
+
+    outline: none;
+}
+
+.insurance-search:focus {
+    border-color: #198754;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(25,135,84,.08);
+}
+
+
+/* =====================================================
+   TABLE
+===================================================== */
+
+.insurance-card {
+    background: white;
+
+    border-radius: 14px;
+
+    box-shadow: 0 3px 15px rgba(0,0,0,.06);
+
+    overflow: hidden;
+}
+
+.insurance-card-header {
+    padding: 14px 16px;
+
+    border-bottom: 1px solid #edf0f4;
+
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+}
+
+.insurance-card-title {
+    margin: 0;
+
+    font-size: 14px;
+
+    font-weight: 700;
+}
+
+.insurance-count {
+    font-size: 12px;
+
+    color: #8b95a7;
+}
+
+.insurance-table-wrapper {
+    overflow-x: auto;
+}
+
+.insurance-table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    min-width: 1500px;
+}
+
+.insurance-table th {
+    background: #f8f9fb;
+
+    color: #697383;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    padding: 11px 10px;
+
+    border-bottom: 1px solid #e9edf2;
+
+    white-space: nowrap;
+}
+
+.insurance-table td {
+    padding: 11px 10px;
+
+    font-size: 13px;
+
+    color: #414955;
+
+    border-bottom: 1px solid #f0f2f5;
+
+    white-space: nowrap;
+}
+
+.insurance-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+
+/* =====================================================
+   EMPLOYEE
+===================================================== */
+
+.employee-name {
+    font-weight: 700;
+
+    color: #20252b;
+}
+
+.employee-code {
+    color: #6c757d;
+
+    font-size: 12px;
+}
+
+
+/* =====================================================
+   INSURANCE NUMBER
+===================================================== */
+
+.insurance-number {
+    font-weight: 700;
+
+    color: #198754;
+}
+
+
+/* =====================================================
+   BADGE
+===================================================== */
+
+.status-badge {
+    display: inline-block;
+
+    padding: 4px 8px;
+
+    border-radius: 20px;
+
+    font-size: 11px;
+
+    font-weight: 600;
+}
+
+.status-active {
+    background: #e8f7ee;
+    color: #198754;
+}
+
+.status-inactive {
+    background: #fff4e5;
+    color: #d97706;
+}
+
+.status-stopped {
+    background: #ffe9ec;
+    color: #dc3545;
+}
+
+
+/* =====================================================
+   ACTION
+===================================================== */
+
+.insurance-action {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 29px;
+    height: 29px;
+
+    border-radius: 7px;
+
+    text-decoration: none;
+
+    margin-right: 3px;
+}
+
+.insurance-action-view {
+    background: #e8f7ee;
+    color: #198754;
+}
+
+.insurance-action-edit {
+    background: #e8f1ff;
+    color: #0d6efd;
+}
+
+.insurance-action-delete {
+    background: #ffe9ec;
+    color: #dc3545;
+}
+
+
+/* =====================================================
+   EMPTY
+===================================================== */
+
+.insurance-empty {
+    text-align: center;
+
+    padding: 55px 20px;
+
+    color: #8b95a7;
+
+    font-size: 13px;
+}
+
+
+@media (max-width: 991px) {
+
+    .insurance-sidebar {
+        position: static;
+
+        margin-bottom: 20px;
+    }
+
+    .insurance-page-header {
+        align-items: flex-start;
+
+        gap: 10px;
+
+        flex-direction: column;
+    }
+
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="insurance-wrapper">
+
+    <div class="row g-4">
+
+
+        <!-- =================================================
+             SIDEBAR
+        ================================================== -->
+
+        <div class="col-lg-2 col-xl-2">
+
+            <div class="insurance-sidebar">
+
+                <div class="insurance-sidebar-header">
+
+                    <h5>
+                        🛡️ Bảo hiểm
+                    </h5>
+
+                    <small>
+                        Quản lý bảo hiểm xã hội
+                    </small>
+
+                </div>
+
+
+                <div class="insurance-menu">
+
+                    <a
+                        href="{% url 'social_insurance' %}"
+                        class="active"
+                    >
+
+                        <span class="insurance-menu-left">
+
+                            <span class="insurance-menu-icon">
+                                🛡️
+                            </span>
+
+                            Danh sách BHXH
+
+                        </span>
+
+                        <span>→</span>
+
+                    </a>
+
+
+                    <a href="{% url 'employees' %}">
+
+                        <span class="insurance-menu-left">
+
+                            <span class="insurance-menu-icon">
+                                👥
+                            </span>
+
+                            Danh sách nhân viên
+
+                        </span>
+
+                        <span>→</span>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             CONTENT
+        ================================================== -->
+
+        <div class="col-lg-10 col-xl-10">
+
+
+            <!-- HEADER -->
+
+            <div class="insurance-page-header">
+
+                <div>
+
+                    <h4>
+                        🛡️ Quản lý Bảo hiểm xã hội
+                    </h4>
+
+                    <small>
+                        Quản lý thông tin BHXH theo từng nhân viên
+                    </small>
+
+                </div>
+
+
+                <a
+                    href="{% url 'employees' %}"
+                    class="btn-add-insurance"
+                >
+
+                    👥 Chọn nhân viên
+
+                </a>
+
+            </div>
+
+
+            <!-- =================================================
+                 STAT
+            ================================================== -->
+
+            <div class="row g-3">
+
+                <div class="col-sm-6 col-xl-3">
+
+                    <div class="insurance-stat">
+
+                        <div class="insurance-stat-title">
+                            Tổng hồ sơ
+                        </div>
+
+                        <div class="insurance-stat-value">
+                            {{ insurances|length }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-sm-6 col-xl-3">
+
+                    <div class="insurance-stat">
+
+                        <div class="insurance-stat-title">
+                            Đang tham gia
+                        </div>
+
+                        <div class="insurance-stat-value">
+
+                            <span id="activeCount">
+                                0
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-sm-6 col-xl-3">
+
+                    <div class="insurance-stat">
+
+                        <div class="insurance-stat-title">
+                            Có BHYT
+                        </div>
+
+                        <div class="insurance-stat-value">
+
+                            <span id="healthCount">
+                                0
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-sm-6 col-xl-3">
+
+                    <div class="insurance-stat">
+
+                        <div class="insurance-stat-title">
+                            Tạm ngưng / Ngừng
+                        </div>
+
+                        <div class="insurance-stat-value insurance-danger">
+
+                            <span id="inactiveCount">
+                                0
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 SEARCH
+            ================================================== -->
+
+            <div class="insurance-toolbar">
+
+                <input
+                    type="text"
+                    id="insuranceSearch"
+                    class="insurance-search"
+                    placeholder="🔍 Tìm theo họ tên, mã nhân viên, số BHXH, CCCD..."
+                    onkeyup="filterInsurance()"
+                >
+
+            </div>
+
+
+            <!-- =================================================
+                 TABLE
+            ================================================== -->
+
+            <div class="insurance-card">
+
+                <div class="insurance-card-header">
+
+                    <h5 class="insurance-card-title">
+                        Danh sách hồ sơ BHXH
+                    </h5>
+
+                    <span class="insurance-count">
+
+                        {{ insurances|length }}
+                        hồ sơ
+
+                    </span>
+
+                </div>
+
+
+                <div class="insurance-table-wrapper">
+
+                    <table class="insurance-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    STT
+                                </th>
+
+                                <th>
+                                    Họ và tên
+                                </th>
+
+                                <th>
+                                    Mã NV
+                                </th>
+
+                                <th>
+                                    Số BHXH
+                                </th>
+
+                                <th>
+                                    Số CCCD
+                                </th>
+
+                                <th>
+                                    Ngày sinh
+                                </th>
+
+                                <th>
+                                    Ngày tham gia
+                                </th>
+
+                                <th>
+                                    Mức lương đóng
+                                </th>
+
+                                <th>
+                                    NLĐ
+                                </th>
+
+                                <th>
+                                    DN
+                                </th>
+
+                                <th>
+                                    Số BHYT
+                                </th>
+
+                                <th>
+                                    Hạn BHYT
+                                </th>
+
+                                <th>
+                                    Trạng thái
+                                </th>
+
+                                <th>
+                                    Thao tác
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+
+                        {% for insurance in insurances %}
+
+                            <tr
+                                class="insurance-row"
+
+                                data-search="
+                                    {{ insurance.employee.full_name }}
+                                    {{ insurance.employee.employee_code }}
+                                    {{ insurance.social_insurance_number }}
+                                    {{ insurance.employee.citizen_id }}
+                                    {{ insurance.health_insurance_number }}
+                                "
+
+                                data-status="{{ insurance.status }}"
+
+                                data-health="
+                                    {% if insurance.health_insurance_number %}
+                                        yes
+                                    {% else %}
+                                        no
+                                    {% endif %}
+                                "
+                            >
+
+
+                                <!-- STT -->
+
+                                <td>
+                                    {{ forloop.counter }}
+                                </td>
+
+
+                                <!-- HỌ TÊN -->
+
+                                <td>
+
+                                    <div class="employee-name">
+
+                                        {{ insurance.employee.full_name }}
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- MÃ NV -->
+
+                                <td>
+
+                                    <span class="employee-code">
+
+                                        {{ insurance.employee.employee_code|default:"—" }}
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- SỐ BHXH -->
+
+                                <td>
+
+                                    <span class="insurance-number">
+
+                                        {{ insurance.social_insurance_number|default:"—" }}
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- CCCD -->
+
+                                <td>
+
+                                    {{ insurance.employee.citizen_id|default:"—" }}
+
+                                </td>
+
+
+                                <!-- NGÀY SINH -->
+
+                                <td>
+
+                                    {% if insurance.employee.date_of_birth %}
+
+                                        {{ insurance.employee.date_of_birth|date:"d/m/Y" }}
+
+                                    {% else %}
+
+                                        —
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- NGÀY THAM GIA -->
+
+                                <td>
+
+                                    {% if insurance.insurance_start_date %}
+
+                                        {{ insurance.insurance_start_date|date:"d/m/Y" }}
+
+                                    {% else %}
+
+                                        —
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- MỨC LƯƠNG -->
+
+                                <td>
+
+                                    {% if insurance.insurance_salary %}
+
+                                        {{ insurance.insurance_salary|floatformat:0 }}
+
+                                    {% else %}
+
+                                        —
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- NLĐ -->
+
+                                <td>
+
+                                    {{ insurance.employee_social_rate|default:"—" }}%
+
+                                </td>
+
+
+                                <!-- DN -->
+
+                                <td>
+
+                                    {{ insurance.company_social_rate|default:"—" }}%
+
+                                </td>
+
+
+                                <!-- BHYT -->
+
+                                <td>
+
+                                    {{ insurance.health_insurance_number|default:"—" }}
+
+                                </td>
+
+
+                                <!-- HẠN BHYT -->
+
+                                <td>
+
+                                    {% if insurance.health_insurance_expiry %}
+
+                                        {{ insurance.health_insurance_expiry|date:"d/m/Y" }}
+
+                                    {% else %}
+
+                                        —
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- TRẠNG THÁI -->
+
+                                <td>
+
+                                    {% if insurance.status == "active" %}
+
+                                        <span class="status-badge status-active">
+
+                                            Đang tham gia
+
+                                        </span>
+
+                                    {% elif insurance.status == "inactive" %}
+
+                                        <span class="status-badge status-inactive">
+
+                                            Tạm ngưng
+
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="status-badge status-stopped">
+
+                                            Ngừng tham gia
+
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- ACTION -->
+
+                                <td>
+
+
+                                    <!-- XEM -->
+
+                                    <a
+                                        href="{% url 'social_insurance_employee' insurance.employee.pk %}"
+                                        class="insurance-action insurance-action-view"
+                                        title="Xem hồ sơ"
+                                    >
+
+                                        👁️
+
+                                    </a>
+
+
+                                    <!-- SỬA -->
+
+                                    <a
+                                        href="{% url 'social_insurance_edit' insurance.employee.pk %}"
+                                        class="insurance-action insurance-action-edit"
+                                        title="Sửa"
+                                    >
+
+                                        ✏️
+
+                                    </a>
+
+
+                                    <!-- XÓA -->
+
+                                    <a
+                                        href="{% url 'social_insurance_delete' insurance.employee.pk %}"
+                                        class="insurance-action insurance-action-delete"
+                                        title="Xóa"
+                                    >
+
+                                        🗑
+
+                                    </a>
+
+
+                                </td>
+
+                            </tr>
+
+
+                        {% empty %}
+
+                            <tr>
+
+                                <td colspan="14">
+
+                                    <div class="insurance-empty">
+
+                                        🛡️
+
+                                        <br><br>
+
+                                        Chưa có hồ sơ BHXH.
+
+                                        <br><br>
+
+                                        Hãy vào
+                                        <strong>Danh sách nhân viên</strong>
+                                        để thêm hồ sơ BHXH cho từng nhân viên.
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+
+
+/* =====================================================
+   SEARCH
+===================================================== */
+
+function filterInsurance() {
+
+    const input =
+        document
+            .getElementById("insuranceSearch")
+            .value
+            .toLowerCase()
+            .trim();
+
+
+    const rows =
+        document.querySelectorAll(".insurance-row");
+
+
+    rows.forEach(function(row) {
+
+        const text =
+            row
+                .getAttribute("data-search")
+                .toLowerCase();
+
+
+        row.style.display =
+            text.includes(input)
+                ? ""
+                : "none";
+
+    });
+
+}
+
+
+/* =====================================================
+   STAT
+===================================================== */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        const rows =
+            document.querySelectorAll(".insurance-row");
+
+
+        let active = 0;
+
+        let inactive = 0;
+
+        let health = 0;
+
+
+        rows.forEach(function(row) {
+
+
+            /* STATUS */
+
+            if (
+                row.dataset.status === "active"
+            ) {
+
+                active++;
+
+            }
+            else {
+
+                inactive++;
+
+            }
+
+
+            /* BHYT */
+
+            if (
+                row.dataset.health === "yes"
+            ) {
+
+                health++;
+
+            }
+
+        });
+
+
+        document
+            .getElementById("activeCount")
+            .innerText = active;
+
+
+        document
+            .getElementById("inactiveCount")
+            .innerText = inactive;
+
+
+        document
+            .getElementById("healthCount")
+            .innerText = health;
+
+    }
+);
+
+
+/* =====================================================
+   DELETE CONFIRM
+===================================================== */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        document
+            .querySelectorAll(".insurance-action-delete")
+            .forEach(function(button) {
+
+                button.addEventListener(
+                    "click",
+                    function(event) {
+
+                        if (
+                            !confirm(
+                                "Bạn có chắc muốn xóa hồ sơ BHXH này?"
+                            )
+                        ) {
+
+                            event.preventDefault();
+
+                        }
+
+                    }
+                );
+
+            });
+
+    }
+);
+
+</script>
+
+{% endblock %}

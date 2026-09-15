@@ -1,0 +1,1318 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load number_to_text %}
+
+{% block container_class %}
+container-fluid p-0 full-screen-container
+{% endblock %}
+
+{% block navbar_title %}
+Danh mục hàng hóa
+{% endblock %}
+
+
+{% block extra_head %}
+
+<style>
+
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+
+/* Container */
+
+.full-screen-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+}
+
+
+/* ==================================================
+   CARD BỘ LỌC
+================================================== */
+
+.filter-card {
+    margin-bottom: 6px !important;
+    border-radius: 8px;
+}
+
+.filter-card .card-body {
+    padding: 8px 12px !important;
+}
+
+
+/* ==================================================
+   CARD NHẬP / XÓA
+================================================== */
+
+.action-card {
+    margin-bottom: 10px !important;
+    border-radius: 8px;
+}
+
+.action-card .card-body {
+    padding: 6px 12px !important;
+}
+
+
+/* ==================================================
+   LABEL
+================================================== */
+
+.filter-label {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+
+/* ==================================================
+   SELECT
+================================================== */
+
+.filter-select {
+    min-width: 150px;
+}
+
+.input-group .form-select {
+    min-width: 150px;
+}
+
+
+/* ==================================================
+   NÚT +
+================================================== */
+
+.input-group > .btn {
+    min-width: 38px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+
+/* ==================================================
+   BO GÓC
+================================================== */
+
+.form-control,
+.form-select,
+.btn {
+    border-radius: 6px;
+}
+
+.input-group > .form-select {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.input-group > .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+
+/* ==================================================
+   CARD
+================================================== */
+
+.filter-card,
+.action-card {
+    flex: none;
+    min-height: 0;
+}
+
+
+/* ==================================================
+   DESKTOP
+================================================== */
+
+@media (min-width: 1200px) {
+
+    .filter-select {
+        min-width: 165px;
+    }
+
+}
+
+
+/* ==================================================
+   MOBILE
+================================================== */
+
+@media (max-width: 767.98px) {
+
+    .filter-select {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .input-group {
+        width: 100%;
+    }
+
+}
+
+
+/* Table responsive */
+
+.table-responsive {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+
+/* Table */
+
+.table {
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+
+    /* tăng vì thêm 3 cột */
+    min-width: 1350px;
+}
+
+
+.table th,
+.table td {
+    vertical-align: middle;
+    padding: 0.6rem 0.8rem;
+}
+
+
+.table thead {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+
+.table-hover tbody tr:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background-color: #ffffff;
+}
+
+
+.table tbody tr:nth-child(odd) {
+    background-color: #fdfdfd;
+}
+
+
+.table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+
+/* Pagination */
+
+.pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-top: 20px;
+    padding: 12px 0;
+
+    border-top: 1px solid #ddd;
+}
+
+
+.pagination-info {
+    color: #666;
+    font-size: 14px;
+}
+
+
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+
+.page-btn {
+    min-width: 34px;
+    height: 34px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 10px;
+
+    border: 1px solid #ddd;
+    border-radius: 6px;
+
+    background: #fff;
+    color: #333;
+
+    text-decoration: none;
+
+    font-size: 14px;
+    cursor: pointer;
+}
+
+
+.page-btn:hover {
+    background: #f1f5f9;
+    border-color: #999;
+}
+
+
+.page-btn.active {
+    background: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+    font-weight: 600;
+}
+
+
+.page-btn.disabled {
+    color: #aaa;
+    background: #f5f5f5;
+    cursor: not-allowed;
+}
+
+
+/* Nhãn filter */
+
+.filter-label {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 2px;
+    display: block;
+}
+
+
+/* Hãng */
+
+.brand-text {
+    font-weight: 600;
+    color: #0d6efd;
+}
+
+
+/* Loại hàng */
+
+.product-level-text {
+    font-weight: 600;
+}
+
+
+/* Phân loại */
+
+.product-type-text {
+    color: #495057;
+}
+.filter-label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.filter-select {
+    min-width: 150px;
+}
+
+.input-group .form-select {
+    min-width: 150px;
+}
+
+.input-group > .btn {
+    min-width: 38px;
+}
+
+.card {
+    border-radius: 10px;
+}
+
+.form-control,
+.form-select,
+.btn {
+    border-radius: 6px;
+}
+
+.input-group > .form-select {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.input-group > .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+/* Trên màn hình lớn, các dropdown có chiều rộng ổn định */
+@media (min-width: 1200px) {
+
+    .filter-select {
+        min-width: 170px;
+    }
+
+}
+
+/* Màn hình nhỏ */
+@media (max-width: 767.98px) {
+
+    .filter-select {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .input-group {
+        width: 100%;
+    }
+
+}
+
+
+.filter-card {
+    margin-bottom: 6px !important;
+}
+
+.action-card {
+    margin-bottom: 12px !important;
+}
+
+.filter-card .card-body {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.action-card .card-body {
+    padding-top: 7px;
+    padding-bottom: 7px;
+}
+
+
+/* ==========================================
+   THU NHỎ CHỮ TOÀN TRANG
+========================================== */
+
+body {
+    font-size: 14px;
+}
+
+/* Bộ lọc */
+.filter-label {
+    font-size: 13px;
+}
+
+.form-control,
+.form-select {
+    font-size: 12px;
+}
+
+/* Nút */
+.btn {
+    font-size: 12px;
+}
+
+/* Bảng */
+.table {
+    font-size: 13px;
+}
+
+.table th {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 8px;
+}
+
+.table td {
+    font-size: 13px;
+    padding: 5px 7px;
+}
+
+/* SKU */
+.table td strong {
+    font-size: 13px;
+}
+
+/* Nhãn Hãng / Phân loại / Loại hàng */
+.brand-text,
+.product-type-text,
+.product-level-text {
+    font-size: 12px;
+}
+
+/* Phân trang */
+.pagination-info {
+    font-size: 12px;
+}
+
+.page-btn {
+    min-width: 30px;
+    height: 30px;
+    font-size: 12px;
+    padding: 0 8px;
+}
+
+/* Card */
+.card-body {
+    font-size: 12px;
+}
+
+/* Ô nhập Excel */
+.action-card .form-control-sm {
+    font-size: 12px;
+}
+
+.action-card .btn-sm {
+    font-size: 12px;
+}
+
+
+
+/* Mobile */
+@media (max-width: 767.98px) {
+
+    body {
+        font-size: 12px;
+    }
+
+    .table {
+        font-size: 11px;
+    }
+
+    .table th,
+    .table td {
+        font-size: 11px;
+        padding: 4px 6px;
+    }
+
+    .btn {
+        font-size: 11px;
+    }
+
+    .form-control,
+    .form-select {
+        font-size: 11px;
+    }
+}
+
+</style>
+
+{% endblock %}
+
+
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- ==================================================
+     KHUNG BỘ LỌC
+================================================== -->
+
+<div class="card border-0 shadow-sm filter-card">
+
+    <div class="card-body">
+
+        <form method="get" action="">
+
+            <div class="row g-2 align-items-end">
+
+                <!-- Thêm sản phẩm -->
+                <div class="col-12 col-sm-auto">
+
+                    <label class="filter-label">&nbsp;</label>
+
+                    <a
+                        href="{% url 'add_product' %}"
+                        class="btn btn-primary btn-sm w-100"
+                    >
+                        <i class="bi bi-plus-circle me-1"></i>
+                        Thêm sản phẩm
+                    </a>
+
+                </div>
+
+
+                <!-- Tìm kiếm -->
+                <div class="col-12 col-md">
+
+                    <label
+                        for="search_product"
+                        class="filter-label"
+                    >
+                        Tìm kiếm
+                    </label>
+
+                    <div class="input-group input-group-sm">
+
+                        <span class="input-group-text bg-white">
+                            <i class="bi bi-search text-muted"></i>
+                        </span>
+
+                        <input
+                            type="text"
+                            name="search_product"
+                            id="search_product"
+                            placeholder="SKU, tên hàng hóa, tên gọi chung..."
+                            value="{{ search_product }}"
+                            class="form-control"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- Loại hình -->
+                <div class="col-12 col-sm-6 col-lg-auto">
+
+                    <label
+                        for="activity_type"
+                        class="filter-label"
+                    >
+                        Loại hình hoạt động
+                    </label>
+
+                    <select
+                        name="activity_type"
+                        id="activity_type"
+                        class="form-select form-select-sm filter-select"
+                        onchange="this.form.submit()"
+                    >
+
+                        <option value="">
+                            Tất cả loại hình
+                        </option>
+
+                        {% for activity in activity_type_list %}
+
+                            <option
+                                value="{{ activity.id }}"
+                                {% if activity_type|stringformat:"s" == activity.id|stringformat:"s" %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ activity.code }} - {{ activity.name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <!-- Nhóm hàng -->
+                <div class="col-12 col-sm-6 col-lg-auto">
+
+                    <label
+                        for="nhom_hang"
+                        class="filter-label"
+                    >
+                        Nhóm hàng
+                    </label>
+
+                    <div class="input-group input-group-sm">
+
+                        <select
+                            name="nhom_hang"
+                            id="nhom_hang"
+                            class="form-select filter-select"
+                            onchange="this.form.submit()"
+                        >
+
+                            <option value="">
+                                Tất cả nhóm hàng
+                            </option>
+
+                            {% for group in nhom_hang_list %}
+
+                                <option
+                                    value="{{ group.id }}"
+                                    {% if nhom_hang|stringformat:"s" == group.id|stringformat:"s" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ group.code }} - {{ group.name }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                        <a
+                            href="{% url 'product_group_create' %}"
+                            class="btn btn-outline-primary"
+                            title="Thêm nhóm hàng"
+                        >
+                            <i class="bi bi-plus-lg"></i>
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Hãng -->
+                <div class="col-12 col-sm-6 col-lg-auto">
+
+                    <label
+                        for="brand"
+                        class="filter-label"
+                    >
+                        Hãng
+                    </label>
+
+                    <div class="input-group input-group-sm">
+
+                        <select
+                            name="brand"
+                            id="brand"
+                            class="form-select filter-select"
+                            onchange="this.form.submit()"
+                        >
+
+                            <option value="">
+                                Tất cả hãng
+                            </option>
+
+                            {% for brand_item in brand_list %}
+
+                                <option
+                                    value="{{ brand_item.id }}"
+                                    {% if brand|stringformat:"s" == brand_item.id|stringformat:"s" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ brand_item.name }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                        <a
+                            href="{% url 'brand_create' %}"
+                            class="btn btn-outline-primary"
+                            title="Thêm hãng"
+                        >
+                            <i class="bi bi-plus-lg"></i>
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Phân loại -->
+                <div class="col-12 col-sm-6 col-lg-auto">
+
+                    <label
+                        for="product_type"
+                        class="filter-label"
+                    >
+                        Phân loại
+                    </label>
+
+                    <div class="input-group input-group-sm">
+
+                        <select
+                            name="product_type"
+                            id="product_type"
+                            class="form-select filter-select"
+                            onchange="this.form.submit()"
+                        >
+
+                            <option value="">
+                                Tất cả phân loại
+                            </option>
+
+                            {% for type_item in product_type_list %}
+
+                                <option
+                                    value="{{ type_item.id }}"
+                                    {% if product_type|stringformat:"s" == type_item.id|stringformat:"s" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ type_item.name }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                        <a
+                            href="{% url 'product_type_create' %}"
+                            class="btn btn-outline-primary"
+                            title="Thêm phân loại"
+                        >
+                            <i class="bi bi-plus-lg"></i>
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Loại hàng -->
+                <div class="col-12 col-sm-6 col-lg-auto">
+
+                    <label
+                        for="product_level"
+                        class="filter-label"
+                    >
+                        Loại hàng
+                    </label>
+
+                    <div class="input-group input-group-sm">
+
+                        <select
+                            name="product_level"
+                            id="product_level"
+                            class="form-select filter-select"
+                            onchange="this.form.submit()"
+                        >
+
+                            <option value="">
+                                Tất cả loại hàng
+                            </option>
+
+                            {% for level_item in product_level_list %}
+
+                                <option
+                                    value="{{ level_item.id }}"
+                                    {% if product_level|stringformat:"s" == level_item.id|stringformat:"s" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ level_item.name }}
+                                </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                        <a
+                            href="{% url 'product_level_create' %}"
+                            class="btn btn-outline-primary"
+                            title="Thêm loại hàng"
+                        >
+                            <i class="bi bi-plus-lg"></i>
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Tìm -->
+                <div class="col-12 col-sm-auto">
+
+                    <label class="filter-label">&nbsp;</label>
+
+                    <button
+                        type="submit"
+                        class="btn btn-outline-primary btn-sm w-100"
+                    >
+                        <i class="bi bi-search me-1"></i>
+                        Tìm
+                    </button>
+
+                </div>
+
+
+                <!-- Xuất Excel -->
+                <div class="col-12 col-sm-auto">
+
+                    <label class="filter-label">&nbsp;</label>
+
+                    <a
+                        href="{% url 'dmhh_export_excel' %}?{{ query_params }}"
+                        class="btn btn-success btn-sm w-100"
+                    >
+                        <i class="bi bi-file-earmark-excel me-1"></i>
+                        Xuất Excel
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- ==================================================
+     KHUNG NHẬP / XÓA
+================================================== -->
+<div class="card border-0 shadow-sm action-card">
+
+    <div class="card-body py-2 px-3">
+
+        <div class="d-flex align-items-center gap-2 flex-nowrap">
+
+            <!-- =========================
+                 NHẬP EXCEL
+            ========================== -->
+
+            <form
+                method="post"
+                action="{% url 'dmhh_import_excel' %}"
+                enctype="multipart/form-data"
+                class="d-flex align-items-center gap-2 flex-nowrap"
+            >
+
+                {% csrf_token %}
+
+                <input
+                    type="file"
+                    name="excel_file"
+                    accept=".xlsx,.xls"
+                    class="form-control form-control-sm"
+                    style="width: 280px;"
+                >
+
+                <button
+                    type="submit"
+                    class="btn btn-primary btn-sm text-nowrap"
+                >
+                    <i class="bi bi-upload me-1"></i>
+                    Nhập Excel
+                </button>
+
+            </form>
+
+
+            <!-- =========================
+                 ĐƯỜNG PHÂN CÁCH
+            ========================== -->
+
+            <div
+                class="vr mx-2"
+                style="height: 30px;"
+            ></div>
+
+
+            <!-- =========================
+                 XÓA TOÀN BỘ
+            ========================== -->
+
+            <form method="post" class="m-0">
+
+                {% csrf_token %}
+
+                <button
+                    formaction="{% url 'dmhh_delete_all' %}"
+                    type="submit"
+                    onclick="return confirm('Bạn có chắc muốn xóa toàn bộ danh mục hàng hóa?');"
+                    class="btn btn-outline-danger btn-sm text-nowrap"
+                >
+                    <i class="bi bi-trash me-1"></i>
+                    Xóa toàn bộ
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+<!-- ==================================================
+     BẢNG SẢN PHẨM
+================================================== -->
+
+<div class="table-responsive">
+
+<table class="table table-bordered table-hover text-center w-100">
+
+
+<thead class="table-light">
+
+<tr>
+
+    <th>TT</th>
+
+    <th>SKU</th>
+
+    <th class="text-start">
+        Tên hàng hóa
+    </th>
+
+    <th class="text-start">
+        Tên gọi chung
+    </th>
+
+    <th>Nhóm hàng</th>
+
+    <th>Loại hình</th>
+
+    <th>Hãng</th>
+
+    <th>Phân loại</th>
+
+    <th>Loại hàng</th>
+
+    <th>ĐVT</th>
+
+    <th>Hành động</th>
+
+</tr>
+
+</thead>
+
+
+
+<tbody>
+
+{% for item in products %}
+
+<tr>
+
+    <!-- TT -->
+
+    <td>
+        {{ page_obj.start_index|add:forloop.counter0 }}
+    </td>
+
+
+    <!-- SKU -->
+
+    <td>
+        {% if item.sku %}
+            <strong>{{ item.sku }}</strong>
+        {% else %}
+            -
+        {% endif %}
+    </td>
+
+
+    <!-- Tên -->
+
+    <td class="text-start">
+
+        {{ item.ten_hang }}
+
+    </td>
+
+
+    <!-- Tên gọi chung -->
+
+    <td class="text-start">
+
+        {{ item.ten_goi_chung|default:"-" }}
+
+    </td>
+
+
+    <!-- Nhóm hàng -->
+
+    <td>
+
+        {% if item.nhom_hang %}
+
+            {{ item.nhom_hang.code }}
+            -
+            {{ item.nhom_hang.name }}
+
+        {% else %}
+
+            <span class="text-muted">
+                Chưa gán
+            </span>
+
+        {% endif %}
+
+    </td>
+
+
+    <!-- Loại hình -->
+
+    <td>
+
+        {% if item.activity_type %}
+
+            {{ item.activity_type.code }}
+            -
+            {{ item.activity_type.name }}
+
+        {% else %}
+
+            <span class="text-muted">
+                Chưa gán
+            </span>
+
+        {% endif %}
+
+    </td>
+
+
+    <!-- ==========================================
+         HÃNG
+    =========================================== -->
+
+    <td>
+
+        {% if item.brand %}
+
+            <span class="brand-text">
+                {{ item.brand.name }}
+            </span>
+
+        {% else %}
+
+            <span class="text-muted">
+                Chưa gán
+            </span>
+
+        {% endif %}
+
+    </td>
+
+
+    <!-- ==========================================
+         PHÂN LOẠI
+    =========================================== -->
+
+    <td>
+
+        {% if item.product_type %}
+
+            <span class="product-type-text">
+                {{ item.product_type.name }}
+            </span>
+
+        {% else %}
+
+            <span class="text-muted">
+                Chưa gán
+            </span>
+
+        {% endif %}
+
+    </td>
+
+
+    <!-- ==========================================
+         LOẠI HÀNG
+    =========================================== -->
+
+    <td>
+
+        {% if item.product_level %}
+
+            <span class="product-level-text">
+                {{ item.product_level.name }}
+            </span>
+
+        {% else %}
+
+            <span class="text-muted">
+                Chưa gán
+            </span>
+
+        {% endif %}
+
+    </td>
+
+
+    <!-- ĐVT -->
+
+    <td>
+        {{ item.dvt|default:"-" }}
+    </td>
+
+
+    <!-- Hành động -->
+
+    <td>
+
+        <a
+            href="{% url 'edit_product_dmhh' item.id %}"
+            class="btn btn-sm btn-warning"
+        >
+            ✏️ Sửa
+        </a>
+
+    </td>
+
+</tr>
+
+
+{% empty %}
+
+<tr>
+
+    <td
+        colspan="11"
+        class="text-center"
+    >
+
+        Không có hàng hóa nào.
+
+    </td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+
+
+<!-- ==================================================
+     PHÂN TRANG
+================================================== -->
+
+{% if page_obj.paginator.num_pages > 1 %}
+
+<div class="pagination-wrapper">
+
+
+    <div class="pagination-info">
+
+        Hiển thị
+
+        <strong>
+            {{ page_obj.start_index }}
+        </strong>
+
+        -
+
+        <strong>
+            {{ page_obj.end_index }}
+        </strong>
+
+        /
+
+        <strong>
+            {{ page_obj.paginator.count }}
+        </strong>
+
+        hàng hoá
+
+    </div>
+
+
+
+    <div class="pagination">
+
+
+        <!-- Trang đầu -->
+
+        {% if page_obj.has_previous %}
+
+            <a
+                href="?{{ query_params }}&page=1"
+                class="page-btn"
+            >
+                «
+            </a>
+
+
+            <a
+                href="?{{ query_params }}&page={{ page_obj.previous_page_number }}"
+                class="page-btn"
+            >
+                ‹
+            </a>
+
+        {% else %}
+
+            <span class="page-btn disabled">
+                «
+            </span>
+
+            <span class="page-btn disabled">
+                ‹
+            </span>
+
+        {% endif %}
+
+
+
+        <!-- Các số trang -->
+
+        {% for num in page_numbers %}
+
+    {% if num == page_obj.number %}
+
+        <span class="page-btn active">
+            {{ num }}
+        </span>
+
+    {% else %}
+
+        <a
+            href="?{{ query_params }}&page={{ num }}"
+            class="page-btn"
+        >
+            {{ num }}
+        </a>
+
+    {% endif %}
+
+{% endfor %}
+
+
+
+        <!-- Trang sau -->
+
+        {% if page_obj.has_next %}
+
+            <a
+                href="?{{ query_params }}&page={{ page_obj.next_page_number }}"
+                class="page-btn"
+            >
+                ›
+            </a>
+
+
+            <a
+                href="?{{ query_params }}&page={{ page_obj.paginator.num_pages }}"
+                class="page-btn"
+            >
+                »
+            </a>
+
+        {% else %}
+
+            <span class="page-btn disabled">
+                ›
+            </span>
+
+            <span class="page-btn disabled">
+                »
+            </span>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endif %}
+
+
+</div>
+
+{% endblock %}

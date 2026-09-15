@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <h2>{{ action }} nhà cung cấp</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} mt-2" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" class="mt-3">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="ten_dv_ban" class="form-label">Tên đơn vị bán</label>
+            <input type="text" class="form-control" id="ten_dv_ban" name="ten_dv_ban"
+                   value="{{ supplier.ten_dv_ban|default_if_none:'' }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="ma_so_thue" class="form-label">Mã số thuế</label>
+            <input type="text" class="form-control" id="ma_so_thue" name="ma_so_thue"
+                   value="{{ supplier.ma_so_thue|default_if_none:'' }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="dia_chi" class="form-label">Địa chỉ</label>
+            <textarea class="form-control" id="dia_chi" name="dia_chi">{{ supplier.dia_chi|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="phan_loai" class="form-label">Phân loại</label>
+            <select class="form-select" id="phan_loai" name="phan_loai" required>
+                <option value="">-- Chọn loại --</option>
+                <option value="Cung cấp dịch vụ" {% if supplier.phan_loai == "Cung cấp dịch vụ" %}selected{% endif %}>Cung cấp dịch vụ</option>
+                <option value="Cung cấp hàng hoá" {% if supplier.phan_loai == "Cung cấp hàng hoá" %}selected{% endif %}>Cung cấp hàng hoá</option>
+                <option value="Khác" {% if supplier.phan_loai == "Khác" %}selected{% endif %}>Khác</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">💾 Lưu</button>
+        <a href="{% url 'suppliers' %}" class="btn btn-secondary">Hủy</a>
+    </form>
+</div>
+
+{% endblock %}

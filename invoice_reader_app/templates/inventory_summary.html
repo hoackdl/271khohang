@@ -1,0 +1,522 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+{% block navbar_title %}📦 Xuất - Nhập - Tồn{% endblock %}
+
+<style>
+html, body { height: 100%; margin: 0; padding: 0; }
+
+.container-fluid { padding: 0 !important; }
+.card { border-radius: 0 !important; border: none !important; }
+.full-screen-container { height: 100vh; display: flex; flex-direction: column; }
+
+.card-body-wrapper {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+
+form.search-form { flex: 0 0 auto; margin-bottom: 8px; }
+.pagination-container { flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+
+.table-container {
+  flex: 1 1 0;
+  overflow: auto;
+  min-height: 0;
+}
+
+/* Pagination luôn hiện */
+.pagination-wrapper {
+  flex: 0 0 auto;
+  padding: 6px 8px;
+  background: #fff;
+  border-top: 1px solid #ddd;
+}
+
+
+.table-container table {
+  border-collapse: collapse;
+  width: max-content;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 10;
+}
+
+.table th:first-child,
+.table td:first-child {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 11;
+}
+
+.table th, .table td { padding: 6px 8px !important; font-size: 13px; }
+.truncate-cell { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.table-sm-custom td,
+.table-sm-custom th { font-size: 11px !important; padding: 4px 6px !important; }
+
+.full-height-card { height: 80vh; }
+</style>
+
+{% block content %}
+
+<div class="card shadow-sm d-flex flex-column" style="height: 90vh;">
+
+<div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+  <div class="d-flex gap-2">
+    <!-- Nhập hàng đầu kỳ -->
+
+<a href="{% url 'inventory_opening_list' %}"
+   class="btn btn-warning btn-sm">
+    📦 Phiếu đầu kỳ
+</a>
+    <!-- Xuất Excel -->
+  <a href="{% url 'inventory_summary_export' %}?search={{ search }}&date_from={{ date_from }}&date_to={{ date_to }}"
+    class="btn btn-success btn-sm">
+      📥 Xuất Excel
+  </a>
+
+  </div>
+</div>
+
+
+  <div class="card-body-wrapper d-flex flex-column"
+     style="min-height:0; height:100%;">
+
+    <form method="get"
+          class="search-form row g-2 align-items-end flex-shrink-0 mb-2">
+
+        <!-- Tìm kiếm hàng hóa -->
+        <div class="col">
+            <label class="form-label small mb-1">
+                Hàng hóa
+            </label>
+
+            <input
+                type="text"
+                name="search"
+                value="{{ search }}"
+                placeholder="Tìm kiếm SKU hoặc tên hàng hóa..."
+                class="form-control form-control-sm"
+            >
+        </div>
+
+        <!-- Từ ngày -->
+        <div class="col-md-2">
+            <label class="form-label small mb-1">
+                Từ ngày
+            </label>
+
+            <input
+                type="date"
+                name="date_from"
+                value="{{ date_from }}"
+                class="form-control form-control-sm"
+            >
+        </div>
+
+        <!-- Đến ngày -->
+        <div class="col-md-2">
+            <label class="form-label small mb-1">
+                Đến ngày
+            </label>
+
+            <input
+                type="date"
+                name="date_to"
+                value="{{ date_to }}"
+                class="form-control form-control-sm"
+            >
+        </div>
+
+        <!-- Số dòng / trang -->
+        <div class="col-auto">
+            <label class="form-label small mb-1">
+                Hiển thị
+            </label>
+
+            <select
+                name="per_page"
+                class="form-select form-select-sm"
+                onchange="this.form.submit()"
+            >
+                <option value="10"
+                    {% if per_page == 10 %}selected{% endif %}>
+                    10 / trang
+                </option>
+
+                <option value="20"
+                    {% if per_page == 20 %}selected{% endif %}>
+                    20 / trang
+                </option>
+
+                <option value="50"
+                    {% if per_page == 50 %}selected{% endif %}>
+                    50 / trang
+                </option>
+
+                <option value="100"
+                    {% if per_page == 100 %}selected{% endif %}>
+                    100 / trang
+                </option>
+            </select>
+        </div>
+
+        <!-- Nút tìm -->
+        <div class="col-auto">
+            <button
+                type="submit"
+                class="btn btn-outline-primary btn-sm"
+            >
+                🔍 Tìm
+            </button>
+        </div>
+
+        <!-- Xóa bộ lọc -->
+        <div class="col-auto">
+            <a
+                href="{% url 'inventory_summary' %}"
+                class="btn btn-outline-secondary btn-sm"
+            >
+                ✕ Xóa lọc
+            </a>
+        </div>
+
+    </form>
+
+    <div class="table-container flex-grow-1" style="overflow:auto; min-height:0;">
+      <table class="table table-bordered table-hover table-sm-custom">
+        <thead class="table-light">
+          <tr>
+            <th>TT</th>
+            <th>SKU</th>
+            <th class="text-center">Tên gọi chung</th>
+            <th>ĐVT</th>
+            <th class="text-center">Tồn đầu</th>
+            <th class="text-center">Tổng nhập</th>
+            <th class="text-center">Tổng xuất</th>
+            <th class="text-center">Tồn cuối</th>
+            <th class="text-center">Giá TB nhập</th>
+            <th class="text-center">Giá TB xuất</th>
+            <th class="text-center">Chi tiết</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="table-secondary fw-bold text-end">
+            <td colspan="4" class="text-center">Tổng cộng</td>
+            <td class="text-end">{{ totals.ton_dau_ky|floatformat:2|intcomma }}</td>
+            <td class="text-end">{{ totals.tong_nhap|floatformat:2|intcomma }}</td>
+            <td class="text-end">{{ totals.tong_xuat|floatformat:2|intcomma }}</td>
+            <td class="text-end">{{ totals.ton_cuoi|floatformat:2|intcomma }}</td>
+            <td class="text-end">{{ totals.gia_tb_nhap|intcomma }}</td>
+            <td class="text-end">{{ totals.gia_tb_xuat|intcomma }}</td>
+            <td></td>
+          </tr>
+
+          {% for row in data %}
+          <tr class="{% if row.ton_cuoi < 0 %}table-danger{% endif %}">
+            <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+            <td>{{ row.sku }}</td>
+            <td class="text-start">{{ row.ten_goi_chung }}</td>
+            <td>{{ row.dvt }}</td>
+             <td class="text-end">{{ row.ton_dau_ky|floatformat:1|intcomma }}</td>
+            <td class="text-end">{{ row.tong_nhap|floatformat:1|intcomma }}</td>
+            <td class="text-end">{{ row.tong_xuat|floatformat:1|intcomma }}</td>
+            <td class="text-end fw-bold">{{ row.ton_cuoi|floatformat:1|intcomma }}</td>
+            <td class="text-end">{{ row.gia_tb_nhap|floatformat:1|intcomma}}</td>
+            <td class="text-end">{{ row.gia_tb_xuat|floatformat:1|intcomma }}</td>
+            <td class="text-center">
+              {% if row.chi_tiet_nhap or row.chi_tiet_xuat %}
+              <button class="btn btn-sm btn-outline-info" data-idx="{{ forloop.counter }}" onclick="toggleDetail(this.dataset.idx)">👁️</button>
+              {% else %}
+              <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+          </tr>
+
+          <tr id="detail-{{ forloop.counter }}" class="d-none bg-light">
+            <td colspan="11" class="p-2">
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered mb-0 text-center">
+                  <thead class="table-secondary">
+                    <tr>
+                      <th>Mã phiếu</th>
+                      <th>Ngày</th>
+                      <th>Đơn giá</th>
+                      <th>Tồn đầu</th>
+                      <th>Số lượng nhập</th>
+                      <th>Số lượng xuất</th>
+                      <th>Thành tiền nhập</th>
+                      <th>Thành tiền xuất</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+
+    <!-- ========================= -->
+    <!-- TỒN ĐẦU KỲ -->
+    <!-- ========================= -->
+    {% for ct in row.chi_tiet_dau_ky %}
+    <tr class="table-warning">
+        <td>
+            {{ ct.ma_po|default:"OB" }}
+        </td>
+
+        <td>
+            {{ ct.ngay|date:"d/m/Y" }}
+        </td>
+
+        <!-- Đơn giá -->
+        <td class="text-end">
+            {{ ct.don_gia|floatformat:2|intcomma }}
+        </td>
+
+        <!-- Tồn đầu -->
+        <td class="text-end fw-bold">
+            {{ ct.so_luong|floatformat:2|intcomma }}
+        </td>
+
+        <!-- Nhập -->
+        <td>—</td>
+
+        <!-- Xuất -->
+        <td>—</td>
+
+        <!-- Thành tiền nhập -->
+        <td class="text-end">
+            {{ ct.thanh_tien|floatformat:0|intcomma }}
+        </td>
+
+        <!-- Thành tiền xuất -->
+        <td>—</td>
+    </tr>
+    {% endfor %}
+
+
+    <!-- ========================= -->
+    <!-- NHẬP -->
+    <!-- ========================= -->
+    {% for ct in row.chi_tiet_nhap %}
+    <tr>
+        <td>
+            {{ ct.ma_po }}
+        </td>
+
+        <td>
+            {{ ct.ngay|date:"d/m/Y" }}
+        </td>
+
+        <!-- Đơn giá -->
+        <td class="text-end">
+            {{ ct.don_gia|floatformat:2|intcomma }}
+        </td>
+
+        <!-- Tồn đầu -->
+        <td>
+            —
+        </td>
+
+        <!-- Số lượng nhập -->
+        <td class="text-end">
+            {{ ct.so_luong|floatformat:2|intcomma }}
+        </td>
+
+        <!-- Số lượng xuất -->
+        <td>
+            —
+        </td>
+
+        <!-- Thành tiền nhập -->
+        <td class="text-end">
+            {{ ct.thanh_tien|floatformat:0|intcomma }}
+        </td>
+
+        <!-- Thành tiền xuất -->
+        <td>
+            —
+        </td>
+    </tr>
+    {% endfor %}
+
+
+    <!-- ========================= -->
+    <!-- XUẤT -->
+    <!-- ========================= -->
+    {% for ct in row.chi_tiet_xuat %}
+    <tr>
+        <td>
+            {{ ct.ma_po }}
+        </td>
+
+        <td>
+            {{ ct.ngay|date:"d/m/Y" }}
+        </td>
+
+        <!-- Đơn giá -->
+        <td class="text-end">
+            {{ ct.don_gia|floatformat:2|intcomma }}
+        </td>
+
+        <!-- Tồn đầu -->
+        <td>
+            —
+        </td>
+
+        <!-- Số lượng nhập -->
+        <td>
+            —
+        </td>
+
+        <!-- Số lượng xuất -->
+        <td class="text-end">
+            {{ ct.so_luong|floatformat:2|intcomma }}
+        </td>
+
+        <!-- Thành tiền nhập -->
+        <td>
+            —
+        </td>
+
+        <!-- Thành tiền xuất -->
+        <td class="text-end">
+            {{ ct.thanh_tien|floatformat:0|intcomma }}
+        </td>
+    </tr>
+    {% endfor %}
+
+</tbody>
+
+                </table>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="11" class="text-muted">Không có dữ liệu.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    </div> <!-- END table-container -->
+
+
+    <!-- PHÂN TRANG -->
+    {% if page_obj and page_obj.paginator.num_pages > 1 %}
+    <div class="pagination-wrapper">
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+            <!-- Thông tin -->
+            <div class="small text-muted">
+                Hiển thị
+                {{ page_obj.start_index }}
+                -
+                {{ page_obj.end_index }}
+                / {{ page_obj.paginator.count }} mặt hàng
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Phân trang">
+
+                <ul class="pagination pagination-sm mb-0">
+
+                    <!-- Về trang đầu -->
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a
+                            class="page-link"
+                            href="?page=1{% if query_params %}&{{ query_params }}{% endif %}"
+                        >
+                            «
+                        </a>
+                    </li>
+
+                    <!-- Trang trước -->
+                    <li class="page-item">
+                        <a
+                            class="page-link"
+                            href="?page={{ page_obj.previous_page_number }}{% if query_params %}&{{ query_params }}{% endif %}"
+                        >
+                            ‹
+                        </a>
+                    </li>
+                    {% endif %}
+
+
+                    <!-- Các trang -->
+                    {% for num in page_obj.paginator.page_range %}
+
+                        {% if num == page_obj.number %}
+
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    {{ num }}
+                                </span>
+                            </li>
+
+                        {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+
+                            <li class="page-item">
+                                <a
+                                    class="page-link"
+                                    href="?page={{ num }}{% if query_params %}&{{ query_params }}{% endif %}"
+                                >
+                                    {{ num }}
+                                </a>
+                            </li>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+
+                    <!-- Trang sau -->
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a
+                            class="page-link"
+                            href="?page={{ page_obj.next_page_number }}{% if query_params %}&{{ query_params }}{% endif %}"
+                        >
+                            ›
+                        </a>
+                    </li>
+
+                    <!-- Về trang cuối -->
+                    <li class="page-item">
+                        <a
+                            class="page-link"
+                            href="?page={{ page_obj.paginator.num_pages }}{% if query_params %}&{{ query_params }}{% endif %}"
+                        >
+                            »
+                        </a>
+                    </li>
+                    {% endif %}
+
+                </ul>
+
+            </nav>
+
+        </div>
+
+    </div>
+    {% endif %}
+
+
+  </div>
+</div>
+
+<script>
+function toggleDetail(idx) {
+  const row = document.getElementById("detail-" + idx);
+  if (row) row.classList.toggle("d-none");
+}
+</script>
+
+{% endblock %}

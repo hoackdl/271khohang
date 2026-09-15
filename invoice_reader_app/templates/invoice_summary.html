@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+
+
+
+{% block title %}📊 Tổng hợp hóa đơn{% endblock %}
+
+{% block extra_head %}
+<style>
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+.full-screen-container {
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    overflow: hidden;
+}
+.card-full {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+.card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.table-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+.table th:first-child,
+.table td:first-child {
+    position: sticky;
+    left: 0;
+    background: #fff;
+    z-index: 10;
+    width: 40px;
+    text-align: center;
+}
+.table thead th {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 5;
+}
+.truncate-cell {
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.text-end { text-align: right; }
+.text-success { color: green; }
+
+.pagination-container {
+    padding: 10px 0;
+}
+.pagination-info {
+    font-size: 14px;
+}
+.pagination-links .pagination {
+    margin-bottom: 0 !important;
+}
+</style>
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="full-screen-container">
+  <div class="card card-full shadow-sm">
+    <div class="card-body">
+
+      <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+        <form method="get" action="{% url 'invoice_summary_export_excel' %}" id="exportForm">
+            <input type="hidden" name="invoice_ids" id="invoice_ids">
+            <button type="submit" class="btn btn-success">📤 Xuất Excel đã chọn</button>
+        </form>
+
+        <form method="get" class="d-flex gap-2 align-items-end flex-grow-1">
+          <input type="date" name="start_date" value="{{ request.GET.start_date }}" class="form-control form-control-sm">
+          <input type="date" name="end_date" value="{{ request.GET.end_date }}" class="form-control form-control-sm">
+          <input type="text" name="search" placeholder="Tìm kiếm..." value="{{ request.GET.search }}" class="form-control form-control-sm flex-grow-1">
+          <button class="btn btn-outline-primary btn-sm">🔎 Lọc</button>
+          <a href="{% url 'invoice_summary' %}" class="btn btn-outline-secondary btn-sm">🔄 Xóa</a>
+        </form>
+      </div>
+
+      {% if data %}
+      <div class="table-container">
+        <table class="table table-bordered table-hover table-sm text-center align-middle">
+          <thead class="table-light">
+            <tr>
+              <th><input type="checkbox" id="checkAll"></th>
+              <th>STT</th>
+              <th>Tên đơn vị bán</th>
+              <th>Mã số thuế</th>
+              <th>Số hóa đơn</th>
+              <th>Ngày HĐ</th>
+              <th>Tiền hàng</th>
+              <th>Thuế GTGT</th>
+              <th>Tổng tiền</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for invoice in data %}
+            <tr>
+              <td><input type="checkbox" class="checkItem" name="invoice_ids" value="{{ invoice.id }}"></td>
+              <td>{{ forloop.counter }}</td>
+              <td class="text-start truncate-cell">{{ invoice.ten_dv_ban }}</td>
+              <td>{{ invoice.ma_so_thue }}</td>
+              <td>{{ invoice.so_hoa_don }}</td>
+              <td>{{ invoice.ngay_hd }}</td>
+              <td class="text-end">{{ invoice.tong_tien_hang|floatformat:0|intcomma }}</td>
+              <td class="text-end">{{ invoice.tien_thue_gtgt|floatformat:0|intcomma }}</td>
+              <td class="text-end text-success fw-bold">{{ invoice.tong_tien|floatformat:0|intcomma }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+
+    <div class="pagination-container d-flex justify-content-between align-items-center mt-2">
+
+        {% include "components/pagination.html" with data=data query_params=request.GET %}
+    </div>
+
+
+
+
+      {% else %}
+      <p class="text-muted text-center mt-4">Không có dữ liệu để hiển thị.</p>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+    const checkAll = document.getElementById("checkAll");
+    const checkItems = document.querySelectorAll(".checkItem");
+    const exportForm = document.getElementById("exportForm");
+    const invoiceIdsInput = document.getElementById("invoice_ids");
+
+    checkAll.addEventListener("change", function(){
+        checkItems.forEach(cb => cb.checked = this.checked);
+    });
+
+    exportForm.addEventListener("submit", function(e){
+        const selectedIds = Array.from(checkItems)
+                                .filter(cb => cb.checked)
+                                .map(cb => cb.value);
+        if(selectedIds.length === 0){
+            e.preventDefault();
+            alert("Vui lòng chọn ít nhất một hóa đơn để xuất Excel!");
+            return;
+        }
+        invoiceIdsInput.value = selectedIds.join(",");
+    });
+});
+</script>
+{% endblock %}

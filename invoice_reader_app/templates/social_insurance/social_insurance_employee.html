@@ -1,0 +1,848 @@
+{% extends "base.html" %}
+
+{% block title %}
+    BHXH - {{ employee.full_name }}
+{% endblock %}
+
+{% block navbar_title %}
+    Bảo hiểm xã hội
+{% endblock %}
+
+{% block extra_head %}
+
+<style>
+
+body {
+    background: #f4f6fa;
+}
+
+.insurance-detail-wrapper {
+    padding: 20px;
+}
+
+.insurance-detail-card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 3px 15px rgba(0,0,0,.06);
+    overflow: hidden;
+}
+
+.insurance-detail-header {
+    background: linear-gradient(
+        135deg,
+        #198754,
+        #157347
+    );
+
+    color: white;
+
+    padding: 20px;
+}
+
+.insurance-detail-header h4 {
+    margin: 0 0 5px;
+
+    font-size: 19px;
+    font-weight: 700;
+}
+
+.insurance-detail-header small {
+    opacity: .85;
+}
+
+.insurance-detail-body {
+    padding: 22px;
+}
+
+.employee-summary {
+    background: #f8f9fb;
+
+    border-radius: 10px;
+
+    padding: 15px;
+
+    margin-bottom: 22px;
+}
+
+.employee-summary-title {
+    color: #198754;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    margin-bottom: 12px;
+}
+
+.info-label {
+    color: #7d8593;
+
+    font-size: 11px;
+
+    margin-bottom: 3px;
+}
+
+.info-value {
+    color: #20252b;
+
+    font-size: 13px;
+
+    font-weight: 600;
+}
+
+.section-title {
+    font-size: 14px;
+
+    font-weight: 700;
+
+    color: #198754;
+
+    border-bottom: 1px solid #e9ecef;
+
+    padding-bottom: 8px;
+
+    margin-top: 22px;
+    margin-bottom: 16px;
+}
+
+.info-box {
+    background: #fff;
+
+    border: 1px solid #edf0f4;
+
+    border-radius: 10px;
+
+    padding: 13px 14px;
+
+    height: 100%;
+}
+
+.status-badge {
+    display: inline-block;
+
+    padding: 5px 10px;
+
+    border-radius: 20px;
+
+    font-size: 11px;
+
+    font-weight: 600;
+}
+
+.status-active {
+    background: #e8f7ee;
+    color: #198754;
+}
+
+.status-inactive {
+    background: #fff4e5;
+    color: #d97706;
+}
+
+.status-stopped {
+    background: #ffe9ec;
+    color: #dc3545;
+}
+
+.no-insurance {
+    text-align: center;
+
+    padding: 45px 20px;
+
+    color: #8b95a7;
+}
+
+.btn-action {
+    border-radius: 8px;
+
+    padding: 9px 15px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    text-decoration: none;
+
+    display: inline-block;
+}
+
+.btn-back {
+    background: #f1f3f5;
+    color: #495057;
+}
+
+.btn-add {
+    background: #198754;
+    color: white;
+}
+
+.btn-edit {
+    background: #0d6efd;
+    color: white;
+}
+
+.btn-delete {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-action:hover {
+    opacity: .9;
+    color: inherit;
+}
+
+.action-row {
+    border-top: 1px solid #edf0f4;
+
+    margin-top: 25px;
+
+    padding-top: 18px;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 8px;
+}
+
+.action-right {
+    display: flex;
+    gap: 8px;
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="insurance-detail-wrapper">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-10 col-xl-9">
+
+            <div class="insurance-detail-card">
+
+
+                <!-- HEADER -->
+
+                <div class="insurance-detail-header">
+
+                    <h4>
+                        🛡️ Hồ sơ bảo hiểm
+                    </h4>
+
+                    <small>
+                        {{ employee.full_name }}
+                        -
+                        {{ employee.employee_code }}
+                    </small>
+
+                </div>
+
+
+                <div class="insurance-detail-body">
+
+
+                    <!-- =================================================
+                         THÔNG TIN NHÂN VIÊN
+                    ================================================== -->
+
+                    <div class="employee-summary">
+
+                        <div class="employee-summary-title">
+
+                            👤 Thông tin nhân viên
+
+                        </div>
+
+
+                        <div class="row g-3">
+
+                            <div class="col-md-4">
+
+                                <div class="info-label">
+                                    Họ và tên
+                                </div>
+
+                                <div class="info-value">
+                                    {{ employee.full_name }}
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="info-label">
+                                    Mã nhân viên
+                                </div>
+
+                                <div class="info-value">
+                                    {{ employee.employee_code|default:"—" }}
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="info-label">
+                                    CCCD
+                                </div>
+
+                                <div class="info-value">
+                                    {{ employee.citizen_id|default:"—" }}
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="info-label">
+                                    Ngày sinh
+                                </div>
+
+                                <div class="info-value">
+
+                                    {% if employee.date_of_birth %}
+                                        {{ employee.date_of_birth|date:"d/m/Y" }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="info-label">
+                                    Phòng ban
+                                </div>
+
+                                <div class="info-value">
+                                    {{ employee.department|default:"—" }}
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="info-label">
+                                    Chức vụ
+                                </div>
+
+                                <div class="info-value">
+                                    {{ employee.position|default:"—" }}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    {% if insurance %}
+
+
+                        <!-- =================================================
+                             BHXH
+                        ================================================== -->
+
+                        <div class="section-title">
+                            🛡️ Thông tin BHXH
+                        </div>
+
+
+                        <div class="row g-3">
+
+
+                            <div class="col-md-4">
+
+                                <div class="info-box">
+
+                                    <div class="info-label">
+                                        Số BHXH
+                                    </div>
+
+                                    <div class="info-value">
+                                        {{ insurance.social_insurance_number|default:"—" }}
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="info-box">
+
+                                    <div class="info-label">
+                                        Sổ BHXH
+                                    </div>
+
+                                    <div class="info-value">
+                                        {{ insurance.social_insurance_book|default:"—" }}
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="info-box">
+
+                                    <div class="info-label">
+                                        Ngày bắt đầu
+                                    </div>
+
+                                    <div class="info-value">
+
+                                        {% if insurance.insurance_start_date %}
+                                            {{ insurance.insurance_start_date|date:"d/m/Y" }}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="info-box">
+
+                                    <div class="info-label">
+                                        Mức lương đóng BHXH
+                                    </div>
+
+                                    <div class="info-value">
+
+                                        {% if insurance.insurance_salary %}
+                                            {{ insurance.insurance_salary|floatformat:0 }}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="info-box">
+
+                                    <div class="info-label">
+                                        Phụ cấp chức vụ
+                                    </div>
+
+                                    <div class="info-value">
+
+                                        {{ insurance.position_allowance|default:"0"|floatformat:0 }}
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="info-box">
+
+                                    <div class="info-label">
+                                        Phụ cấp khác
+                                    </div>
+
+                                    <div class="info-value">
+
+                                        {{ insurance.other_allowance|default:"0"|floatformat:0 }}
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             TỶ LỆ
+                        ================================================== -->
+
+                        <div class="section-title">
+                            💰 Tỷ lệ đóng
+                        </div>
+
+
+                        <div class="row g-3">
+
+
+                            <div class="col-md-3">
+
+                                <div class="info-box">
+
+                                    <div class="info-label">
+                                        BHXH - Người lao động
+                                    </div>
+
+                                    <div class="info-value">
+
+                                        {{ insurance.employee_social_rate|default:"0" }}%
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-3">
+
+                                <div class="info-box">
+
+                                    <div class="info-label">
+                                        BHXH - Doanh nghiệp
+                                    </div>
+
+                                    <div class="info-value">
+
+                                        {{ insurance.company_social_rate|default:"0" }}%
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-3">
+
+                                <div class="info-box">
+
+                                    <div class="info-label">
+                                        BHYT - Người lao động
+                                    </div>
+
+                                    <div class="info-value">
+
+                                        {{ insurance.employee_health_rate|default:"0" }}%
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-3">
+
+                                <div class="info-box">
+
+                                    <div class="info-label">
+                                        BHYT - Doanh nghiệp
+                                    </div>
+
+                                    <div class="info-value">
+
+                                        {{ insurance.company_health_rate|default:"0" }}%
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-3">
+
+                                <div class="info-box">
+
+                                    <div class="info-label">
+                                        BHTN - Người lao động
+                                    </div>
+
+                                    <div class="info-value">
+
+                                        {{ insurance.employee_unemployment_rate|default:"0" }}%
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-3">
+
+                                <div class="info-box">
+
+                                    <div class="info-label">
+                                        BHTN - Doanh nghiệp
+                                    </div>
+
+                                    <div class="info-value">
+
+                                        {{ insurance.company_unemployment_rate|default:"0" }}%
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             BHYT
+                        ================================================== -->
+
+                        <div class="section-title">
+                            🏥 Thông tin BHYT
+                        </div>
+
+
+                        <div class="row g-3">
+
+
+                            <div class="col-md-4">
+
+                                <div class="info-box">
+
+                                    <div class="info-label">
+                                        Số BHYT
+                                    </div>
+
+                                    <div class="info-value">
+                                        {{ insurance.health_insurance_number|default:"—" }}
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="info-box">
+
+                                    <div class="info-label">
+                                        Nơi đăng ký KCB
+                                    </div>
+
+                                    <div class="info-value">
+                                        {{ insurance.health_insurance_hospital|default:"—" }}
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="info-box">
+
+                                    <div class="info-label">
+                                        Ngày bắt đầu BHYT
+                                    </div>
+
+                                    <div class="info-value">
+
+                                        {% if insurance.health_insurance_start %}
+                                            {{ insurance.health_insurance_start|date:"d/m/Y" }}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <div class="info-box">
+
+                                    <div class="info-label">
+                                        Ngày hết hạn BHYT
+                                    </div>
+
+                                    <div class="info-value">
+
+                                        {% if insurance.health_insurance_expiry %}
+                                            {{ insurance.health_insurance_expiry|date:"d/m/Y" }}
+                                        {% else %}
+                                            —
+                                        {% endif %}
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             TRẠNG THÁI
+                        ================================================== -->
+
+                        <div class="section-title">
+                            📌 Trạng thái
+                        </div>
+
+
+                        <div>
+
+                            {% if insurance.status == "active" %}
+
+                                <span class="status-badge status-active">
+                                    Đang tham gia
+                                </span>
+
+                            {% elif insurance.status == "inactive" %}
+
+                                <span class="status-badge status-inactive">
+                                    Tạm ngưng
+                                </span>
+
+                            {% else %}
+
+                                <span class="status-badge status-stopped">
+                                    Ngừng tham gia
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        {% if insurance.notes %}
+
+                            <div class="section-title">
+                                📝 Ghi chú
+                            </div>
+
+                            <div class="info-box">
+
+                                {{ insurance.notes|linebreaks }}
+
+                            </div>
+
+                        {% endif %}
+
+
+                        <!-- ACTION -->
+
+                        <div class="action-row">
+
+                            <a
+                                href="{% url 'social_insurance' %}"
+                                class="btn-action btn-back"
+                            >
+                                ← Danh sách BHXH
+                            </a>
+
+
+                            <div class="action-right">
+
+                                <a
+                                    href="{% url 'social_insurance_edit' employee.pk %}"
+                                    class="btn-action btn-edit"
+                                >
+                                    ✏️ Sửa
+                                </a>
+
+                                <a
+                                    href="{% url 'social_insurance_delete' employee.pk %}"
+                                    class="btn-action btn-delete"
+                                    onclick="return confirm('Bạn có chắc muốn xóa hồ sơ BHXH này?');"
+                                >
+                                    🗑 Xóa
+                                </a>
+
+                            </div>
+
+                        </div>
+
+
+                    {% else %}
+
+
+                        <!-- =================================================
+                             CHƯA CÓ BHXH
+                        ================================================== -->
+
+                        <div class="no-insurance">
+
+                            <div style="font-size:40px;">
+                                🛡️
+                            </div>
+
+                            <h5>
+                                Chưa có hồ sơ BHXH
+                            </h5>
+
+                            <p>
+                                Nhân viên này chưa được tạo hồ sơ bảo hiểm.
+                            </p>
+
+
+                            <a
+                                href="{% url 'social_insurance_create' employee.pk %}"
+                                class="btn-action btn-add"
+                            >
+                                ➕ Thêm hồ sơ BHXH
+                            </a>
+
+                        </div>
+
+
+                        <div class="action-row">
+
+                            <a
+                                href="{% url 'social_insurance' %}"
+                                class="btn-action btn-back"
+                            >
+                                ← Danh sách BHXH
+                            </a>
+
+                        </div>
+
+                    {% endif %}
+
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

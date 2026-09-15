@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container py-4">
+
+  <h2 class="mb-4">📂 Tải hóa đơn XML</h2>
+
+  {% if messages %}
+    <div>
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="mb-5">
+    {% csrf_token %}
+    {{ form.file }}
+    <button type="submit" class="btn btn-primary">Tải lên</button>
+  </form>
+
+  <a href="{% url 'invoice_list' %}">⬅️ Danh mục hóa đơn</a>
+
+  {% if invoice %}
+    <!-- 🧾 Thông tin hóa đơn -->
+    <h5 class="mt-4 mb-2 fw-bold">🧾 Thông tin hóa đơn</h5>
+    <table class="table table-sm table-bordered">
+      <tbody>
+        <tr>
+          <th width="20%">Số hóa đơn</th>
+          <td>{{ invoice.so_hoa_don }}</td>
+          <th>Ngày lập</th>
+          <td>{{ invoice.ngay_hd }}</td>
+        </tr>
+        <tr>
+          <th>Hình thức thanh toán</th>
+          <td>{{ invoice.hinh_thuc_tt }}</td>
+          <th>Mẫu số - Ký hiệu</th>
+          <td>{{ invoice.mau_so }} - {{ invoice.ky_hieu }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 🏢 Người bán -->
+    <h5 class="mt-4 mb-2 fw-bold">🏢 Người bán</h5>
+    <table class="table table-sm table-bordered">
+      <tbody>
+        <tr>
+          <th width="20%">Tên đơn vị</th>
+          <td>{{ invoice.ten_dv_ban }}</td>
+          <th>Mã số thuế</th>
+          <td>{{ invoice.ma_so_thue }}</td>
+        </tr>
+        <tr>
+          <th>Địa chỉ</th>
+          <td colspan="3">{{ invoice.dia_chi }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 🧍‍♂️ Người mua -->
+    <h5 class="mt-4 mb-2 fw-bold">🧍‍♂️ Người mua</h5>
+    <table class="table table-sm table-bordered">
+      <tbody>
+        <tr>
+          <th width="20%">Tên người mua</th>
+          <td>{{ invoice.ten_nguoi_mua }}</td>
+          <th>Mã số thuế</th>
+          <td>{{ invoice.ma_so_thue_mua }}</td>
+        </tr>
+        <tr>
+          <th>Địa chỉ</th>
+          <td>{{ invoice.dia_chi_mua }}</td>
+          <th>Số TK / Ngân hàng</th>
+          <td>{{ invoice.so_tk }} - {{ invoice.ten_ngan_hang }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 📦 Hàng hóa -->
+    <h5 class="mt-4 mb-2 fw-bold">📦 Hàng hóa</h5>
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm align-middle">
+        <thead class="table-light text-center">
+          <tr>
+            <th>STT</th>
+            <th>Tên hàng hóa</th>
+            <th>ĐVT</th>
+            <th>Số lượng</th>
+            <th>Đơn giá</th>
+            <th>Thành tiền</th>
+            <th>Thuế suất</th>
+            <th>Tiền thuế</th>
+            <th>Thanh toán</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr>
+            <td class="text-center">{{ item.stt }}</td>
+            <td>{{ item.ten_hang }}</td>
+            <td class="text-center">{{ item.dvt }}</td>
+            <td class="text-end">{{ item.so_luong|floatformat:0|intcomma }}</td>
+            <td class="text-end">{{ item.don_gia|floatformat:0|intcomma }}</td>
+            <td class="money">{{ item.thanh_tien|floatformat:0|intcomma }}</td>
+            <td class="text-center">{{ item.thue_suat }}</td>
+            <td class="money">{{ item.tien_thue|floatformat:0|intcomma }}</td>
+            <td class="money">{{ item.thanh_toan|floatformat:0|intcomma }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th colspan="8" class="text-end">Tổng thanh toán</th>
+            <th class="money">{{ invoice.tong_tien|floatformat:0|intcomma }}</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- 💾 Form lưu -->
+    <form method="post" action="{% url 'save_invoice' %}">
+      {% csrf_token %}
+      <input type="hidden" name="invoice_data" id="invoice_data_input">
+      <input type="hidden" name="items_data" id="items_data_input">
+      <input type="hidden" name="file_name" value="{{ file_name }}">
+      <button type="submit" class="btn btn-success mt-3">💾 Lưu vào danh mục hóa đơn</button>
+    </form>
+  {% endif %}
+
+  {% if invoice %}
+    {{ invoice|json_script:"invoice_data" }}
+    {{ items|json_script:"items_data" }}
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script src="{% static 'js/saveinvoice.js' %}"></script>
+  <script src="{% static 'js/invoice.js' %}"></script>
+{% endblock %}
