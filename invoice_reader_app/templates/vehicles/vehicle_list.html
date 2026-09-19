@@ -1,0 +1,1523 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+    Phương tiện vận tải
+{% endblock %}
+
+{% block navbar_title %}
+    Phương tiện vận tải
+{% endblock %}
+
+
+{% block extra_head %}
+
+<style>
+
+/* =========================================================
+   BODY
+========================================================= */
+
+body {
+    background: #f4f6fa;
+}
+
+.vehicle-wrapper {
+    padding: 20px;
+}
+
+
+/* =========================================================
+   LAYOUT
+========================================================= */
+
+.vehicle-sidebar {
+    background: #fff;
+
+    border-radius: 14px;
+
+    box-shadow:
+        0 3px 15px rgba(0,0,0,.06);
+
+    overflow: hidden;
+
+    position: sticky;
+    top: 85px;
+}
+
+
+/* =========================================================
+   SIDEBAR HEADER
+========================================================= */
+
+.vehicle-sidebar-header {
+
+    background: linear-gradient(
+        135deg,
+        #0d6efd,
+        #2563eb
+    );
+
+    color: white;
+
+    padding: 17px 18px;
+}
+
+.vehicle-sidebar-header h5 {
+
+    margin: 0;
+
+    font-size: 16px;
+
+    font-weight: 700;
+}
+
+.vehicle-sidebar-header small {
+
+    font-size: 11px;
+
+    opacity: .85;
+}
+
+
+/* =========================================================
+   SIDEBAR MENU
+========================================================= */
+
+.vehicle-menu {
+    padding: 8px;
+}
+
+.vehicle-menu a {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 10px 11px;
+
+    border-radius: 8px;
+
+    color: #414955;
+
+    text-decoration: none;
+
+    font-size: 12px;
+
+    transition: .15s;
+}
+
+.vehicle-menu a:hover {
+
+    background: #f0f5ff;
+
+    color: #0d6efd;
+}
+
+.vehicle-menu a.active {
+
+    background: #e8f1ff;
+
+    color: #0d6efd;
+
+    font-weight: 600;
+}
+
+.vehicle-menu-left {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+}
+
+.vehicle-menu-icon {
+
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+
+    background: #f1f4f8;
+
+    font-size: 15px;
+}
+
+.vehicle-menu a.active
+.vehicle-menu-icon {
+
+    background: #dbe9ff;
+}
+
+
+/* =========================================================
+   CONTENT HEADER
+========================================================= */
+
+.vehicle-page-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 18px;
+}
+
+.vehicle-page-header h4 {
+
+    margin: 0;
+
+    font-size: 20px;
+
+    font-weight: 700;
+
+    color: #20252b;
+}
+
+.vehicle-page-header small {
+
+    color: #7d8593;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   BUTTON
+========================================================= */
+
+.btn-add-vehicle {
+
+    border: 0;
+
+    background: #0d6efd;
+
+    color: white;
+
+    border-radius: 8px;
+
+    padding: 9px 14px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    text-decoration: none;
+
+    transition: .2s;
+}
+
+.btn-add-vehicle:hover {
+
+    background: #0b5ed7;
+
+    color: white;
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   STAT CARDS
+========================================================= */
+
+.vehicle-stat {
+
+    background: white;
+
+    border-radius: 12px;
+
+    padding: 14px 16px;
+
+    box-shadow:
+        0 3px 15px rgba(0,0,0,.05);
+
+    height: 100%;
+}
+
+.vehicle-stat-title {
+
+    font-size: 13px;
+
+    color: #7d8593;
+
+    margin-bottom: 4px;
+}
+
+.vehicle-stat-value {
+
+    font-size: 22px;
+
+    font-weight: 700;
+
+    color: #20252b;
+}
+
+.vehicle-stat-danger {
+
+    color: #dc3545;
+}
+
+.vehicle-stat-warning {
+
+    color: #f59f00;
+}
+
+
+/* =========================================================
+   SEARCH CARD
+========================================================= */
+
+.vehicle-toolbar {
+
+    background: white;
+
+    border-radius: 12px;
+
+    padding: 12px;
+
+    margin-top: 18px;
+
+    margin-bottom: 15px;
+
+    box-shadow:
+        0 3px 15px rgba(0,0,0,.05);
+}
+
+.vehicle-search {
+
+    width: 100%;
+
+    border: 1px solid #dfe3e8;
+
+    border-radius: 8px;
+
+    padding: 9px 12px;
+
+    font-size: 12px;
+
+    outline: none;
+}
+
+.vehicle-search:focus {
+
+    border-color: #0d6efd;
+
+    box-shadow:
+        0 0 0 3px rgba(13,110,253,.08);
+}
+
+
+/* =========================================================
+   TABLE CARD
+========================================================= */
+
+.vehicle-card {
+
+    background: white;
+
+    border-radius: 14px;
+
+    box-shadow:
+        0 3px 15px rgba(0,0,0,.06);
+
+    overflow: hidden;
+}
+
+.vehicle-card-header {
+
+    padding: 14px 16px;
+
+    border-bottom: 1px solid #edf0f4;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+}
+
+.vehicle-card-title {
+
+    margin: 0;
+
+    font-size: 14px;
+
+    font-weight: 700;
+}
+
+.vehicle-count {
+
+    font-size: 12px;
+
+    color: #8b95a7;
+}
+
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.vehicle-table-wrapper {
+
+    overflow-x: auto;
+}
+
+.vehicle-table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+    min-width: 1200px;
+}
+
+.vehicle-table th {
+
+    background: #f8f9fb;
+
+    color: #697383;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    padding: 11px 10px;
+
+    border-bottom: 1px solid #e9edf2;
+
+    white-space: nowrap;
+
+    text-align: left;
+}
+
+.vehicle-table td {
+
+    padding: 11px 10px;
+
+    font-size: 14px;
+
+    color: #414955;
+
+    border-bottom: 1px solid #f0f2f5;
+
+    white-space: nowrap;
+}
+
+.vehicle-table tbody tr:hover {
+
+    background: #f8fbff;
+}
+
+
+/* =========================================================
+   LICENSE PLATE
+========================================================= */
+
+.license-plate {
+
+    display: inline-block;
+
+    background: #fff;
+
+    border: 2px solid #333;
+
+    border-radius: 5px;
+
+    padding: 3px 8px;
+
+    font-weight: 700;
+
+    font-size: 14px;
+
+    color: #111;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.status-badge {
+
+    display: inline-block;
+
+    padding: 4px 8px;
+
+    border-radius: 20px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+}
+
+.status-active {
+
+    background: #e8f7ee;
+
+    color: #198754;
+}
+
+.status-inactive {
+
+    background: #fff4e5;
+
+    color: #d97706;
+}
+
+.status-disposed {
+
+    background: #f1f3f5;
+
+    color: #6c757d;
+}
+
+
+/* =========================================================
+   DEADLINE
+========================================================= */
+
+.deadline {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    padding: 4px 7px;
+
+    border-radius: 6px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+}
+
+.deadline-valid {
+
+    color: #198754;
+
+    background: #eaf7ef;
+}
+
+.deadline-warning {
+
+    color: #d97706;
+
+    background: #fff4df;
+}
+
+.deadline-expired {
+
+    color: #dc3545;
+
+    background: #ffe9ec;
+}
+
+.deadline-unknown {
+
+    color: #6c757d;
+
+    background: #f1f3f5;
+}
+
+
+/* =========================================================
+   ACTION
+========================================================= */
+
+.vehicle-action {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    width: 29px;
+
+    height: 29px;
+
+    border-radius: 7px;
+
+    text-decoration: none;
+
+    margin-right: 3px;
+
+    font-size: 14px;
+
+    transition: .15s;
+}
+
+.vehicle-action-edit {
+
+    background: #e8f1ff;
+
+    color: #0d6efd;
+}
+
+.vehicle-action-edit:hover {
+
+    background: #0d6efd;
+
+    color: white;
+}
+
+.vehicle-action-delete {
+
+    background: #ffe9ec;
+
+    color: #dc3545;
+}
+
+.vehicle-action-delete:hover {
+
+    background: #dc3545;
+
+    color: white;
+}
+
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.vehicle-empty {
+
+    text-align: center;
+
+    padding: 55px 20px;
+
+    color: #8b95a7;
+}
+
+.vehicle-empty-icon {
+
+    font-size: 40px;
+
+    margin-bottom: 8px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 991px) {
+
+    .vehicle-sidebar {
+
+        position: static;
+
+        margin-bottom: 20px;
+    }
+
+    .vehicle-page-header {
+
+        align-items: flex-start;
+
+        gap: 10px;
+
+        flex-direction: column;
+    }
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="vehicle-wrapper">
+
+    <div class="row g-4">
+
+
+        <!-- =====================================================
+             LEFT - 1/3
+        ====================================================== -->
+
+        <div class="col-lg-2 col-xl-2">
+
+            <div class="vehicle-sidebar">
+
+                <div class="vehicle-sidebar-header">
+
+                    <h5>
+                        🚚 Phương tiện
+                    </h5>
+
+                    <small>
+                        Quản lý phương tiện vận tải
+                    </small>
+
+                </div>
+
+
+                <div class="vehicle-menu">
+
+                    <a href="{% url 'vehicles' %}"
+                       class="active">
+
+                        <span class="vehicle-menu-left">
+
+                            <span class="vehicle-menu-icon">
+                                🚚
+                            </span>
+
+                            <span>
+                                Danh sách phương tiện
+                            </span>
+
+                        </span>
+
+                        <span>→</span>
+
+                    </a>
+
+
+                    <a href="{% url 'vehicle_create' %}">
+
+                        <span class="vehicle-menu-left">
+
+                            <span class="vehicle-menu-icon">
+                                ➕
+                            </span>
+
+                            <span>
+                                Thêm phương tiện
+                            </span>
+
+                        </span>
+
+                        <span>→</span>
+
+                    </a>
+
+
+                    <a href="{% url 'vehicles' %}">
+
+                        <span class="vehicle-menu-left">
+
+                            <span class="vehicle-menu-icon">
+                                🔍
+                            </span>
+
+                            <span>
+                                Tra cứu phương tiện
+                            </span>
+
+                        </span>
+
+                        <span>→</span>
+
+                    </a>
+                    <a class="text-danger">
+
+
+                            <span>
+                                Lưu ý: Cảnh báo đăng kiểm, phù hiệu trước 30 ngày
+                            </span>
+
+
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             RIGHT - 2/3
+        ====================================================== -->
+
+        <div class="col-lg-10 col-xl-10">
+
+
+            <!-- =================================================
+                 HEADER
+            ================================================== -->
+
+            <div class="vehicle-page-header">
+
+                <div>
+
+                    <h4>
+                        🚚 Phương tiện vận tải
+                    </h4>
+
+                    <small>
+                        Quản lý thông tin xe, đăng kiểm và phù hiệu
+                    </small>
+
+                </div>
+
+
+
+            </div>
+
+
+            <!-- =================================================
+                 STAT
+            ================================================== -->
+
+            <div class="row g-3">
+
+
+                <div class="col-sm-6 col-xl-3">
+
+                    <div class="vehicle-stat">
+
+                        <div class="vehicle-stat-title">
+                            Tổng phương tiện
+                        </div>
+
+                        <div class="vehicle-stat-value">
+                            {{ vehicles|length }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-sm-6 col-xl-3">
+
+                    <div class="vehicle-stat">
+
+                        <div class="vehicle-stat-title">
+                            Đang sử dụng
+                        </div>
+
+                        <div class="vehicle-stat-value">
+                            {% with count=0 %}
+                                {% for vehicle in vehicles %}
+                                    {% if vehicle.status == "active" %}
+                                        {% widthratio 1 1 1 as x %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endwith %}
+
+                            <span id="activeCount">0</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-sm-6 col-xl-3">
+
+                    <div class="vehicle-stat">
+
+                        <div class="vehicle-stat-title">
+                            Đăng kiểm cần chú ý
+                        </div>
+
+                        <div class="vehicle-stat-value vehicle-stat-warning">
+
+                            <span id="inspectionWarningCount">
+                                0
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-sm-6 col-xl-3">
+
+                    <div class="vehicle-stat">
+
+                        <div class="vehicle-stat-title">
+                            Phù hiệu cần chú ý
+                        </div>
+
+                        <div class="vehicle-stat-value vehicle-stat-danger">
+
+                            <span id="badgeWarningCount">
+                                0
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 SEARCH
+            ================================================== -->
+
+            <div class="vehicle-toolbar">
+
+                <input
+                    type="text"
+                    id="vehicleSearch"
+                    class="vehicle-search"
+                    placeholder="🔍 Tìm theo biển số, loại xe, nhãn hiệu, số khung, số máy..."
+                    onkeyup="filterVehicles()"
+                >
+
+            </div>
+
+
+            <!-- =================================================
+                 TABLE
+            ================================================== -->
+
+            <div class="vehicle-card">
+
+                <div class="vehicle-card-header">
+
+                    <h5 class="vehicle-card-title">
+                        Danh sách phương tiện
+                    </h5>
+
+                    <span class="vehicle-count">
+
+                        {{ vehicles|length }} phương tiện
+
+                    </span>
+
+                </div>
+
+
+                <div class="vehicle-table-wrapper">
+
+                    <table class="vehicle-table">
+
+                        <thead class="text-center">
+
+                            <tr >
+
+                                <th>
+                                    STT
+                                </th>
+
+                                <th>
+                                    Biển số xe
+                                </th>
+
+                                <th>
+                                    Loại xe
+                                </th>
+
+                                <th>
+                                    Tải trọng
+                                </th>
+
+                                <th>
+                                    Trọng lượng toàn bộ
+                                </th>
+
+                                <th>
+                                    Số khung
+                                </th>
+
+                                <th>
+                                    Số máy
+                                </th>
+
+                                <th>
+                                    Năm SX
+                                </th>
+
+                                <th>
+                                    Số người
+                                </th>
+
+                                <th>
+                                    Ngày sử dụng
+                                </th>
+
+                                <th>
+                                    Đăng kiểm
+                                </th>
+
+                                <th>
+                                    Phù hiệu
+                                </th>
+
+                                <th>
+                                    Trạng thái
+                                </th>
+
+                                <th>
+                                    Thao tác
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="vehicleTableBody">
+
+                            {% for vehicle in vehicles %}
+
+                            <tr
+                                class="vehicle-row"
+
+                                data-search="
+                                    {{ vehicle.license_plate }}
+                                    {{ vehicle.vehicle_type }}
+                                    {{ vehicle.brand }}
+                                    {{ vehicle.model }}
+                                    {{ vehicle.chassis_number }}
+                                    {{ vehicle.engine_number }}
+                                "
+
+                                data-status="{{ vehicle.status }}"
+
+                                data-inspection="{{ vehicle.inspection_status }}"
+
+                                data-badge="{{ vehicle.badge_status }}"
+                            >
+
+                                <!-- STT -->
+
+                                <td>
+                                    {{ forloop.counter }}
+                                </td>
+
+
+                                <!-- BIỂN SỐ -->
+
+                                <td>
+
+                                    <span class="license-plate">
+
+                                        {{ vehicle.license_plate }}
+
+                                    </span>
+
+                                </td>
+
+
+                                <!-- LOẠI XE -->
+
+                                <td>
+
+                                    <strong>
+                                        {{ vehicle.vehicle_type|default:"—" }}
+                                    </strong>
+
+                                    {% if vehicle.brand %}
+
+                                    <br>
+
+                                    <small class="text-muted">
+                                        {{ vehicle.brand }}
+                                    </small>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- TẢI TRỌNG -->
+
+                                <td>
+
+                                    {% if vehicle.load_capacity %}
+
+                                        {{ vehicle.load_capacity|floatformat:0 }}
+                                        kg
+
+                                    {% else %}
+
+                                        —
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- TRỌNG LƯỢNG -->
+
+                                <td>
+
+                                    {% if vehicle.total_weight %}
+
+                                        {{ vehicle.total_weight|floatformat:0 }}
+                                        kg
+
+                                    {% else %}
+
+                                        —
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- SỐ KHUNG -->
+
+                                <td>
+
+                                    {% if vehicle.chassis_number %}
+
+                                        {{ vehicle.chassis_number }}
+
+                                    {% else %}
+
+                                        —
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- SỐ MÁY -->
+
+                                <td>
+
+                                    {% if vehicle.engine_number %}
+
+                                        {{ vehicle.engine_number }}
+
+                                    {% else %}
+
+                                        —
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- NĂM -->
+
+                                <td>
+
+                                    {{ vehicle.manufacture_year|default:"—" }}
+
+                                </td>
+
+
+                                <!-- SỐ NGƯỜI -->
+
+                                <td>
+
+                                    {% if vehicle.passenger_capacity %}
+
+                                        {{ vehicle.passenger_capacity }}
+
+                                    {% else %}
+
+                                        —
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- NGÀY SỬ DỤNG -->
+
+                                <td>
+
+                                    {% if vehicle.put_into_use_date %}
+
+                                        {{ vehicle.put_into_use_date|date:"d/m/Y" }}
+
+                                    {% else %}
+
+                                        —
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- ĐĂNG KIỂM -->
+
+                                <td>
+
+                                    {% if vehicle.inspection_expiry %}
+
+                                        {% if vehicle.inspection_status == "expired" %}
+
+                                            <span class="deadline deadline-expired">
+
+                                                🔴
+                                                {{ vehicle.inspection_expiry|date:"d/m/Y" }}
+
+                                            </span>
+
+                                            <br>
+
+                                            <small class="text-danger">
+                                                Đã hết hạn
+                                            </small>
+
+                                        {% elif vehicle.inspection_status == "warning" %}
+
+                                            <span class="deadline deadline-warning">
+
+                                                🟠
+                                                {{ vehicle.inspection_expiry|date:"d/m/Y" }}
+
+                                            </span>
+
+                                            <br>
+
+                                            <small class="text-warning">
+                                                Sắp hết hạn
+                                            </small>
+
+                                        {% else %}
+
+                                            <span class="deadline deadline-valid">
+
+                                                🟢
+                                                {{ vehicle.inspection_expiry|date:"d/m/Y" }}
+
+                                            </span>
+
+                                        {% endif %}
+
+                                    {% else %}
+
+                                        <span class="deadline deadline-unknown">
+                                            Chưa có
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- PHÙ HIỆU -->
+
+                                <td>
+
+                                    {% if vehicle.badge_expiry %}
+
+                                        {% if vehicle.badge_status == "expired" %}
+
+                                            <span class="deadline deadline-expired">
+
+                                                🔴
+                                                {{ vehicle.badge_expiry|date:"d/m/Y" }}
+
+                                            </span>
+
+                                            <br>
+
+                                            <small class="text-danger">
+                                                Đã hết hạn
+                                            </small>
+
+                                        {% elif vehicle.badge_status == "warning" %}
+
+                                            <span class="deadline deadline-warning">
+
+                                                🟠
+                                                {{ vehicle.badge_expiry|date:"d/m/Y" }}
+
+                                            </span>
+
+                                            <br>
+
+                                            <small class="text-warning">
+                                                Sắp hết hạn
+                                            </small>
+
+                                        {% else %}
+
+                                            <span class="deadline deadline-valid">
+
+                                                🟢
+                                                {{ vehicle.badge_expiry|date:"d/m/Y" }}
+
+                                            </span>
+
+                                        {% endif %}
+
+                                    {% else %}
+
+                                        <span class="deadline deadline-unknown">
+                                            Chưa có
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- STATUS -->
+
+                                <td>
+
+                                    {% if vehicle.status == "active" %}
+
+                                        <span class="status-badge status-active">
+                                            Đang sử dụng
+                                        </span>
+
+                                    {% elif vehicle.status == "inactive" %}
+
+                                        <span class="status-badge status-inactive">
+                                            Tạm ngưng
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="status-badge status-disposed">
+                                            Thanh lý
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+                                <!-- ACTION -->
+
+                                <td>
+
+                                    <a
+                                        href="{% url 'vehicle_edit' vehicle.pk %}"
+                                        class="vehicle-action vehicle-action-edit"
+                                        title="Sửa">
+
+                                        ✏️
+
+                                    </a>
+
+
+                                    <a
+                                        href="{% url 'vehicle_delete' vehicle.pk %}"
+                                        class="vehicle-action vehicle-action-delete"
+                                        title="Xóa">
+
+                                        🗑
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+
+                            {% empty %}
+
+                            <tr>
+
+                                <td colspan="14">
+
+                                    <div class="vehicle-empty">
+
+                                        <div class="vehicle-empty-icon">
+                                            🚚
+                                        </div>
+
+                                        <div>
+                                            Chưa có phương tiện nào
+                                        </div>
+
+                                        <br>
+
+    
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+
+/* =========================================================
+   TÌM KIẾM
+========================================================= */
+
+function filterVehicles() {
+
+    const input =
+        document
+            .getElementById("vehicleSearch")
+            .value
+            .toLowerCase()
+            .trim();
+
+    const rows =
+        document.querySelectorAll(".vehicle-row");
+
+    rows.forEach(function(row) {
+
+        const text =
+            row
+                .getAttribute("data-search")
+                .toLowerCase();
+
+        if (text.includes(input)) {
+
+            row.style.display = "";
+
+        } else {
+
+            row.style.display = "none";
+
+        }
+
+    });
+
+}
+
+
+/* =========================================================
+   THỐNG KÊ
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        const rows =
+            document.querySelectorAll(".vehicle-row");
+
+        let activeCount = 0;
+
+        let inspectionWarningCount = 0;
+
+        let badgeWarningCount = 0;
+
+
+        rows.forEach(function(row) {
+
+            const status =
+                row.dataset.status;
+
+            const inspection =
+                row.dataset.inspection;
+
+            const badge =
+                row.dataset.badge;
+
+
+            if (status === "active") {
+
+                activeCount++;
+
+            }
+
+
+            if (
+                inspection === "warning" ||
+                inspection === "expired"
+            ) {
+
+                inspectionWarningCount++;
+
+            }
+
+
+            if (
+                badge === "warning" ||
+                badge === "expired"
+            ) {
+
+                badgeWarningCount++;
+
+            }
+
+        });
+
+
+        document.getElementById(
+            "activeCount"
+        ).innerText = activeCount;
+
+
+        document.getElementById(
+            "inspectionWarningCount"
+        ).innerText = inspectionWarningCount;
+
+
+        document.getElementById(
+            "badgeWarningCount"
+        ).innerText = badgeWarningCount;
+
+    }
+);
+
+
+/* =========================================================
+   XÁC NHẬN XÓA
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        const deleteButtons =
+            document.querySelectorAll(
+                ".vehicle-action-delete"
+            );
+
+        deleteButtons.forEach(function(button) {
+
+            button.addEventListener(
+                "click",
+                function(event) {
+
+                    const result = confirm(
+                        "Bạn có chắc muốn xóa phương tiện này?"
+                    );
+
+                    if (!result) {
+
+                        event.preventDefault();
+
+                    }
+
+                }
+            );
+
+        });
+
+    }
+);
+
+</script>
+
+{% endblock %}

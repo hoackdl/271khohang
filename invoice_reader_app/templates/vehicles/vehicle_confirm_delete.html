@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Xóa phương tiện
+{% endblock %}
+
+{% block navbar_title %}
+Xóa phương tiện
+{% endblock %}
+
+{% block extra_head %}
+
+<style> body { background: #f4f6fa; } .vehicle-delete-wrapper { padding: 40px 20px; } .vehicle-delete-card { max-width: 650px; margin: 0 auto; background: #fff; border-radius: 16px; box-shadow: 0 5px 25px rgba(0,0,0,.08); overflow: hidden; } /* HEADER */ .vehicle-delete-header { background: linear-gradient( 135deg, #dc3545, #b02a37 ); color: white; padding: 20px 24px; } .vehicle-delete-header h4 { margin: 0; font-size: 20px; font-weight: 700; } .vehicle-delete-header small { display: block; margin-top: 5px; opacity: .9; } /* CONTENT */ .vehicle-delete-body { padding: 28px; } .vehicle-warning { background: #fff4e5; border: 1px solid #ffd8a8; color: #9a6700; border-radius: 10px; padding: 14px 16px; margin-bottom: 22px; font-size: 14px; } .vehicle-warning strong { color: #d97706; } /* INFO */ .vehicle-info { border: 1px solid #e9edf2; border-radius: 12px; overflow: hidden; margin-bottom: 25px; } .vehicle-info-row { display: flex; border-bottom: 1px solid #edf0f4; } .vehicle-info-row:last-child { border-bottom: 0; } .vehicle-info-label { width: 40%; background: #f8f9fb; padding: 12px 15px; color: #697383; font-size: 13px; font-weight: 600; } .vehicle-info-value { width: 60%; padding: 12px 15px; color: #20252b; font-size: 14px; } /* LICENSE */ .license-plate { display: inline-block; background: #fff; border: 2px solid #333; border-radius: 5px; padding: 4px 12px; font-weight: 700; color: #111; } /* BUTTON */ .vehicle-delete-actions { display: flex; justify-content: flex-end; gap: 10px; } .btn-cancel { display: inline-flex; align-items: center; justify-content: center; padding: 10px 18px; border-radius: 8px; background: #f1f3f5; color: #495057; text-decoration: none; border: 1px solid #dee2e6; font-size: 13px; font-weight: 600; } .btn-cancel:hover { background: #e9ecef; color: #212529; } .btn-delete { border: 0; padding: 10px 18px; border-radius: 8px; background: #dc3545; color: white; font-size: 13px; font-weight: 600; cursor: pointer; } .btn-delete:hover { background: #bb2d3b; } /* RESPONSIVE */ @media (max-width: 576px) { .vehicle-delete-wrapper { padding: 20px 10px; } .vehicle-delete-body { padding: 20px; } .vehicle-info-row { display: block; } .vehicle-info-label, .vehicle-info-value { width: 100%; } .vehicle-delete-actions { flex-direction: column; } .btn-cancel, .btn-delete { width: 100%; } } </style>
+{% endblock %}
+
+{% block content %}
+
+<div class="vehicle-delete-wrapper">
+<div class="vehicle-delete-card">
+
+    <!-- HEADER -->
+
+    <div class="vehicle-delete-header">
+
+        <h4>
+            🗑 Xóa phương tiện
+        </h4>
+
+        <small>
+            Xác nhận xóa thông tin phương tiện khỏi hệ thống
+        </small>
+
+    </div>
+
+
+    <!-- BODY -->
+
+    <div class="vehicle-delete-body">
+
+        <div class="vehicle-warning">
+
+            ⚠️
+            <strong>Cảnh báo:</strong>
+
+            Bạn đang thực hiện xóa phương tiện.
+            Dữ liệu sau khi xóa sẽ không thể khôi phục.
+
+        </div>
+
+
+        <!-- VEHICLE INFO -->
+
+        <div class="vehicle-info">
+
+            <div class="vehicle-info-row">
+
+                <div class="vehicle-info-label">
+                    Biển số xe
+                </div>
+
+                <div class="vehicle-info-value">
+
+                    <span class="license-plate">
+                        {{ vehicle.license_plate }}
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="vehicle-info-row">
+
+                <div class="vehicle-info-label">
+                    Loại phương tiện
+                </div>
+
+                <div class="vehicle-info-value">
+
+                    {{ vehicle.vehicle_type|default:"—" }}
+
+                </div>
+
+            </div>
+
+
+            <div class="vehicle-info-row">
+
+                <div class="vehicle-info-label">
+                    Nhãn hiệu
+                </div>
+
+                <div class="vehicle-info-value">
+
+                    {{ vehicle.brand|default:"—" }}
+
+                </div>
+
+            </div>
+
+
+            <div class="vehicle-info-row">
+
+                <div class="vehicle-info-label">
+                    Model
+                </div>
+
+                <div class="vehicle-info-value">
+
+                    {{ vehicle.model|default:"—" }}
+
+                </div>
+
+            </div>
+
+
+            <div class="vehicle-info-row">
+
+                <div class="vehicle-info-label">
+                    Số khung
+                </div>
+
+                <div class="vehicle-info-value">
+
+                    {{ vehicle.chassis_number|default:"—" }}
+
+                </div>
+
+            </div>
+
+
+            <div class="vehicle-info-row">
+
+                <div class="vehicle-info-label">
+                    Số máy
+                </div>
+
+                <div class="vehicle-info-value">
+
+                    {{ vehicle.engine_number|default:"—" }}
+
+                </div>
+
+            </div>
+
+
+            <div class="vehicle-info-row">
+
+                <div class="vehicle-info-label">
+                    Năm sản xuất
+                </div>
+
+                <div class="vehicle-info-value">
+
+                    {{ vehicle.manufacture_year|default:"—" }}
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- FORM -->
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <div class="vehicle-delete-actions">
+
+                <a
+                    href="{% url 'vehicles' %}"
+                    class="btn-cancel"
+                >
+                    ← Hủy
+                </a>
+
+                <button
+                    type="submit"
+                    class="btn-delete"
+                >
+                    🗑 Xóa phương tiện
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+</div>
+{% endblock %}

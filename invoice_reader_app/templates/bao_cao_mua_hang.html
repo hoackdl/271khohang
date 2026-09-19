@@ -1,0 +1,1006 @@
+{% extends 'base.html' %}
+
+{% load humanize %}
+
+{% block container_class %}
+container-fluid p-0
+{% endblock %}
+
+{% block navbar_title %}
+Báo cáo mua hàng
+{% endblock %}
+
+{% block extra_head %}
+
+<style>
+
+body {
+    font-size: 13px;
+}
+
+.report-filter {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+}
+
+.filter-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 3px;
+}
+
+.report-filter .form-control,
+.report-filter .form-select,
+.report-filter .btn {
+    font-size: 13px;
+    height: 32px;
+}
+
+.report-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 10px 0 6px;
+    color: #212529;
+}
+
+.report-table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 12px;
+}
+
+.report-table {
+    width: 100%;
+    min-width: 950px;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.report-table th,
+.report-table td {
+    border: 1px solid #dee2e6;
+    padding: 4px 6px;
+    vertical-align: middle;
+}
+
+.report-table thead th {
+    background: #e9f2ff;
+    color: #212529;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.report-table tbody td {
+    background: #fff;
+}
+
+.report-table tbody tr:hover td {
+    background: #f8fbff;
+}
+
+.report-table .money {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.report-table .center {
+    text-align: center;
+}
+
+.report-table .year-total td {
+    background: #fff3cd;
+    font-weight: 700;
+}
+
+.selected-filter {
+    display: inline-block;
+    background: #e7f1ff;
+    color: #0d6efd;
+    border-radius: 5px;
+    padding: 3px 8px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-right: 5px;
+}
+
+.total-money {
+    color: #198754;
+    font-weight: 700;
+}
+
+@media (max-width: 768px) {
+
+    .report-table {
+        font-size: 13px;
+    }
+
+    .report-table th,
+    .report-table td {
+        padding: 3px 4px;
+    }
+
+}
+
+.supplier-search-wrapper {
+    position: relative;
+}
+
+.supplier-results {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    right: 0;
+    z-index: 1050;
+
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+
+    max-height: 260px;
+    overflow-y: auto;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
+
+    display: none;
+}
+
+.supplier-result-item {
+    padding: 7px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.supplier-result-item:last-child {
+    border-bottom: none;
+}
+
+.supplier-result-item:hover {
+    background: #e7f1ff;
+}
+
+.supplier-result-empty {
+    padding: 8px 10px;
+    color: #6c757d;
+    font-size: 13px;
+}
+
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container-fluid px-2">
+
+    <!-- ==================================================
+         BỘ LỌC
+    ================================================== -->
+
+    <div class="report-filter">
+
+        <form method="get">
+
+            <div class="row g-2 align-items-end">
+
+                <!-- HÃNG -->
+
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+
+                    <label class="filter-label">
+                        Hãng
+                    </label>
+
+                    <select
+                        name="brand"
+                        class="form-select"
+                    >
+
+                        <option value="">
+                            -- Tất cả hãng --
+                        </option>
+
+                        {% for brand_item in brand_list %}
+
+                            <option
+                                value="{{ brand_item.id }}"
+                                {% if brand|stringformat:"s" == brand_item.id|stringformat:"s" %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ brand_item.name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+<!-- NHÀ CUNG CẤP -->
+
+<div class="col-12 col-sm-6 col-md-4 col-lg-3">
+
+    <label class="filter-label">
+        Nhà cung cấp
+    </label>
+
+    <div class="supplier-search-wrapper">
+
+        <input
+            type="text"
+            id="supplier-search"
+            class="form-control"
+            autocomplete="off"
+            placeholder="Nhập tên hoặc MST nhà cung cấp..."
+        >
+
+        <input
+            type="hidden"
+            name="supplier"
+            id="supplier-id"
+            value="{{ supplier }}"
+        >
+
+        <div
+            id="supplier-results"
+            class="supplier-results"
+        ></div>
+
+    </div>
+
+</div>
+
+                <!-- NĂM -->
+
+<div class="col-12 col-sm-6 col-md-3 col-lg-2">
+
+    <label class="filter-label">
+        Năm (Giữ Ctrl để chọn nhiều)
+    </label>
+
+    <select
+        name="nam"
+        class="form-select"
+        multiple
+        size="4"
+    >
+
+        {% for year in nam_list %}
+
+            <option
+                value="{{ year }}"
+                {% if year|stringformat:"s" in selected_years %}
+                    selected
+                {% endif %}
+            >
+                {{ year }}
+            </option>
+
+        {% endfor %}
+
+    </select>
+
+
+</div>
+
+
+
+                <!-- XEM -->
+
+                <div class="col-auto">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        <i class="bi bi-search"></i>
+                        Xem báo cáo
+                    </button>
+
+                </div>
+
+
+                <!-- RESET -->
+
+                <div class="col-auto">
+
+                    <a
+                        href="{% url 'bao_cao_mua_hang' %}"
+                        class="btn btn-outline-secondary"
+                    >
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        Xóa lọc
+                    </a>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- ==================================================
+         FILTER ĐANG CHỌN
+    ================================================== -->
+
+    <div class="mb-2">
+
+        {% if brand %}
+
+            <span class="selected-filter">
+
+                <i class="bi bi-building"></i>
+
+                Hãng:
+
+                {% for brand_item in brand_list %}
+
+                    {% if brand|stringformat:"s" == brand_item.id|stringformat:"s" %}
+
+                        {{ brand_item.name }}
+
+                    {% endif %}
+
+                {% endfor %}
+
+            </span>
+
+        {% endif %}
+
+
+        {% if supplier %}
+
+            <span class="selected-filter">
+
+                <i class="bi bi-truck"></i>
+
+                Nhà cung cấp:
+
+                {% for supplier_item in supplier_list %}
+
+                    {% if supplier|stringformat:"s" == supplier_item.id|stringformat:"s" %}
+
+                        {{ supplier_item.ten_dv_ban }}
+
+                    {% endif %}
+
+                {% endfor %}
+
+            </span>
+
+        {% endif %}
+
+
+        {% if nam %}
+
+            <span class="selected-filter">
+
+                <i class="bi bi-calendar"></i>
+
+                Năm: {{ nam }}
+
+            </span>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- ==================================================
+         BẢNG 1
+    ================================================== -->
+
+    <div class="report-title">
+
+        <i class="bi bi-bar-chart"></i>
+
+        Chi tiết mua hàng theo tháng
+
+    </div>
+
+
+    <div class="report-table-wrapper">
+
+        <table class="report-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>Năm</th>
+
+                    <th>Quý</th>
+
+                    <th>Tháng</th>
+
+
+                    <!-- LOẠI HÀNG -->
+
+                    {% for column in level_columns %}
+
+                        <th>
+                            {{ column.name }}
+                        </th>
+
+                    {% endfor %}
+
+
+                    <!-- PHÂN LOẠI -->
+
+                    {% for column in type_columns %}
+
+                        <th>
+                            {{ column.name }}
+                        </th>
+
+                    {% endfor %}
+
+
+                    <th>
+                        Tổng tiền
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for row in monthly_report %}
+
+                    <tr>
+
+                        <td class="center">
+                            {{ row.year }}
+                        </td>
+
+                        <td class="center">
+                            {{ row.quarter_name }}
+                        </td>
+
+                        <td class="center">
+                            {{ row.month }}
+                        </td>
+
+
+                        {% for column in level_columns %}
+
+                            <td class="money">
+
+                                {% for key, value in row.items %}
+
+                                    {% if key == column.key %}
+
+                                        {{ value|floatformat:0|intcomma }}
+
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            </td>
+
+                        {% endfor %}
+
+
+                        {% for column in type_columns %}
+
+                            <td class="money">
+
+                                {% for key, value in row.items %}
+
+                                    {% if key == column.key %}
+
+                                        {{ value|floatformat:0|intcomma }}
+
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            </td>
+
+                        {% endfor %}
+
+
+                        <td class="money total-money">
+
+                            {{ row.tong|floatformat:0|intcomma }}
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td
+                            colspan="100"
+                            class="text-center text-muted py-3"
+                        >
+                            Không có dữ liệu mua hàng.
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+
+                <!-- TC NĂM -->
+
+                {% for row in yearly_report %}
+
+                    <tr class="year-total">
+
+                        <td class="center">
+                            {{ row.year }}
+                        </td>
+
+                        <td class="center">
+                            TC
+                        </td>
+
+                        <td></td>
+
+
+                        {% for column in level_columns %}
+
+                            <td class="money">
+
+                                {% for key, value in row.items %}
+
+                                    {% if key == column.key %}
+
+                                        {{ value|floatformat:0|intcomma }}
+
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            </td>
+
+                        {% endfor %}
+
+
+                        {% for column in type_columns %}
+
+                            <td class="money">
+
+                                {% for key, value in row.items %}
+
+                                    {% if key == column.key %}
+
+                                        {{ value|floatformat:0|intcomma }}
+
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            </td>
+
+                        {% endfor %}
+
+
+                        <td class="money total-money">
+
+                            {{ row.tong|floatformat:0|intcomma }}
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- ==================================================
+         BẢNG 2
+    ================================================== -->
+
+    <div class="report-title">
+
+        <i class="bi bi-pie-chart"></i>
+
+        Tổng hợp mua hàng theo quý
+
+    </div>
+
+
+    <div class="report-table-wrapper">
+
+        <table class="report-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>Năm</th>
+
+                    <th>Quý</th>
+
+
+                    <!-- LOẠI HÀNG -->
+
+                    {% for column in level_columns %}
+
+                        <th>
+                            {{ column.name }}
+                        </th>
+
+                    {% endfor %}
+
+
+                    <th>
+                        TC Sơn nước
+                    </th>
+
+                    <th>
+                        Tỷ lệ cao cấp
+                    </th>
+
+
+                    <!-- PHÂN LOẠI -->
+
+                    {% for column in type_columns %}
+
+                        <th>
+                            {{ column.name }}
+                        </th>
+
+                    {% endfor %}
+
+
+                    <th>
+                        Tổng tiền
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for row in quarterly_report %}
+
+                    <tr>
+
+                        <td class="center">
+                            {{ row.year }}
+                        </td>
+
+                        <td class="center">
+                            {{ row.quarter_name }}
+                        </td>
+
+
+                        <!-- LEVEL -->
+
+                        {% for column in level_columns %}
+
+                            <td class="money">
+
+                                {% for key, value in row.items %}
+
+                                    {% if key == column.key %}
+
+                                        {{ value|floatformat:0|intcomma }}
+
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            </td>
+
+                        {% endfor %}
+
+
+                        <!-- TC SƠN NƯỚC -->
+
+                        <td class="money fw-bold">
+
+                            {{ row.tc_son_nuoc|floatformat:0|intcomma }}
+
+                        </td>
+
+
+                        <!-- TỶ LỆ CAO CẤP -->
+
+                        <td class="center">
+
+                            {{ row.ty_le_cao_cap|floatformat:2 }}%
+
+                        </td>
+
+
+                        <!-- TYPE -->
+
+                        {% for column in type_columns %}
+
+                            <td class="money">
+
+                                {% for key, value in row.items %}
+
+                                    {% if key == column.key %}
+
+                                        {{ value|floatformat:0|intcomma }}
+
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            </td>
+
+                        {% endfor %}
+
+
+                        <!-- TỔNG -->
+
+                        <td class="money total-money">
+
+                            {{ row.tong|floatformat:0|intcomma }}
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+
+                <!-- TC NĂM -->
+
+                {% for row in yearly_quarter_report %}
+
+                    <tr class="year-total">
+
+                        <td class="center">
+                            {{ row.year }}
+                        </td>
+
+                        <td class="center">
+                            TC
+                        </td>
+
+
+                        {% for column in level_columns %}
+
+                            <td class="money">
+
+                                {% for key, value in row.items %}
+
+                                    {% if key == column.key %}
+
+                                        {{ value|floatformat:0|intcomma }}
+
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            </td>
+
+                        {% endfor %}
+
+
+                        <td class="money">
+
+                            {{ row.tc_son_nuoc|floatformat:0|intcomma }}
+
+                        </td>
+
+
+                        <td class="center">
+
+                            {{ row.ty_le_cao_cap|floatformat:2 }}%
+
+                        </td>
+
+
+                        {% for column in type_columns %}
+
+                            <td class="money">
+
+                                {% for key, value in row.items %}
+
+                                    {% if key == column.key %}
+
+                                        {{ value|floatformat:0|intcomma }}
+
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            </td>
+
+                        {% endfor %}
+
+
+                        <td class="money total-money">
+
+                            {{ row.tong|floatformat:0|intcomma }}
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const searchInput = document.getElementById("supplier-search");
+    const supplierIdInput = document.getElementById("supplier-id");
+    const resultsBox = document.getElementById("supplier-results");
+
+    let timer = null;
+
+
+    // ==================================================
+    // TÌM KIẾM NCC
+    // ==================================================
+
+    searchInput.addEventListener("input", function () {
+
+        const keyword = this.value.trim();
+
+        // Nếu xóa ô tìm kiếm
+        if (!keyword) {
+
+            supplierIdInput.value = "";
+
+            resultsBox.innerHTML = "";
+            resultsBox.style.display = "none";
+
+            return;
+        }
+
+
+        clearTimeout(timer);
+
+
+        timer = setTimeout(function () {
+
+            fetch(
+                "{% url 'search_supplier_ajax' %}?q="
+                + encodeURIComponent(keyword)
+            )
+
+            .then(response => response.json())
+
+            .then(data => {
+
+                resultsBox.innerHTML = "";
+
+
+                if (!data.results || data.results.length === 0) {
+
+                    resultsBox.innerHTML = `
+                        <div class="supplier-result-empty">
+                            Không tìm thấy nhà cung cấp
+                        </div>
+                    `;
+
+                    resultsBox.style.display = "block";
+
+                    return;
+                }
+
+
+                data.results.forEach(function (supplier) {
+
+                    const item = document.createElement("div");
+
+                    item.className = "supplier-result-item";
+
+                    item.textContent = supplier.text;
+
+
+                    item.addEventListener("click", function () {
+
+                        // ID thực tế gửi về Django
+                        supplierIdInput.value = supplier.id;
+
+                        // Hiển thị tên NCC
+                        searchInput.value = supplier.text;
+
+                        // Đóng danh sách
+                        resultsBox.innerHTML = "";
+                        resultsBox.style.display = "none";
+
+                    });
+
+
+                    resultsBox.appendChild(item);
+
+                });
+
+
+                resultsBox.style.display = "block";
+
+            })
+
+            .catch(function (error) {
+
+                console.error(
+                    "Lỗi tìm nhà cung cấp:",
+                    error
+                );
+
+            });
+
+        }, 250);
+
+    });
+
+
+    // ==================================================
+    // CLICK RA NGOÀI
+    // ==================================================
+
+    document.addEventListener("click", function (event) {
+
+        if (
+            !searchInput.contains(event.target) &&
+            !resultsBox.contains(event.target)
+        ) {
+
+            resultsBox.style.display = "none";
+
+        }
+
+    });
+
+
+    // ==================================================
+    // FORM SUBMIT
+    // ==================================================
+
+    searchInput.closest("form").addEventListener(
+        "submit",
+        function () {
+
+            /*
+             * Nếu người dùng gõ nhưng chưa chọn
+             * một NCC trong danh sách thì xóa ID.
+             */
+            if (!supplierIdInput.value) {
+
+                searchInput.value = "";
+
+            }
+
+        }
+    );
+
+});
+
+</script>
+
+{% endblock %}

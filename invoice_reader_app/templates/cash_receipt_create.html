@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load custom_tags %}
+{% load humanize %}
+{% load static number_to_text %}
+
+{% block navbar_title %}THU TIỀN KHÁCH HÀNG{% endblock %}
+
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="card shadow-sm border-0">
+
+        <!-- Header -->
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                💵 LẬP PHIẾU THU TIỀN MẶT
+            </h5>
+        </div>
+
+
+        <div class="card-body">
+
+            <!-- Thông tin khách hàng -->
+            <div class="row mb-3">
+
+                <div class="col-md-6">
+                    <label class="text-muted">Khách hàng</label>
+                    <div class="fw-bold">
+                        {{ customer.ten_khach_hang }}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="text-muted">Mã số thuế</label>
+                    <div>
+                        {{ customer.ma_so_thue }}
+                    </div>
+                </div>
+
+            </div>
+
+
+            <hr>
+
+
+            <!-- Thông tin hóa đơn -->
+            <div class="row mb-3">
+
+                <div class="col-md-4">
+                    <label class="text-muted">
+                        Số hóa đơn
+                    </label>
+                    <div class="fw-bold text-primary">
+                        {{ invoice.so_hoa_don }}
+                    </div>
+                </div>
+
+
+                <div class="col-md-4">
+                    <label class="text-muted">
+                        Tổng tiền hóa đơn
+                    </label>
+                    <div class="fw-bold">
+                        {{ invoice.tong_tien|floatformat:0|intcomma }}
+                    </div>
+                </div>
+
+
+                <div class="col-md-4">
+                    <label class="text-muted">
+                        Đã thu
+                    </label>
+                    <div class="fw-bold text-success">
+                        {{ paid|floatformat:0|intcomma }}
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="alert alert-danger">
+                <b>Còn phải thu:</b>
+
+                <span class="fw-bold fs-5">
+                    {{ con_no|floatformat:0|intcomma }}
+                </span>
+            </div>
+
+
+            <hr>
+
+
+            <!-- Form thu tiền -->
+            <form method="post">
+
+                {% csrf_token %}
+
+
+                <div class="mb-3">
+
+                    <label class="form-label fw-bold">
+                        Số tiền thu
+                    </label>
+
+                    <input 
+                        type="number"
+                        name="amount"
+                        class="form-control form-control-lg"
+                        max="{{ con_no }}"
+                        placeholder="Nhập số tiền khách thanh toán"
+                        required
+                    >
+
+                </div>
+
+
+
+                <div class="mb-3">
+
+                    <label class="form-label fw-bold">
+                        Ghi chú
+                    </label>
+
+                    <textarea
+                        name="note"
+                        class="form-control"
+                        rows="3"
+                        placeholder="Ví dụ: Thu tiền mặt tại quầy..."
+                    ></textarea>
+
+                </div>
+
+
+
+                <div class="d-flex justify-content-between">
+
+                    <a 
+                       href="{% url 'customer_detail' customer.id %}"
+                       class="btn btn-secondary px-4">
+                        ← Quay lại
+                    </a>
+
+
+                    <button 
+                        type="submit"
+                        class="btn btn-success px-5 fw-bold">
+                        💵 Xác nhận thu tiền
+                    </button>
+
+                </div>
+
+
+            </form>
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+{% endblock %}

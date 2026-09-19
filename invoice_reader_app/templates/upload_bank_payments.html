@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Upload thanh toán ngân hàng</h2>
+
+    <!-- Hiển thị messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert 
+                {% if message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-danger{% endif %}" 
+                role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Form upload -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="file" class="form-label">Chọn file Excel (.xlsx)</label>
+            <input type="file" name="file" class="form-control" accept=".xlsx" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Upload và cập nhật</button>
+    </form>
+
+    <hr>
+
+    <p>Lưu ý:</p>
+    <ul>
+        <li>File Excel phải có cột "Nội dung chi tiết/Transactions in detail", "Số tiền ghi có/Credit", "Ngày hiệu lực2/Effective date".</li>
+        <li>Nội dung phải có HD và MST để đối chiếu phiếu nhập.</li>
+        <li>Những phiếu không tìm thấy sẽ hiển thị cảnh báo.</li>
+    </ul>
+</div>
+{% endblock %}
