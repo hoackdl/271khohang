@@ -1,0 +1,91 @@
+/* Tổng thể */
+input, select, textarea {
+  width: 100% !important;
+}
+
+.card {
+  border-radius: 12px;
+}
+
+.card-header {
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+}
+
+.card-body {
+  overflow: visible !important;
+}
+
+/* Bảng responsive */
+.table-responsive {
+  overflow-x: auto;
+}
+
+/* Bảng và custom-table */
+.table, .custom-table {
+  width: 100%;
+  table-layout: auto; /* auto để cột co giãn */
+  border-collapse: collapse;
+}
+
+.table th, .table td,
+.custom-table th, .custom-table td {
+  vertical-align: middle !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  padding: 0.3rem 0.6rem;
+  text-align: center;
+}
+
+/* Cột text dài căn trái */
+.custom-table th:nth-child(1), .custom-table td:nth-child(1),
+.custom-table th:nth-child(9), .custom-table td:nth-child(9) {
+  text-align: left !important;
+}
+
+/* Input co giãn theo text */
+.table input.form-control,
+.custom-table input.form-control {
+  width: auto; /* auto để input không ép cột */
+  min-width: 80px;
+  max-width: 100%;
+  padding: 4px 8px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+/* Input readonly (Tên gọi chung) */
+.custom-table input[readonly] {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}
+
+/* Canh trái cho cột text dài */
+.text-start, .table td.text-start, .custom-table td.text-start {
+  text-align: left !important;
+}
+
+/* Autocomplete box */
+.autocomplete-box {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  z-index: 1000;
+  position: absolute;
+  top: 100%; /* xuất hiện ngay dưới input */
+  left: 0;
+  width: 100%;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+.autocomplete-box .list-group-item {
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.autocomplete-box .list-group-item:hover {
+  background-color: #e9ecef;
+}
+

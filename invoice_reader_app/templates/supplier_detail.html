@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% load humanize %}
+
+{% block container_class %}container-fluid pt-0 px-3 full-screen-container{% endblock %}
+
+
+{% block title %}Chi tiết nhà cung cấp{% endblock %}
+
+{% block content %}
+
+<h2>📌 Chi tiết nhà cung cấp</h2>
+
+<div class="mb-3">
+    <strong>Tên:</strong> {{ supplier.ten_dv_ban }}<br>
+    <strong>MST:</strong> {{ supplier.ma_so_thue }}<br>
+    <strong>Địa chỉ:</strong> {{ supplier.dia_chi }}<br>
+</div>
+
+<h4 class="mt-4">📄 Danh sách hóa đơn</h4>
+
+<table class="table table-bordered table-sm text-center">
+    <thead class="table-light">
+        <tr>
+            <th>Ngày HĐ</th>
+            <th>Số HĐ</th>
+
+            <th>Thanh toán</th>
+
+            <th>Phiếu nhập/xuất</th>
+            <th>Ngày thanh toán</th>
+            <th>Số tiền thanh toán</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for inv in invoices %}
+        <tr>
+            <td class="text-center" >{{ inv.ngay_hd|date:"d/m/Y" }}</td>
+            <td class="text-center">{{ inv.so_hoa_don }}</td>
+
+            <td class="text-end">{{ inv.tong_tien|floatformat:0|intcomma }}</td>
+
+            <td>{{ inv.phieu_nhap_xuat }}</td>
+            <td>{{ inv.ngay_thanh_toan|date:"d/m/Y" }}</td>
+            <td>{{ inv.so_tien_thanh_toan|floatformat:0|intcomma}}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7" class="text-center text-muted">Không có hóa đơn</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    {% if invoices %}
+    <tfoot>
+        <tr class="table-secondary">
+            <td colspan="2" class="text-end"><strong>Tổng cộng:</strong></td>
+
+            <td class="text-end">{{ totals.tong_tien|floatformat:0|intcomma }}</td>
+            <td colspan="4"></td>
+        </tr>
+    </tfoot>
+    {% endif %}
+</table>
+
+<a href="{% url 'suppliers' %}" class="btn btn-secondary">⬅ Quay lại</a>
+
+{% endblock %}

@@ -1,0 +1,472 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if employee %}
+        Sửa nhân viên
+    {% else %}
+        Thêm nhân viên
+    {% endif %}
+{% endblock %}
+
+{% block navbar_title %}
+    Nhân sự
+{% endblock %}
+
+{% block extra_head %}
+
+<style>
+
+body {
+    background: #f4f6fa;
+}
+
+.employee-form-wrapper {
+    padding: 20px;
+}
+
+.employee-form-card {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 3px 15px rgba(0,0,0,.06);
+    overflow: hidden;
+}
+
+.employee-form-header {
+    background: linear-gradient(
+        135deg,
+        #198754,
+        #157347
+    );
+
+    color: white;
+    padding: 18px 20px;
+}
+
+.employee-form-header h4 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.employee-form-header small {
+    opacity: .85;
+}
+
+.employee-form-body {
+    padding: 22px;
+}
+
+.section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #198754;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+}
+
+.form-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.form-control,
+.form-select {
+    font-size: 13px;
+    border-radius: 8px;
+    border: 1px solid #dfe3e8;
+    padding: 9px 11px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 3px rgba(25,135,84,.08);
+}
+
+.form-actions {
+    border-top: 1px solid #edf0f4;
+    margin-top: 25px;
+    padding-top: 18px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.btn-save {
+    background: #198754;
+    color: white;
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.btn-cancel {
+    background: #f1f3f5;
+    color: #495057;
+    border-radius: 8px;
+    padding: 10px 18px;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="employee-form-wrapper">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-9 col-xl-9">
+
+            <div class="employee-form-card">
+
+                <div class="employee-form-header">
+
+                    <h4>
+
+                        {% if employee %}
+                            ✏️ Sửa nhân viên
+                        {% else %}
+                            ➕ Thêm nhân viên
+                        {% endif %}
+
+                    </h4>
+
+                    <small>
+                        Thông tin hồ sơ nhân sự
+                    </small>
+
+                </div>
+
+
+                <div class="employee-form-body">
+
+                    <form method="POST">
+
+                        {% csrf_token %}
+
+
+                        <!-- THÔNG TIN CƠ BẢN -->
+
+                        <div class="section-title">
+                            👤 Thông tin cơ bản
+                        </div>
+
+                        <div class="row g-3">
+
+                            <div class="col-md-4">
+
+                                <label class="form-label">
+                                    Mã nhân viên *
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="employee_code"
+                                    class="form-control"
+                                    required
+                                    value="{{ employee.employee_code|default:'' }}"
+                                >
+
+                            </div>
+
+
+                            <div class="col-md-8">
+
+                                <label class="form-label">
+                                    Họ và tên *
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="full_name"
+                                    class="form-control"
+                                    required
+                                    value="{{ employee.full_name|default:'' }}"
+                                >
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <label class="form-label">
+                                    Giới tính
+                                </label>
+
+                                <select name="gender"
+                                        class="form-select">
+
+                                    <option value="">
+                                        -- Chọn --
+                                    </option>
+
+                                    <option value="Nam"
+                                        {% if employee.gender == "Nam" %}selected{% endif %}>
+                                        Nam
+                                    </option>
+
+                                    <option value="Nữ"
+                                        {% if employee.gender == "Nữ" %}selected{% endif %}>
+                                        Nữ
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <label class="form-label">
+                                    Ngày sinh
+                                </label>
+
+                                <input
+                                    type="date"
+                                    name="date_of_birth"
+                                    class="form-control"
+                                    value="{{ employee.date_of_birth|date:'Y-m-d' }}"
+                                >
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <label class="form-label">
+                                    CCCD
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="citizen_id"
+                                    class="form-control"
+                                    value="{{ employee.citizen_id|default:'' }}"
+                                >
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+                                    Điện thoại
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="phone"
+                                    class="form-control"
+                                    value="{{ employee.phone|default:'' }}"
+                                >
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+                                    Email
+                                </label>
+
+                                <input
+                                    type="email"
+                                    name="email"
+                                    class="form-control"
+                                    value="{{ employee.email|default:'' }}"
+                                >
+
+                            </div>
+
+
+                            <div class="col-12">
+
+                                <label class="form-label">
+                                    Địa chỉ
+                                </label>
+
+                                <textarea
+                                    name="address"
+                                    rows="2"
+                                    class="form-control"
+                                >{{ employee.address|default:'' }}</textarea>
+
+                            </div>
+
+                        </div>
+
+
+                        <br>
+
+
+                        <!-- CÔNG VIỆC -->
+
+                        <div class="section-title">
+                            🏢 Thông tin công việc
+                        </div>
+
+                        <div class="row g-3">
+
+                            <div class="col-md-4">
+
+                                <label class="form-label">
+                                    Phòng ban
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="department"
+                                    class="form-control"
+                                    value="{{ employee.department|default:'' }}"
+                                >
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <label class="form-label">
+                                    Chức vụ
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="position"
+                                    class="form-control"
+                                    value="{{ employee.position|default:'' }}"
+                                >
+
+                            </div>
+
+
+                            <div class="col-md-4">
+
+                                <label class="form-label">
+                                    Ngày vào làm
+                                </label>
+
+                                <input
+                                    type="date"
+                                    name="join_date"
+                                    class="form-control"
+                                    value="{{ employee.join_date|date:'Y-m-d' }}"
+                                >
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+                                    Mức lương
+                                </label>
+
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    name="salary"
+                                    class="form-control"
+                                    value="{{ employee.salary|default:'' }}"
+                                >
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+                                    Trạng thái
+                                </label>
+
+                                <select
+                                    name="status"
+                                    class="form-select"
+                                >
+
+                                    <option value="active"
+                                        {% if not employee or employee.status == "active" %}selected{% endif %}>
+                                        Đang làm việc
+                                    </option>
+
+                                    <option value="inactive"
+                                        {% if employee.status == "inactive" %}selected{% endif %}>
+                                        Tạm nghỉ
+                                    </option>
+
+                                    <option value="resigned"
+                                        {% if employee.status == "resigned" %}selected{% endif %}>
+                                        Đã nghỉ việc
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+
+                        <br>
+
+
+                        <!-- GHI CHÚ -->
+
+                        <div class="section-title">
+                            📝 Ghi chú
+                        </div>
+
+                        <textarea
+                            name="notes"
+                            rows="4"
+                            class="form-control"
+                            placeholder="Ghi chú..."
+                        >{{ employee.notes|default:'' }}</textarea>
+
+
+                        <div class="form-actions">
+
+                            <a
+                                href="{% url 'employees' %}"
+                                class="btn-cancel"
+                            >
+                                ← Quay lại
+                            </a>
+
+                            <button
+                                type="submit"
+                                class="btn-save"
+                            >
+
+                                💾
+
+                                {% if employee %}
+                                    Cập nhật
+                                {% else %}
+                                    Lưu nhân viên
+                                {% endif %}
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

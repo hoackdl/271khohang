@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>COA Import</title>
+
+    <style>
+        .dropzone {
+            border: 2px dashed #4a90e2;
+            padding: 50px;
+            text-align: center;
+            border-radius: 12px;
+            cursor: pointer;
+            background: #f8fbff;
+            transition: 0.2s;
+            font-family: Arial;
+        }
+
+        .dropzone.dragover {
+            background: #e6f3ff;
+            border-color: #1e88e5;
+        }
+
+        .filename {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: #1e88e5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1565c0;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Import Hệ Thống Tài Khoản (COA)</h2>
+
+<!-- DROPZONE 
+<div id="dropzone" class="dropzone">
+    <p>Kéo thả file Excel vào đây hoặc click để chọn file</p>
+    <input type="file" id="fileInput" hidden accept=".xlsx,.xls">
+    
+    <div id="fileName" class="filename"></div>
+</div> -->
+
+<!-- BUTTON -->
+<form action="/invoice/coa/import/" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="file" name="file">
+    <button type="submit">Upload</button>
+</form>
+
+<script>
+const dropzone = document.getElementById("dropzone");
+const fileInput = document.getElementById("fileInput");
+const fileName = document.getElementById("fileName");
+
+// CLICK để chọn file
+dropzone.addEventListener("click", () => fileInput.click());
+
+// DRAG OVER
+dropzone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropzone.classList.add("dragover");
+});
+
+// DRAG LEAVE
+dropzone.addEventListener("dragleave", () => {
+    dropzone.classList.remove("dragover");
+});
+
+// DROP FILE
+dropzone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropzone.classList.remove("dragover");
+
+    fileInput.files = e.dataTransfer.files;
+
+    showFileName();
+});
+
+// CHỌN FILE THỦ CÔNG
+fileInput.addEventListener("change", showFileName);
+
+// HIỂN THỊ TÊN FILE
+function showFileName() {
+    if (fileInput.files.length > 0) {
+        fileName.innerText = "📄 " + fileInput.files[0].name;
+    }
+}
+
+// UPLOAD AJAX
+function upload() {
+    if (!fileInput.files.length) {
+        alert("Vui lòng chọn file Excel");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    fetch("coa/import/", {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-CSRFToken": getCookie("csrftoken")
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Upload thành công!");
+        console.log(data);
+    })
+    .catch(err => {
+        alert("Lỗi upload");
+        console.error(err);
+    });
+}
+
+// GET CSRF COOKIE (Django)
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+</body>
+</html>

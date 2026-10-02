@@ -1,0 +1,1265 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+{% if vehicle %}
+Sửa phương tiện {{ vehicle.license_plate }}
+{% else %}
+Thêm phương tiện
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<style>
+.vehicle-page {
+padding: 20px;
+background: #f4f6fa;
+}
+
+.vehicle-card {
+background: #fff;
+border-radius: 14px;
+box-shadow: 0 3px 15px rgba(0,0,0,.06);
+overflow: hidden;
+}
+
+.vehicle-header {
+background: linear-gradient(
+135deg,
+#0d6efd,
+#2563eb
+);
+color: white;
+padding: 18px 22px;
+}
+
+.vehicle-header h4 {
+margin: 0;
+font-size: 18px;
+font-weight: 700;
+}
+
+.vehicle-header small {
+opacity: .85;
+}
+
+.section-title {
+display: flex;
+align-items: center;
+gap: 8px;
+margin: 24px 0 15px;
+padding-bottom: 8px;
+border-bottom: 2px solid #e9edf3;
+color: #0d47a1;
+font-size: 15px;
+font-weight: 700;
+}
+
+.form-label {
+font-size: 12px;
+font-weight: 600;
+color: #4b5563;
+}
+
+.form-control,
+.form-select {
+font-size: 13px;
+border-radius: 8px;
+}
+
+.form-check-label {
+font-size: 13px;
+}
+
+.form-help {
+font-size: 10px;
+color: #8b95a7;
+margin-top: 3px;
+}
+
+.form-actions {
+margin-top: 25px;
+padding-top: 18px;
+border-top: 1px solid #edf0f4;
+}
+
+.required {
+color: #dc3545;
+}
+
+</style> <div class="vehicle-page">
+<div class="vehicle-card">
+
+    <!-- HEADER -->
+
+    <div class="vehicle-header">
+
+        <h4>
+            {% if vehicle %}
+                ✏️ Sửa phương tiện
+            {% else %}
+                🚛 Thêm phương tiện
+            {% endif %}
+        </h4>
+
+        <small>
+            Quản lý thông tin phương tiện và chứng nhận đăng kiểm
+        </small>
+
+    </div>
+
+    <div class="p-4">
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+            <!-- =================================================
+                 THÔNG TIN NHẬN DẠNG
+            ================================================== -->
+
+            <div class="section-title">
+                🚛 Thông tin nhận dạng phương tiện
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Biển số xe <span class="required">*</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        name="license_plate"
+                        class="form-control"
+                        required
+                        value="{{ vehicle.license_plate|default:'' }}"
+                        placeholder="VD: 51C-985.68"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Số quản lý
+                    </label>
+
+                    <input
+                        type="text"
+                        name="vehicle_record_no"
+                        class="form-control"
+                        value="{{ vehicle.vehicle_record_no|default:'' }}"
+                        placeholder="VD: 5005V - 93071"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Loại phương tiện
+                    </label>
+
+                    <input
+                        type="text"
+                        name="vehicle_type"
+                        class="form-control"
+                        value="{{ vehicle.vehicle_type|default:'' }}"
+                        placeholder="Ô tô tải thùng kín"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Nhãn hiệu / tên thương mại
+                    </label>
+
+                    <input
+                        type="text"
+                        name="brand"
+                        class="form-control"
+                        value="{{ vehicle.brand|default:'' }}"
+                        placeholder="ISUZU"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Mã kiểu loại
+                    </label>
+
+                    <input
+                        type="text"
+                        name="model"
+                        class="form-control"
+                        value="{{ vehicle.model|default:'' }}"
+                        placeholder="QKR77HE4THQK"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Màu sơn
+                    </label>
+
+                    <input
+                        type="text"
+                        name="color"
+                        class="form-control"
+                        value="{{ vehicle.color|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Số khung
+                    </label>
+
+                    <input
+                        type="text"
+                        name="chassis_number"
+                        class="form-control"
+                        value="{{ vehicle.chassis_number|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Số động cơ
+                    </label>
+
+                    <input
+                        type="text"
+                        name="engine_number"
+                        class="form-control"
+                        value="{{ vehicle.engine_number|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Ký hiệu động cơ
+                    </label>
+
+                    <input
+                        type="text"
+                        name="engine_model"
+                        class="form-control"
+                        value="{{ vehicle.engine_model|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Năm sản xuất
+                    </label>
+
+                    <input
+                        type="number"
+                        name="manufacture_year"
+                        class="form-control"
+                        value="{{ vehicle.manufacture_year|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Nước sản xuất
+                    </label>
+
+                    <input
+                        type="text"
+                        name="production_country"
+                        class="form-control"
+                        value="{{ vehicle.production_country|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Niên hạn sử dụng
+                    </label>
+
+                    <input
+                        type="number"
+                        name="lifetime_limit"
+                        class="form-control"
+                        value="{{ vehicle.lifetime_limit|default:'' }}"
+                        placeholder="2043"
+                    >
+
+                </div>
+
+                <div class="col-md-4 d-flex align-items-end">
+
+                    <div class="form-check">
+
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            name="commercial_use"
+                            id="commercial_use"
+                            {% if vehicle.commercial_use %}checked{% endif %}
+                        >
+
+                        <label
+                            class="form-check-label"
+                            for="commercial_use"
+                        >
+                            Có kinh doanh vận tải
+                        </label>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4 d-flex align-items-end">
+
+                    <div class="form-check">
+
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            name="modified_vehicle"
+                            id="modified_vehicle"
+                            {% if vehicle.modified_vehicle %}checked{% endif %}
+                        >
+
+                        <label
+                            class="form-check-label"
+                            for="modified_vehicle"
+                        >
+                            Có cải tạo
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- =================================================
+                 KÍCH THƯỚC
+            ================================================== -->
+
+            <div class="section-title">
+                📐 Thông số kích thước
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Kích thước bao
+                    </label>
+
+                    <input
+                        type="text"
+                        name="overall_dimensions"
+                        class="form-control"
+                        value="{{ vehicle.overall_dimensions|default:'' }}"
+                        placeholder="6160 x 1860 x 2890 mm"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Khoảng cách trục
+                    </label>
+
+                    <input
+                        type="text"
+                        name="wheelbase"
+                        class="form-control"
+                        value="{{ vehicle.wheelbase|default:'' }}"
+                        placeholder="3360 mm"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Kích thước lòng thùng
+                    </label>
+
+                    <input
+                        type="text"
+                        name="cargo_dimensions"
+                        class="form-control"
+                        value="{{ vehicle.cargo_dimensions|default:'' }}"
+                        placeholder="4370 x 1740 x 1870 mm"
+                    >
+
+                </div>
+
+            </div>
+
+            <!-- =================================================
+                 KHỐI LƯỢNG
+            ================================================== -->
+
+            <div class="section-title">
+                ⚖️ Khối lượng
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Khối lượng bản thân (kg)
+                    </label>
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        name="curb_weight"
+                        class="form-control"
+                        value="{{ vehicle.curb_weight|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Toàn bộ theo thiết kế (kg)
+                    </label>
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        name="total_weight_design"
+                        class="form-control"
+                        value="{{ vehicle.total_weight_design|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Toàn bộ cho phép (kg)
+                    </label>
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        name="total_weight_authorized"
+                        class="form-control"
+                        value="{{ vehicle.total_weight_authorized|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Hàng theo thiết kế (kg)
+                    </label>
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        name="load_capacity_design"
+                        class="form-control"
+                        value="{{ vehicle.load_capacity_design|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Hàng cho phép (kg)
+                    </label>
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        name="load_capacity_authorized"
+                        class="form-control"
+                        value="{{ vehicle.load_capacity_authorized|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Tải trọng quản lý (kg)
+                    </label>
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        name="load_capacity"
+                        class="form-control"
+                        value="{{ vehicle.load_capacity|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Khối lượng kéo theo thiết kế (kg)
+                    </label>
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        name="towing_capacity_design"
+                        class="form-control"
+                        value="{{ vehicle.towing_capacity_design|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Khối lượng kéo theo cho phép (kg)
+                    </label>
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        name="towing_capacity_authorized"
+                        class="form-control"
+                        value="{{ vehicle.towing_capacity_authorized|default:'' }}"
+                    >
+
+                </div>
+
+            </div>
+
+            <!-- =================================================
+                 NGƯỜI
+            ================================================== -->
+
+            <div class="section-title">
+                👥 Số người được phép chở
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Chỗ ngồi
+                    </label>
+
+                    <input
+                        type="number"
+                        name="passenger_capacity"
+                        class="form-control"
+                        value="{{ vehicle.passenger_capacity|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Chỗ đứng
+                    </label>
+
+                    <input
+                        type="number"
+                        name="standing_capacity"
+                        class="form-control"
+                        value="{{ vehicle.standing_capacity|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Chỗ nằm
+                    </label>
+
+                    <input
+                        type="number"
+                        name="lying_capacity"
+                        class="form-control"
+                        value="{{ vehicle.lying_capacity|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Xe lăn
+                    </label>
+
+                    <input
+                        type="number"
+                        name="wheelchair_capacity"
+                        class="form-control"
+                        value="{{ vehicle.wheelchair_capacity|default:'' }}"
+                    >
+
+                </div>
+
+            </div>
+
+            <!-- =================================================
+                 BÁNH XE
+            ================================================== -->
+
+            <div class="section-title">
+                🛞 Hệ thống bánh xe
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Công thức bánh xe
+                    </label>
+
+                    <input
+                        type="text"
+                        name="drive_configuration"
+                        class="form-control"
+                        value="{{ vehicle.drive_configuration|default:'' }}"
+                        placeholder="4x2"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Vết bánh xe
+                    </label>
+
+                    <input
+                        type="text"
+                        name="tire_tread"
+                        class="form-control"
+                        value="{{ vehicle.tire_tread|default:'' }}"
+                        placeholder="1385/1425 mm"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Số lượng / cỡ lốp / trục
+                    </label>
+
+                    <textarea
+                        name="tire_specification"
+                        class="form-control"
+                        rows="2"
+                    >{{ vehicle.tire_specification|default:'' }}</textarea>
+
+                </div>
+
+            </div>
+
+            <!-- =================================================
+                 ĐỘNG CƠ
+            ================================================== -->
+
+            <div class="section-title">
+                ⚙️ Động cơ
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Loại động cơ
+                    </label>
+
+                    <input
+                        type="text"
+                        name="engine_type"
+                        class="form-control"
+                        value="{{ vehicle.engine_type|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Thể tích làm việc (cm³)
+                    </label>
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        name="engine_displacement"
+                        class="form-control"
+                        value="{{ vehicle.engine_displacement|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Nhiên liệu
+                    </label>
+
+                    <input
+                        type="text"
+                        name="fuel_type"
+                        class="form-control"
+                        value="{{ vehicle.fuel_type|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Mức khí thải
+                    </label>
+
+                    <input
+                        type="text"
+                        name="emission_level"
+                        class="form-control"
+                        value="{{ vehicle.emission_level|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Công suất lớn nhất (kW)
+                    </label>
+
+                    <input
+                        type="number"
+                        step="0.01"
+                        name="max_power"
+                        class="form-control"
+                        value="{{ vehicle.max_power|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Tốc độ quay (rpm)
+                    </label>
+
+                    <input
+                        type="number"
+                        name="max_power_rpm"
+                        class="form-control"
+                        value="{{ vehicle.max_power_rpm|default:'' }}"
+                    >
+
+                </div>
+
+            </div>
+
+            <!-- =================================================
+                 THIẾT BỊ
+            ================================================== -->
+
+            <div class="section-title">
+                📡 Thiết bị đặc trưng
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+
+                    <div class="form-check">
+
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            name="has_tachograph"
+                            id="has_tachograph"
+                            {% if vehicle.has_tachograph %}checked{% endif %}
+                        >
+
+                        <label
+                            class="form-check-label"
+                            for="has_tachograph"
+                        >
+                            Có thiết bị giám sát hành trình
+                        </label>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <div class="form-check">
+
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            name="has_passenger_camera"
+                            id="has_passenger_camera"
+                            {% if vehicle.has_passenger_camera %}checked{% endif %}
+                        >
+
+                        <label
+                            class="form-check-label"
+                            for="has_passenger_camera"
+                        >
+                            Có camera khoang chở khách
+                        </label>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <div class="form-check">
+
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            name="has_driver_camera"
+                            id="has_driver_camera"
+                            {% if vehicle.has_driver_camera %}checked{% endif %}
+                        >
+
+                        <label
+                            class="form-check-label"
+                            for="has_driver_camera"
+                        >
+                            Có camera người lái
+                        </label>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <div class="form-check">
+
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            name="has_child_detection"
+                            id="has_child_detection"
+                            {% if vehicle.has_child_detection %}checked{% endif %}
+                        >
+
+                        <label
+                            class="form-check-label"
+                            for="has_child_detection"
+                        >
+                            Có thiết bị cảnh báo chống bỏ quên trẻ em
+                        </label>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <div class="form-check">
+
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            name="carries_explosives"
+                            id="carries_explosives"
+                            {% if vehicle.carries_explosives %}checked{% endif %}
+                        >
+
+                        <label
+                            class="form-check-label"
+                            for="carries_explosives"
+                        >
+                            Xe vận chuyển vật liệu nổ / tiền chất thuốc nổ
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- =================================================
+                 ĐĂNG KIỂM
+            ================================================== -->
+
+            <div class="section-title">
+                🛡️ Thông tin đăng kiểm
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Số đăng kiểm / chứng nhận
+                    </label>
+
+                    <input
+                        type="text"
+                        name="inspection_number"
+                        class="form-control"
+                        value="{{ vehicle.inspection_number|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Ngày đăng kiểm
+                    </label>
+
+                    <input
+                        type="date"
+                        name="inspection_date"
+                        class="form-control"
+                        value="{{ vehicle.inspection_date|date:'Y-m-d' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Có hiệu lực đến
+                    </label>
+
+                    <input
+                        type="date"
+                        name="inspection_expiry"
+                        class="form-control"
+                        value="{{ vehicle.inspection_expiry|date:'Y-m-d' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Số seri tem kiểm định
+                    </label>
+
+                    <input
+                        type="text"
+                        name="inspection_sticker_number"
+                        class="form-control"
+                        value="{{ vehicle.inspection_sticker_number|default:'' }}"
+                        placeholder="VB-2844970"
+                    >
+
+                </div>
+
+                <div class="col-md-4 d-flex align-items-end">
+
+                    <div class="form-check">
+
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            name="inspection_stamp_issued"
+                            id="inspection_stamp_issued"
+                            {% if vehicle.inspection_stamp_issued %}checked{% endif %}
+                        >
+
+                        <label
+                            class="form-check-label"
+                            for="inspection_stamp_issued"
+                        >
+                            Được cấp tem kiểm định
+                        </label>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-4 d-flex align-items-end">
+
+                    <div class="form-check">
+
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            name="exempt_initial_inspection"
+                            id="exempt_initial_inspection"
+                            {% if vehicle.exempt_initial_inspection %}checked{% endif %}
+                        >
+
+                        <label
+                            class="form-check-label"
+                            for="exempt_initial_inspection"
+                        >
+                            Miễn kiểm định lần đầu
+                        </label>
+
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Cơ sở đăng kiểm
+                    </label>
+
+                    <input
+                        type="text"
+                        name="inspection_station"
+                        class="form-control"
+                        value="{{ vehicle.inspection_station|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Người ký chứng nhận
+                    </label>
+
+                    <input
+                        type="text"
+                        name="inspection_signer"
+                        class="form-control"
+                        value="{{ vehicle.inspection_signer|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-8">
+
+                    <label class="form-label">
+                        Website tra cứu chứng nhận
+                    </label>
+
+                    <input
+                        type="url"
+                        name="inspection_verification_url"
+                        class="form-control"
+                        value="{{ vehicle.inspection_verification_url|default:'' }}"
+                        placeholder="https://gcndangkiem.vr.org.vn/"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        QR Code
+                    </label>
+
+                    <input
+                        type="text"
+                        name="inspection_qr_code"
+                        class="form-control"
+                        value="{{ vehicle.inspection_qr_code|default:'' }}"
+                    >
+
+                </div>
+
+            </div>
+
+            <!-- =================================================
+                 PHÙ HIỆU
+            ================================================== -->
+
+            <div class="section-title">
+                🎫 Phù hiệu vận tải
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Số phù hiệu
+                    </label>
+
+                    <input
+                        type="text"
+                        name="badge_number"
+                        class="form-control"
+                        value="{{ vehicle.badge_number|default:'' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Phù hiệu có hiệu lực đến
+                    </label>
+
+                    <input
+                        type="date"
+                        name="badge_expiry"
+                        class="form-control"
+                        value="{{ vehicle.badge_expiry|date:'Y-m-d' }}"
+                    >
+
+                </div>
+
+            </div>
+
+            <!-- =================================================
+                 QUẢN LÝ NỘI BỘ
+            ================================================== -->
+
+            <div class="section-title">
+                📋 Quản lý nội bộ
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Ngày đưa vào sử dụng
+                    </label>
+
+                    <input
+                        type="date"
+                        name="put_into_use_date"
+                        class="form-control"
+                        value="{{ vehicle.put_into_use_date|date:'Y-m-d' }}"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Trạng thái
+                    </label>
+
+                    <select
+                        name="status"
+                        class="form-select"
+                    >
+
+                        <option
+                            value="active"
+                            {% if vehicle.status == "active" or not vehicle %}selected{% endif %}
+                        >
+                            Đang sử dụng
+                        </option>
+
+                        <option
+                            value="inactive"
+                            {% if vehicle.status == "inactive" %}selected{% endif %}
+                        >
+                            Ngừng sử dụng
+                        </option>
+
+                        <option
+                            value="repair"
+                            {% if vehicle.status == "repair" %}selected{% endif %}
+                        >
+                            Đang sửa chữa
+                        </option>
+
+                        <option
+                            value="liquidated"
+                            {% if vehicle.status == "liquidated" %}selected{% endif %}
+                        >
+                            Đã thanh lý
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        Ghi chú
+                    </label>
+
+                    <textarea
+                        name="notes"
+                        class="form-control"
+                        rows="2"
+                    >{{ vehicle.notes|default:'' }}</textarea>
+
+                </div>
+
+            </div>
+
+            <!-- =================================================
+                 BUTTON
+            ================================================== -->
+
+            <div class="form-actions d-flex justify-content-between">
+
+                <a
+                    href="{% url 'vehicles' %}"
+                    class="btn btn-light"
+                >
+                    ← Quay lại
+                </a>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary px-4"
+                >
+
+                    {% if vehicle %}
+                        💾 Cập nhật phương tiện
+                    {% else %}
+                        💾 Lưu phương tiện
+                    {% endif %}
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+</div>
+{% endblock %}

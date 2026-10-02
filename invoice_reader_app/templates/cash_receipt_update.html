@@ -1,0 +1,187 @@
+```html
+{% extends 'base.html' %}
+{% load custom_tags %}
+{% load humanize %}
+{% load static number_to_text %}
+
+{% block navbar_title %}CẬP NHẬT PHIẾU THU TIỀN MẶT{% endblock %}
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <div class="card shadow-sm border-0">
+
+        <!-- Header -->
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">
+                ✏️ CẬP NHẬT PHIẾU THU TIỀN MẶT
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            {% if error %}
+            <div class="alert alert-danger">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <!-- Thông tin khách hàng -->
+            <div class="row mb-3">
+
+                <div class="col-md-6">
+                    <label class="text-muted">Khách hàng</label>
+                    <div class="fw-bold">
+                        {{ customer.ten_khach_hang }}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="text-muted">Mã số thuế</label>
+                    <div>
+                        {{ customer.ma_so_thue }}
+                    </div>
+                </div>
+
+            </div>
+
+            <hr>
+
+            <!-- Thông tin phiếu -->
+            <div class="row mb-3">
+
+                <div class="col-md-4">
+                    <label class="text-muted">
+                        Số phiếu thu
+                    </label>
+                    <div class="fw-bold text-primary">
+                        {{ receipt.receipt_no }}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="text-muted">
+                        Ngày lập
+                    </label>
+                    <div>
+                        {{ receipt.created_at|date:"d/m/Y H:i" }}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="text-muted">
+                        Hóa đơn
+                    </label>
+                    <div class="fw-bold">
+                        {{ invoice.so_hoa_don }}
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row mb-3">
+
+                <div class="col-md-4">
+                    <label class="text-muted">
+                        Tổng tiền hóa đơn
+                    </label>
+                    <div class="fw-bold">
+                        {{ invoice.tong_tien|floatformat:0|intcomma }}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="text-muted">
+                        Đã thu ngân hàng
+                    </label>
+                    <div class="fw-bold text-primary">
+                        {{ bank_paid|floatformat:0|intcomma }}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="text-muted">
+                        Đã thu tiền mặt (không gồm phiếu này)
+                    </label>
+                    <div class="fw-bold text-success">
+                        {{ cash_paid|floatformat:0|intcomma }}
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="alert alert-warning">
+
+                <div class="fw-bold">
+                    Số tiền tối đa được phép sửa:
+                </div>
+
+                <div class="fs-4">
+                    {{ max_amount|floatformat:0|intcomma }}
+                </div>
+
+            </div>
+
+            <hr>
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                <div class="mb-3">
+
+                    <label class="form-label fw-bold">
+                        Số tiền thu
+                    </label>
+
+                    <input
+                        type="number"
+                        name="amount"
+                        class="form-control form-control-lg"
+                        value="{{ receipt.amount }}"
+                        max="{{ max_amount }}"
+                        required>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label fw-bold">
+                        Ghi chú
+                    </label>
+
+                    <textarea
+                        name="note"
+                        class="form-control"
+                        rows="3">{{ receipt.note }}</textarea>
+
+                </div>
+
+                <div class="d-flex justify-content-between">
+
+                    <a
+                        href="{% url 'customer_detail' customer.id %}"
+                        class="btn btn-secondary px-4">
+                        ← Quay lại
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="btn btn-warning px-5 fw-bold">
+                        💾 Cập nhật phiếu thu
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+```

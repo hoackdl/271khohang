@@ -1,0 +1,773 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Nhân sự
+{% endblock %}
+
+{% block navbar_title %}
+    Nhân sự
+{% endblock %}
+
+{% block extra_head %}
+
+<style>
+
+body {
+    background: #f4f6fa;
+}
+
+.employee-wrapper {
+    padding: 20px;
+}
+
+/* =========================================================
+   LAYOUT
+========================================================= */
+
+.employee-sidebar {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 3px 15px rgba(0,0,0,.06);
+    overflow: hidden;
+    position: sticky;
+    top: 85px;
+}
+
+.employee-sidebar-header {
+    background: linear-gradient(135deg, #198754, #157347);
+    color: white;
+    padding: 17px 18px;
+}
+
+.employee-sidebar-header h5 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.employee-sidebar-header small {
+    font-size: 11px;
+    opacity: .85;
+}
+
+.employee-menu {
+    padding: 8px;
+}
+
+.employee-menu a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 11px;
+    border-radius: 8px;
+    color: #414955;
+    text-decoration: none;
+    font-size: 12px;
+    transition: .15s;
+}
+
+.employee-menu a:hover,
+.employee-menu a.active {
+    background: #e8f7ee;
+    color: #198754;
+}
+
+.employee-menu-left {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.employee-menu-icon {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: #f1f4f8;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.employee-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.employee-page-header h4 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.employee-page-header small {
+    color: #7d8593;
+    font-size: 12px;
+}
+
+.btn-add {
+    background: #198754;
+    color: white;
+    border: 0;
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.btn-add:hover {
+    background: #157347;
+    color: white;
+}
+
+/* =========================================================
+   STAT
+========================================================= */
+
+.employee-stat {
+    background: white;
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 3px 15px rgba(0,0,0,.05);
+    height: 100%;
+}
+
+.employee-stat-title {
+    color: #7d8593;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.employee-stat-value {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.employee-stat-success {
+    color: #198754;
+}
+
+.employee-stat-warning {
+    color: #f59f00;
+}
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.employee-toolbar {
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 18px;
+    margin-bottom: 15px;
+    box-shadow: 0 3px 15px rgba(0,0,0,.05);
+}
+
+.employee-search {
+    width: 100%;
+    border: 1px solid #dfe3e8;
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 12px;
+    outline: none;
+}
+
+.employee-search:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 3px rgba(25,135,84,.08);
+}
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.employee-card {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 3px 15px rgba(0,0,0,.06);
+    overflow: hidden;
+}
+
+.employee-card-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid #edf0f4;
+    display: flex;
+    justify-content: space-between;
+}
+
+.employee-card-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.employee-table-wrapper {
+    overflow-x: auto;
+}
+
+.employee-table {
+    width: 100%;
+    min-width: 1200px;
+    border-collapse: collapse;
+}
+
+.employee-table th {
+    background: #f8f9fb;
+    color: #697383;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 11px 10px;
+    border-bottom: 1px solid #e9edf2;
+    white-space: nowrap;
+}
+
+.employee-table td {
+    padding: 11px 10px;
+    font-size: 12px;
+    color: #414955;
+    border-bottom: 1px solid #f0f2f5;
+    white-space: nowrap;
+}
+
+.employee-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.employee-code {
+    font-weight: 700;
+    color: #198754;
+}
+
+.employee-name {
+    font-weight: 600;
+}
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.status {
+    display: inline-block;
+    padding: 4px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.status-active {
+    background: #e8f7ee;
+    color: #198754;
+}
+
+.status-inactive {
+    background: #fff4df;
+    color: #d97706;
+}
+
+.status-resigned {
+    background: #f1f3f5;
+    color: #6c757d;
+}
+
+/* =========================================================
+   ACTION
+========================================================= */
+
+.action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    text-decoration: none;
+    margin-right: 3px;
+}
+
+.action-edit {
+    background: #e8f1ff;
+    color: #0d6efd;
+}
+
+.action-insurance {
+    background: #e8f7ee;
+    color: #198754;
+}
+
+.action-delete {
+    background: #ffe9ec;
+    color: #dc3545;
+}
+
+.action:hover {
+    filter: brightness(.92);
+}
+
+@media (max-width: 991px) {
+
+    .employee-sidebar {
+        position: static;
+        margin-bottom: 20px;
+    }
+
+    .employee-page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="employee-wrapper">
+
+    <div class="row g-4">
+
+        <!-- =====================================================
+             SIDEBAR
+        ====================================================== -->
+
+        <div class="col-lg-2 col-xl-2">
+
+            <div class="employee-sidebar">
+
+                <div class="employee-sidebar-header">
+
+                    <h5>👥 Nhân sự</h5>
+
+                    <small>
+                        Quản lý nhân viên
+                    </small>
+
+                </div>
+
+                <div class="employee-menu">
+<a href="{% url 'employees' %}" class="active">
+
+    <span class="employee-menu-left">
+
+        <span class="employee-menu-icon">
+            👥
+        </span>
+
+        Danh sách nhân viên
+
+    </span>
+
+    <span>→</span>
+
+</a>
+
+
+<a href="{% url 'employee_create' %}">
+
+    <span class="employee-menu-left">
+
+        <span class="employee-menu-icon">
+            ➕
+        </span>
+
+        Thêm nhân viên
+
+    </span>
+
+    <span>→</span>
+
+</a>
+
+
+<a
+    href="{% url 'social_insurance' %}"
+    class="employee-action employee-action-insurance"
+    title="Hồ sơ BHXH"
+>
+    🛡️
+</a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             CONTENT
+        ====================================================== -->
+
+        <div class="col-lg-10 col-xl-10">
+
+            <div class="employee-page-header">
+
+                <div>
+
+                    <h4>
+                        👥 Danh sách nhân viên
+                    </h4>
+
+                    <small>
+                        Quản lý thông tin nhân sự và bảo hiểm
+                    </small>
+
+                </div>
+
+                <a href="{% url 'employee_create' %}"
+                   class="btn-add">
+
+                    ➕ Thêm nhân viên
+
+                </a>
+
+            </div>
+
+
+            <!-- STAT -->
+
+            <div class="row g-3">
+
+                <div class="col-sm-6 col-xl-3">
+
+                    <div class="employee-stat">
+
+                        <div class="employee-stat-title">
+                            Tổng nhân viên
+                        </div>
+
+                        <div class="employee-stat-value">
+                            {{ employees|length }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-sm-6 col-xl-3">
+
+                    <div class="employee-stat">
+
+                        <div class="employee-stat-title">
+                            Đang làm việc
+                        </div>
+
+                        <div class="employee-stat-value employee-stat-success">
+
+                            {{ active_count }}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-sm-6 col-xl-3">
+
+                    <div class="employee-stat">
+
+                        <div class="employee-stat-title">
+                            Tạm nghỉ
+                        </div>
+
+                        <div class="employee-stat-value employee-stat-warning">
+
+                            {{ inactive_count }}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="col-sm-6 col-xl-3">
+
+                    <div class="employee-stat">
+
+                        <div class="employee-stat-title">
+                            Đã nghỉ việc
+                        </div>
+
+                        <div class="employee-stat-value">
+
+                            {{ resigned_count }}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- SEARCH -->
+
+            <div class="employee-toolbar">
+
+                <input
+                    type="text"
+                    id="employeeSearch"
+                    class="employee-search"
+                    placeholder="🔍 Tìm mã nhân viên, họ tên, CCCD, phòng ban, chức vụ..."
+                    onkeyup="filterEmployees()"
+                >
+
+            </div>
+
+
+            <!-- TABLE -->
+
+            <div class="employee-card">
+
+                <div class="employee-card-header">
+
+                    <h5 class="employee-card-title">
+                        Danh sách nhân sự
+                    </h5>
+
+                    <span>
+                        {{ employees|length }} nhân viên
+                    </span>
+
+                </div>
+
+
+                <div class="employee-table-wrapper">
+
+                    <table class="employee-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>STT</th>
+                                <th>Mã NV</th>
+                                <th>Họ và tên</th>
+                                <th>Giới tính</th>
+                                <th>Ngày sinh</th>
+                                <th>CCCD</th>
+                                <th>Điện thoại</th>
+                                <th>Phòng ban</th>
+                                <th>Chức vụ</th>
+                                <th>Ngày vào làm</th>
+                                <th>Mức lương</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                        {% for employee in employees %}
+
+                            <tr
+                                class="employee-row"
+                                data-search="
+                                    {{ employee.employee_code }}
+                                    {{ employee.full_name }}
+                                    {{ employee.citizen_id }}
+                                    {{ employee.phone }}
+                                    {{ employee.department }}
+                                    {{ employee.position }}
+                                "
+                            >
+
+                                <td>
+                                    {{ forloop.counter }}
+                                </td>
+
+                                <td>
+                                    <span class="employee-code">
+                                        {{ employee.employee_code }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="employee-name">
+                                        {{ employee.full_name }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    {{ employee.gender|default:"—" }}
+                                </td>
+
+                                <td>
+                                    {% if employee.date_of_birth %}
+                                        {{ employee.date_of_birth|date:"d/m/Y" }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {{ employee.citizen_id|default:"—" }}
+                                </td>
+
+                                <td>
+                                    {{ employee.phone|default:"—" }}
+                                </td>
+
+                                <td>
+                                    {{ employee.department|default:"—" }}
+                                </td>
+
+                                <td>
+                                    {{ employee.position|default:"—" }}
+                                </td>
+
+                                <td>
+                                    {% if employee.join_date %}
+                                        {{ employee.join_date|date:"d/m/Y" }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if employee.salary %}
+                                        {{ employee.salary|floatformat:0 }} đ
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+
+                                <td>
+
+                                    {% if employee.status == "active" %}
+
+                                        <span class="status status-active">
+                                            Đang làm việc
+                                        </span>
+
+                                    {% elif employee.status == "inactive" %}
+
+                                        <span class="status status-inactive">
+                                            Tạm nghỉ
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="status status-resigned">
+                                            Đã nghỉ việc
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+
+                                    <a
+                                        href="{% url 'employee_edit' employee.pk %}"
+                                        class="action action-edit"
+                                        title="Sửa"
+                                    >
+                                        ✏️
+                                    </a>
+
+
+                                    <a
+                                        href="{% url 'social_insurance_employee' employee.pk %}"
+                                        class="action action-insurance"
+                                        title="Hồ sơ BHXH"
+                                    >
+                                        🛡️
+                                    </a>
+
+
+                                    <a
+                                        href="{% url 'employee_delete' employee.pk %}"
+                                        class="action action-delete"
+                                        title="Xóa"
+                                    >
+                                        🗑
+                                    </a>
+
+                                </td>
+
+                            </tr>
+
+                        {% empty %}
+
+                            <tr>
+
+                                <td colspan="13"
+                                    class="text-center py-5">
+
+                                    👥 Chưa có nhân viên nào.
+
+                                </td>
+
+                            </tr>
+
+                        {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+
+function filterEmployees() {
+
+    const input =
+        document
+        .getElementById("employeeSearch")
+        .value
+        .toLowerCase()
+        .trim();
+
+    const rows =
+        document.querySelectorAll(".employee-row");
+
+    rows.forEach(function(row) {
+
+        const text =
+            row
+            .getAttribute("data-search")
+            .toLowerCase();
+
+        row.style.display =
+            text.includes(input)
+                ? ""
+                : "none";
+
+    });
+
+}
+
+</script>
+
+{% endblock %}

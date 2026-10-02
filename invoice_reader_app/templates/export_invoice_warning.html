@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+
+    <title>Cảnh báo ngày hóa đơn</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f6f8;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .warning-box {
+            max-width: 700px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.12);
+        }
+
+        .warning-title {
+            color: #dc2626;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .invoice-info {
+            background: #fef2f2;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #f3f4f6;
+        }
+
+        .wrong {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 11px 20px;
+            border-radius: 7px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #111827;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="warning-box">
+
+    <div class="warning-title">
+        ⚠️ CẢNH BÁO LỆCH NGÀY
+    </div>
+
+    <div class="invoice-info">
+
+        <strong>Hóa đơn:</strong>
+        {{ invoice.so_hoa_don }}
+
+        <br>
+
+        <strong>Ngày hóa đơn:</strong>
+        {{ invoice.ngay_hd|date:"d/m/Y" }}
+
+    </div>
+
+    <p>
+        Ngày hóa đơn không trùng với ngày của phiếu xuất.
+        Vui lòng kiểm tra trước khi kết xuất Excel.
+    </p>
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>Phiếu xuất</th>
+                <th>Ngày hóa đơn</th>
+                <th>Ngày phiếu xuất</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% for item in wrong_dates %}
+
+            <tr>
+
+                <td>
+                    {{ item.po_number }}
+                </td>
+
+                <td>
+                    {{ item.invoice_date|date:"d/m/Y" }}
+                </td>
+
+                <td class="wrong">
+                    {{ item.po_date|date:"d/m/Y" }}
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    <p>
+        Bạn có chắc chắn muốn tiếp tục kết xuất Excel?
+    </p>
+
+    <div class="buttons">
+
+        <a
+            class="btn btn-danger"
+            href="?force=1"
+        >
+            ⚠️ Vẫn kết xuất Excel
+        </a>
+
+        <a
+            class="btn btn-secondary"
+            href="javascript:history.back()"
+        >
+            ← Quay lại
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+</html>

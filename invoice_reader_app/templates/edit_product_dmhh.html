@@ -1,0 +1,453 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Sửa sản phẩm
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-8 col-xl-7">
+
+            <div class="card shadow-sm">
+
+                <div class="card-header bg-primary text-white">
+
+                    <h5 class="mb-0">
+                        ✏️ Sửa thông tin sản phẩm
+                    </h5>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <form method="post">
+
+                        {% csrf_token %}
+
+
+                        <!-- ==================================
+                             SKU
+                        =================================== -->
+
+                        <div class="mb-3">
+
+                            <label
+                                for="sku"
+                                class="form-label fw-semibold"
+                            >
+                                SKU
+                            </label>
+
+                            <input
+                                type="text"
+                                name="sku"
+                                id="sku"
+                                class="form-control"
+                                value="{{ product.sku|default:'' }}"
+                                placeholder="Nhập SKU"
+                            >
+
+                        </div>
+
+
+                        <!-- ==================================
+                             TÊN HÀNG HÓA
+                        =================================== -->
+
+                        <div class="mb-3">
+
+                            <label
+                                for="ten_hang"
+                                class="form-label fw-semibold"
+                            >
+                                Tên hàng hóa
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <input
+                                type="text"
+                                name="ten_hang"
+                                id="ten_hang"
+                                class="form-control"
+                                value="{{ product.ten_hang|default:'' }}"
+                                required
+                            >
+
+                        </div>
+
+
+                        <!-- ==================================
+                             TÊN GỌI CHUNG
+                        =================================== -->
+
+                        <div class="mb-3">
+
+                            <label
+                                for="ten_goi_chung"
+                                class="form-label fw-semibold"
+                            >
+                                Tên gọi chung
+                            </label>
+
+                            <input
+                                type="text"
+                                name="ten_goi_chung"
+                                id="ten_goi_chung"
+                                class="form-control"
+                                value="{{ product.ten_goi_chung|default:'' }}"
+                            >
+
+                        </div>
+
+
+                        <!-- ==================================
+                             TÊN GỌI XUẤT
+                        =================================== -->
+
+                        <div class="mb-3">
+
+                            <label
+                                for="ten_goi_xuat"
+                                class="form-label fw-semibold"
+                            >
+                                Tên gọi xuất
+                            </label>
+
+                            <input
+                                type="text"
+                                name="ten_goi_xuat"
+                                id="ten_goi_xuat"
+                                class="form-control"
+                                value="{{ product.ten_goi_xuat|default:'' }}"
+                            >
+
+                        </div>
+
+
+                        <!-- ==================================
+                             ĐVT
+                        =================================== -->
+
+                        <div class="mb-3">
+
+                            <label
+                                for="dvt"
+                                class="form-label fw-semibold"
+                            >
+                                Đơn vị tính
+                            </label>
+
+                            <input
+                                type="text"
+                                name="dvt"
+                                id="dvt"
+                                class="form-control"
+                                value="{{ product.dvt|default:'' }}"
+                                placeholder="Ví dụ: Thùng, Lon, Kg..."
+                            >
+
+                        </div>
+
+
+                        <div class="row g-3">
+
+
+                            <!-- ==================================
+                                 NHÓM HÀNG
+                            =================================== -->
+
+                            <div class="col-md-6">
+
+                                <label
+                                    for="nhom_hang"
+                                    class="form-label fw-semibold"
+                                >
+                                    Nhóm hàng hóa
+                                </label>
+
+                                <select
+                                    name="nhom_hang"
+                                    id="nhom_hang"
+                                    class="form-select"
+                                >
+
+                                    <option value="">
+                                        -- Chọn nhóm hàng hóa --
+                                    </option>
+
+                                    {% for group in nhom_hang_list %}
+
+                                        <option
+                                            value="{{ group.id }}"
+                                            {% if product.nhom_hang_id == group.id %}
+                                                selected
+                                            {% endif %}
+                                        >
+
+                                            {{ group.code }}
+                                            -
+                                            {{ group.name }}
+
+                                        </option>
+
+                                    {% empty %}
+
+                                        <option
+                                            value=""
+                                            disabled
+                                        >
+                                            Chưa có nhóm hàng hóa
+                                        </option>
+
+                                    {% endfor %}
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- ==================================
+                                 LOẠI HÌNH HOẠT ĐỘNG
+                            =================================== -->
+
+                            <div class="col-md-6">
+
+                                <label
+                                    for="activity_type"
+                                    class="form-label fw-semibold"
+                                >
+                                    Loại hình hoạt động
+                                </label>
+
+                                <select
+                                    name="activity_type"
+                                    id="activity_type"
+                                    class="form-select"
+                                >
+
+                                    <option value="">
+                                        -- Chọn loại hình hoạt động --
+                                    </option>
+
+                                    {% for activity in activity_type_list %}
+
+                                        <option
+                                            value="{{ activity.id }}"
+                                            {% if product.activity_type_id == activity.id %}
+                                                selected
+                                            {% endif %}
+                                        >
+
+                                            {{ activity.code }}
+                                            -
+                                            {{ activity.name }}
+
+                                        </option>
+
+                                    {% endfor %}
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- ==================================
+                                 HÃNG
+                            =================================== -->
+
+                            <div class="col-md-4">
+
+                                <label
+                                    for="brand"
+                                    class="form-label fw-semibold"
+                                >
+                                    Hãng
+                                </label>
+
+                                <select
+                                    name="brand"
+                                    id="brand"
+                                    class="form-select"
+                                >
+
+                                    <option value="">
+                                        -- Chọn hãng --
+                                    </option>
+
+                                    {% for item in brand_list %}
+
+                                        <option
+                                            value="{{ item.id }}"
+                                            {% if product.brand_id == item.id %}
+                                                selected
+                                            {% endif %}
+                                        >
+
+                                            {{ item.name }}
+
+                                        </option>
+
+                                    {% empty %}
+
+                                        <option
+                                            value=""
+                                            disabled
+                                        >
+                                            Chưa có hãng
+                                        </option>
+
+                                    {% endfor %}
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- ==================================
+                                 PHÂN LOẠI
+                            =================================== -->
+
+                            <div class="col-md-4">
+
+                                <label
+                                    for="product_type"
+                                    class="form-label fw-semibold"
+                                >
+                                    Phân loại
+                                </label>
+
+                                <select
+                                    name="product_type"
+                                    id="product_type"
+                                    class="form-select"
+                                >
+
+                                    <option value="">
+                                        -- Chọn phân loại --
+                                    </option>
+
+                                    {% for item in product_type_list %}
+
+                                        <option
+                                            value="{{ item.id }}"
+                                            {% if product.product_type_id == item.id %}
+                                                selected
+                                            {% endif %}
+                                        >
+
+                                            {{ item.name }}
+
+                                        </option>
+
+                                    {% empty %}
+
+                                        <option
+                                            value=""
+                                            disabled
+                                        >
+                                            Chưa có phân loại
+                                        </option>
+
+                                    {% endfor %}
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- ==================================
+                                 LOẠI HÀNG
+                            =================================== -->
+
+                            <div class="col-md-4">
+
+                                <label
+                                    for="product_level"
+                                    class="form-label fw-semibold"
+                                >
+                                    Loại hàng
+                                </label>
+
+                                <select
+                                    name="product_level"
+                                    id="product_level"
+                                    class="form-select"
+                                >
+
+                                    <option value="">
+                                        -- Chọn loại hàng --
+                                    </option>
+
+                                    {% for item in product_level_list %}
+
+                                        <option
+                                            value="{{ item.id }}"
+                                            {% if product.product_level_id == item.id %}
+                                                selected
+                                            {% endif %}
+                                        >
+
+                                            {{ item.name }}
+
+                                        </option>
+
+                                    {% empty %}
+
+                                        <option
+                                            value=""
+                                            disabled
+                                        >
+                                            Chưa có loại hàng
+                                        </option>
+
+                                    {% endfor %}
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ==================================
+                             NÚT
+                        =================================== -->
+
+                        <div class="mt-4 pt-3 border-top d-flex gap-2">
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                            >
+                                💾 Lưu thay đổi
+                            </button>
+
+
+                            <a
+                                href="{% url 'product_dmhh' %}"
+                                class="btn btn-secondary"
+                            >
+                                ↩️ Quay lại
+                            </a>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

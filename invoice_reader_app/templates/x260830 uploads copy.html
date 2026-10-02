@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Upload nhiều hóa đơn XML{% endblock %}
+
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+.card pre {
+    max-height: 150px;
+    overflow-y: auto;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2>📂 Upload nhiều hóa đơn XML</h2>
+
+    <!-- Checkbox chọn loại hoá đơn -->
+    <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="onlyExportInvoice">
+        <label class="form-check-label" for="onlyExportInvoice">
+            Chỉ hiển thị hóa đơn xuất
+        </label>
+    </div>
+
+    <!-- File input -->
+    <input type="file" id="fileInput" multiple accept=".xml" class="form-control mb-3">
+    <div id="previewContainer"></div>
+
+    <button id="saveAllBtn" class="btn btn-success mt-3">💾 Lưu tất cả hóa đơn</button>
+
+    <!-- CSRF token -->
+    <input type="hidden" id="csrfToken" value="{{ csrf_token }}">
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const fileInput = document.getElementById('fileInput');
+const previewContainer = document.getElementById('previewContainer');
+const saveAllBtn = document.getElementById('saveAllBtn');
+const csrfToken = document.getElementById('csrfToken').value;
+const onlyExportCheckbox = document.getElementById('onlyExportInvoice');
+
+let invoicesPreview = [];
+
+// Upload & preview
+fileInput.addEventListener('change', () => {
+    const files = Array.from(fileInput.files);
+    previewContainer.innerHTML = '';
+    invoicesPreview = [];
+
+    const formData = new FormData();
+    files.forEach(f => formData.append('files', f));
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', "{% url 'upload_invoices' %}");
+    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+    xhr.onload = () => {
+        if (xhr.status === 200) {
+            alert("✅ Upload thành công!");
+        } else {
+            let errorText = xhr.responseText;
+            try {
+                const json = JSON.parse(errorText);
+                if (json.error) errorText = json.error;
+            } catch(e) {}
+            alert("❌ Lỗi server: " + errorText);
+        }
+    
+
+
+        const res = JSON.parse(xhr.responseText);
+
+        if (!res.invoices_preview) return;
+
+        let previews = res.invoices_preview;
+
+        if (onlyExportCheckbox.checked) {
+            previews = previews.filter(inv => inv.invoice.loai_hd === 'XUAT');
+        }
+
+        invoicesPreview = previews;
+
+        previewContainer.innerHTML = `
+            <pre>${JSON.stringify(previews, null, 2)}</pre>
+        `;
+    };
+
+    xhr.send(formData);
+});
+
+
+// Save all invoices
+saveAllBtn.addEventListener('click', () => {
+    if (invoicesPreview.length === 0) return alert("Không có hoá đơn!");
+
+    // remove duplicates
+    invoicesPreview = invoicesPreview.filter(
+        (v, i, arr) =>
+            i === arr.findIndex(k =>
+                k.invoice.so_hoa_don === v.invoice.so_hoa_don &&
+                k.invoice.ky_hieu === v.invoice.ky_hieu &&
+                k.invoice.ma_so_thue === v.invoice.ma_so_thue &&
+                k.invoice.ngay_hd === v.invoice.ngay_hd
+            )
+    );
+
+    saveAllBtn.disabled = true;
+
+    fetch("{% url 'save_multiple_invoices' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken
+        },
+        body: JSON.stringify({
+            invoices: invoicesPreview,
+            export: onlyExportCheckbox.checked
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = onlyExportCheckbox.checked
+                ? "{% url 'invoice_export_list' %}"
+                : "{% url 'invoice_list' %}";
+        } else {
+            alert("Lỗi: " + data.error);
+            saveAllBtn.disabled = false;
+        }
+    })
+    .catch(err => {
+        alert("Lỗi kết nối");
+        saveAllBtn.disabled = false;
+    });
+});
+
+</script>
+{% endblock %}

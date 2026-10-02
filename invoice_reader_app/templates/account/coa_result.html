@@ -1,0 +1,547 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f7f7f7;
+    }
+
+    .coa-page {
+        padding: 10px;
+    }
+
+    .coa-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .coa-header h2 {
+        margin: 0;
+        color: #2e7d32;
+        font-size: 22px;
+    }
+
+    .coa-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .coa-btn {
+        border: none;
+        color: white;
+        padding: 8px 13px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: .2s;
+    }
+
+    .coa-btn:hover {
+        opacity: .88;
+        transform: translateY(-1px);
+    }
+
+    .btn-delete-selected {
+        background: #f44336;
+    }
+
+    .btn-delete-all {
+        background: #d32f2f;
+    }
+
+    .coa-table-wrapper {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,.10);
+        overflow: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+        background: white;
+    }
+
+    th {
+        background: #1976d2;
+        color: white;
+        text-align: left;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    th,
+    td {
+        border: 1px solid #eee;
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    tbody tr:hover {
+        background: #f1f8ff;
+    }
+
+    .code {
+        font-weight: bold;
+        color: #0d47a1;
+    }
+
+    /* LEVEL INDENT */
+    .level-0 {
+        padding-left: 0;
+        font-weight: bold;
+    }
+
+    .level-1 {
+        padding-left: 20px;
+    }
+
+    .level-2 {
+        padding-left: 40px;
+    }
+
+    .level-3 {
+        padding-left: 60px;
+    }
+
+    /* TYPE COLORS */
+    .type-asset {
+        color: green;
+    }
+
+    .type-liability {
+        color: red;
+    }
+
+    .type-equity {
+        color: purple;
+    }
+
+    .type-revenue {
+        color: #ff9800;
+    }
+
+    .type-expense {
+        color: #607d8b;
+    }
+
+    /* BADGE */
+    .badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-size: 12px;
+        color: white;
+    }
+
+    .asset {
+        background: green;
+    }
+
+    .liability {
+        background: red;
+    }
+
+    .equity {
+        background: purple;
+    }
+
+    .revenue {
+        background: orange;
+    }
+
+    .expense {
+        background: #607d8b;
+    }
+
+    .root {
+        background: #e8f5e9;
+    }
+
+    @media (max-width: 768px) {
+        .coa-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .coa-header h2 {
+            font-size: 18px;
+        }
+
+        th,
+        td {
+            white-space: nowrap;
+        }
+    }
+</style>
+
+
+<div class="coa-page">
+
+    <!-- HEADER -->
+    <div class="coa-header">
+
+        <h2>
+            📊 {{ message }}
+        </h2>
+
+        <div class="coa-actions">
+
+            <button
+                type="button"
+                onclick="deleteSelected()"
+                class="coa-btn btn-delete-selected">
+
+                🗑 Xóa đã chọn
+
+            </button>
+
+            <button
+                type="button"
+                onclick="deleteAll()"
+                class="coa-btn btn-delete-all">
+
+                💥 Xóa toàn bộ COA
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="coa-table-wrapper">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th style="width: 45px;">
+                        <input
+                            type="checkbox"
+                            onclick="toggleAll(this)">
+                    </th>
+
+                    <th>System</th>
+
+                    <th>Mã TK</th>
+
+                    <th>Tên tài khoản</th>
+
+                    <th>Loại</th>
+
+                    <th>Parent</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                {% for acc in accounts %}
+
+                <tr class="{% if acc.level == 0 %}root{% endif %}">
+
+                    <td>
+                        <input
+                            type="checkbox"
+                            class="row-check"
+                            value="{{ acc.id }}">
+                    </td>
+
+
+                    <td>
+                        {{ acc.system.code }}
+                    </td>
+
+
+                    <td class="code level-{{ acc.level|default:0 }}">
+                        {{ acc.code }}
+                    </td>
+
+
+                    <td class="level-{{ acc.level|default:0 }}">
+                        {{ acc.name }}
+                    </td>
+
+
+                    <td>
+
+                        <span class="badge {{ acc.account_type }}">
+                            {{ acc.account_type }}
+                        </span>
+
+                    </td>
+
+
+                    <td>
+
+                        {% if acc.parent %}
+                            {{ acc.parent.code }}
+                        {% else %}
+                            —
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td
+                        colspan="6"
+                        style="text-align:center; padding:30px; color:#888;">
+
+                        Chưa có tài khoản COA
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function toggleAll(source) {
+
+    const checkboxes =
+        document.querySelectorAll(".row-check");
+
+    checkboxes.forEach(function(cb) {
+
+        cb.checked = source.checked;
+
+    });
+
+}
+
+
+function getSelectedIds() {
+
+    const ids = [];
+
+    document
+        .querySelectorAll(".row-check:checked")
+        .forEach(function(cb) {
+
+            ids.push(cb.value);
+
+        });
+
+    return ids;
+
+}
+
+
+function deleteSelected() {
+
+    const ids = getSelectedIds();
+
+    if (ids.length === 0) {
+
+        alert("Chưa chọn tài khoản");
+
+        return;
+
+    }
+
+
+    if (
+        !confirm(
+            "Bạn có chắc muốn xóa "
+            + ids.length
+            + " tài khoản đã chọn?"
+        )
+    ) {
+        return;
+    }
+
+
+    fetch("/invoice/coa/delete/", {
+
+        method: "POST",
+
+        headers: {
+
+            "Content-Type": "application/json",
+
+            "X-CSRFToken":
+                getCookie("csrftoken")
+
+        },
+
+        body: JSON.stringify({
+
+            ids: ids
+
+        })
+
+    })
+
+    .then(function(res) {
+
+        return res.json();
+
+    })
+
+    .then(function(data) {
+
+        if (data.success === false) {
+
+            alert(
+                data.message ||
+                "Không thể xóa tài khoản."
+            );
+
+            return;
+
+        }
+
+        location.reload();
+
+    })
+
+    .catch(function(error) {
+
+        console.error(error);
+
+        alert("Có lỗi xảy ra khi xóa.");
+
+    });
+
+}
+
+
+function deleteAll() {
+
+    if (
+        !confirm(
+            "⚠ Bạn có chắc chắn muốn XÓA TOÀN BỘ COA không?"
+        )
+    ) {
+        return;
+    }
+
+
+    fetch("/invoice/coa/delete-all/", {
+
+        method: "POST",
+
+        headers: {
+
+            "X-CSRFToken":
+                getCookie("csrftoken")
+
+        }
+
+    })
+
+    .then(function(res) {
+
+        return res.json();
+
+    })
+
+    .then(function(data) {
+
+        if (data.success === false) {
+
+            alert(
+                data.message ||
+                "Không thể xóa COA."
+            );
+
+            return;
+
+        }
+
+        location.reload();
+
+    })
+
+    .catch(function(error) {
+
+        console.error(error);
+
+        alert("Có lỗi xảy ra khi xóa COA.");
+
+    });
+
+}
+
+
+function getCookie(name) {
+
+    let cookieValue = null;
+
+    if (
+        document.cookie &&
+        document.cookie !== ""
+    ) {
+
+        const cookies =
+            document.cookie.split(";");
+
+        for (
+            let i = 0;
+            i < cookies.length;
+            i++
+        ) {
+
+            const cookie =
+                cookies[i].trim();
+
+            if (
+                cookie.substring(
+                    0,
+                    name.length + 1
+                ) === name + "="
+            ) {
+
+                cookieValue =
+                    decodeURIComponent(
+                        cookie.substring(
+                            name.length + 1
+                        )
+                    );
+
+                break;
+
+            }
+
+        }
+
+    }
+
+    return cookieValue;
+
+}
+
+</script>
+
+{% endblock %}

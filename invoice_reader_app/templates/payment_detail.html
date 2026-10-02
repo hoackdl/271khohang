@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+
+{% block navbar_title %}
+Chi tiết phiếu thu {{ payment.doc_no }}
+{% endblock %}
+
+
+
+{% block content %}
+
+
+<div class="card shadow">
+
+
+<div class="card-header bg-warning fw-bold">
+
+    🧾 CHI TIẾT PHIẾU THU
+
+</div>
+
+
+<div class="card-body">
+
+
+<div class="row mb-3">
+
+
+<div class="col-md-3">
+<label>Số phiếu</label>
+
+<input class="form-control"
+value="{{payment.doc_no}}"
+readonly>
+
+</div>
+
+
+
+<div class="col-md-3">
+
+<label>Ngày thu</label>
+
+<input class="form-control"
+value="{{payment.payment_date|date:'d/m/Y'}}"
+readonly>
+
+</div>
+
+
+
+<div class="col-md-6">
+
+<label>Nội dung</label>
+
+<input class="form-control"
+value="{{payment.content}}"
+readonly>
+
+</div>
+
+
+</div>
+
+
+
+<hr>
+
+
+<h5 class="text-primary">
+💰 Các khoản thu
+</h5>
+
+
+
+<table class="table table-bordered">
+
+<thead>
+
+<tr>
+
+<th>Số phiếu</th>
+<th>Nội dung</th>
+<th>Khách hàng</th>
+<th>NCC</th>
+<th class="text-end">
+Số tiền
+</th>
+
+</tr>
+
+</thead>
+
+
+<tbody>
+
+
+{% for s in summaries %}
+
+
+<tr>
+
+
+<td>
+{{s.doc_no}}
+</td>
+
+
+<td>
+{{s.content}}
+</td>
+
+
+
+<td>
+
+{% if s.customer %}
+
+{{s.customer.ten_khach_hang}}
+
+{% endif %}
+
+</td>
+
+
+
+<td>
+
+-
+
+</td>
+
+
+<td class="text-end fw-bold text-success">
+
+{{s.credit|floatformat:0|intcomma}}
+
+</td>
+
+
+</tr>
+
+
+
+{% empty %}
+
+<tr>
+
+<td colspan="5"
+class="text-center">
+
+Không có dữ liệu
+
+</td>
+
+</tr>
+
+
+{% endfor %}
+
+
+</tbody>
+
+</table>
+
+
+
+
+<hr>
+
+
+<h5 class="text-primary">
+📦 Danh sách PO thu tiền
+</h5>
+
+
+
+<table class="table table-bordered">
+
+
+<thead>
+
+<tr>
+
+<th>PO</th>
+<th>Khách hàng</th>
+<th>Hóa đơn</th>
+<th class="text-end">
+Tiền PO
+</th>
+
+</tr>
+
+</thead>
+
+
+
+<tbody>
+
+
+{% for po in purchase_orders %}
+
+
+<tr>
+
+
+<td>
+{{po.po_number}}
+</td>
+
+
+<td>
+{{po.customer.ten_khach_hang}}
+</td>
+
+
+<td>
+{{po.invoice.so_hoa_don}}
+</td>
+
+
+<td class="text-end">
+
+{{po.total_payment|floatformat:0|intcomma}}
+
+</td>
+
+
+</tr>
+
+
+
+{% empty %}
+
+
+<tr>
+
+<td colspan="4"
+class="text-center">
+
+Không có PO
+
+</td>
+
+</tr>
+
+
+{% endfor %}
+
+
+
+</tbody>
+
+
+</table>
+
+
+
+<div class="mt-3 text-end">
+
+<a href="{% url 'payment_list' %}"
+class="btn btn-secondary">
+
+⬅ Quay lại
+
+</a>
+
+
+<a href="{% url 'bank_payment_credit' payment.id %}"
+class="btn btn-warning">
+
+✏ Sửa phiếu
+
+</a>
+
+
+</div>
+
+
+
+</div>
+
+
+</div>
+
+
+
+{% endblock %}

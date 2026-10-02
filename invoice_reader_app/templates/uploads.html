@@ -1,0 +1,984 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Upload nhiều hóa đơn XML{% endblock %}
+
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    :root {
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --success: #16a34a;
+        --danger: #dc2626;
+        --text: #1e293b;
+        --muted: #64748b;
+        --border: #e2e8f0;
+        --bg: #f8fafc;
+    }
+
+    body {
+        background: var(--bg);
+    }
+
+    .invoice-page {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Header */
+    .page-header {
+        margin-bottom: 25px;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 5px;
+    }
+
+    .page-subtitle {
+        color: var(--muted);
+        margin-bottom: 0;
+    }
+
+    /* Main card */
+    .main-card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(15, 23, 42, .06);
+        overflow: hidden;
+    }
+
+    .card-section {
+        padding: 25px;
+    }
+
+    /* Filter */
+    .filter-box {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 15px 18px;
+        border: 1px solid var(--border);
+        background: #f8fafc;
+        border-radius: 14px;
+        margin-bottom: 22px;
+    }
+
+    .filter-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .filter-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #dbeafe;
+        color: var(--primary);
+        font-size: 19px;
+    }
+
+    .filter-title {
+        font-weight: 600;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .filter-description {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 2px 0 0;
+    }
+
+    .form-switch .form-check-input {
+        width: 2.8em;
+        height: 1.45em;
+        cursor: pointer;
+    }
+
+    .form-switch .form-check-input:checked {
+        background-color: var(--primary);
+        border-color: var(--primary);
+    }
+
+    /* Upload zone - compact */
+.upload-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 14px;
+    padding: 24px 20px;
+    text-align: center;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: all .2s ease;
+    position: relative;
+}
+
+.upload-zone:hover,
+.upload-zone.dragover {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.upload-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 10px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #dbeafe;
+    color: #2563eb;
+    font-size: 22px;
+}
+
+.upload-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+.upload-description {
+    color: #64748b;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.upload-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+
+    #fileInput {
+        display: none;
+    }
+
+    /* Stats */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-top: 22px;
+    }
+
+    .stat-card {
+        padding: 17px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #fff;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 4px;
+    }
+
+    .stat-value {
+        font-size: 25px;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .stat-icon {
+        float: right;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-blue {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
+    .stat-green {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+
+    .stat-orange {
+        background: #ffedd5;
+        color: #ea580c;
+    }
+
+    /* Status */
+    .upload-status {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        padding: 13px 16px;
+        border-radius: 12px;
+        margin-top: 18px;
+        font-size: 14px;
+    }
+
+    .upload-status.show {
+        display: flex;
+    }
+
+    .status-loading {
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+
+    .status-success {
+        background: #f0fdf4;
+        color: #15803d;
+    }
+
+    .status-error {
+        background: #fef2f2;
+        color: #b91c1c;
+    }
+
+    /* Preview */
+    .preview-section {
+        border-top: 1px solid var(--border);
+        padding: 25px;
+    }
+
+    .preview-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+    }
+
+    .preview-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .badge-count {
+        background: #eff6ff;
+        color: var(--primary);
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .empty-preview {
+        text-align: center;
+        padding: 35px 15px;
+        color: #94a3b8;
+        border: 1px dashed var(--border);
+        border-radius: 14px;
+        background: #fafafa;
+    }
+
+    .empty-preview i {
+        font-size: 35px;
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    /* Invoice table */
+    .invoice-table-wrapper {
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+    }
+
+    .invoice-table {
+        width: 100%;
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .invoice-table th {
+        background: #f8fafc;
+        color: #64748b;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+        font-weight: 600;
+        padding: 13px 15px;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+    }
+
+    .invoice-table td {
+        padding: 14px 15px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .invoice-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .invoice-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .invoice-number {
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .invoice-type {
+        display: inline-flex;
+        padding: 4px 9px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .invoice-type.export {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    /* Footer */
+    .action-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 20px 25px;
+        border-top: 1px solid var(--border);
+        background: #fafafa;
+    }
+
+    .selected-info {
+        color: var(--muted);
+        font-size: 14px;
+    }
+
+    .btn-save {
+        min-width: 210px;
+        padding: 11px 20px;
+        border-radius: 11px;
+        font-weight: 600;
+        border: none;
+        background: var(--success);
+        color: white;
+        transition: all .2s ease;
+    }
+
+    .btn-save:hover {
+        background: #15803d;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(22, 163, 74, .2);
+    }
+
+    .btn-save:disabled {
+        opacity: .65;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,.4);
+        border-top-color: #fff;
+        border-radius: 50%;
+        display: inline-block;
+        animation: spin .7s linear infinite;
+        vertical-align: middle;
+        margin-right: 7px;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-title {
+            font-size: 23px;
+        }
+
+        .card-section,
+        .preview-section {
+            padding: 18px;
+        }
+
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-box {
+            align-items: flex-start;
+        }
+
+        .action-footer {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn-save {
+            width: 100%;
+        }
+
+        .upload-zone {
+            padding: 35px 15px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="invoice-page">
+
+
+
+        <div class="main-card">
+
+            <!-- Upload -->
+            <div class="card-section">
+
+                <!-- Filter -->
+                <div class="filter-box">
+<div class="d-flex align-items-center gap-2 mb-0">
+    <div class="form-check form-switch mb-0">
+        <input
+            class="form-check-input"
+            type="checkbox"
+            role="switch"
+            id="onlyExportInvoice"
+        >
+    </div>
+
+    <div class="filter-info d-flex align-items-center">
+
+        <div>
+            <p class="filter-title mb-0">Bật khi upload hoá đơn xuất</p>
+        </div>
+    </div>
+</div>
+
+
+
+                </div>
+
+                <!-- Upload zone -->
+                <label for="fileInput" class="upload-zone" id="uploadZone">
+                    <div class="upload-icon">
+                        <i class="bi bi-file-earmark-arrow-up"></i>
+                    </div>
+
+                    <div class="upload-title">
+                        Chọn các file XML để tải lên
+                    </div>
+
+                    <div class="upload-description">
+                        Nhấn vào đây hoặc kéo thả file XML vào khu vực này
+                    </div>
+
+                    <span class="upload-hint">
+                        <i class="bi bi-info-circle"></i>
+                        Có thể chọn nhiều file cùng lúc
+                    </span>
+                </label>
+
+                <input
+                    type="file"
+                    id="fileInput"
+                    multiple
+                    accept=".xml"
+                >
+
+                <!-- Status -->
+                <div id="uploadStatus" class="upload-status">
+                    <span id="statusIcon"></span>
+                    <span id="statusText"></span>
+                </div>
+
+                <!-- Statistics -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon stat-blue">
+                            <i class="bi bi-files"></i>
+                        </div>
+                        <div class="stat-label">File đã chọn</div>
+                        <div class="stat-value" id="fileCount">0</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon stat-green">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <div class="stat-label">Hóa đơn hợp lệ</div>
+                        <div class="stat-value" id="invoiceCount">0</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon stat-orange">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                        </div>
+                        <div class="stat-label">Hóa đơn xuất</div>
+                        <div class="stat-value" id="exportCount">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview -->
+            <div class="preview-section">
+                <div class="preview-header">
+                    <h3 class="preview-title">
+                        <i class="bi bi-list-check me-2"></i>
+                        Xem trước hóa đơn
+                    </h3>
+
+                    <span class="badge-count" id="previewCount">
+                        0 hóa đơn
+                    </span>
+                </div>
+
+                <div id="previewContainer">
+                    <div class="empty-preview">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <div>Chưa có hóa đơn nào được tải lên</div>
+                        <small>Danh sách hóa đơn sẽ hiển thị ở đây</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="action-footer">
+                <div class="selected-info">
+                    <i class="bi bi-shield-check text-success me-1"></i>
+                    Dữ liệu sẽ được kiểm tra trước khi lưu.
+                </div>
+
+                <button id="saveAllBtn" class="btn btn-save">
+                    <i class="bi bi-database-add me-2"></i>
+                    Lưu tất cả hóa đơn
+                </button>
+            </div>
+
+        </div>
+
+        <!-- CSRF -->
+        <input type="hidden" id="csrfToken" value="{{ csrf_token }}">
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const fileInput = document.getElementById('fileInput');
+const uploadZone = document.getElementById('uploadZone');
+const previewContainer = document.getElementById('previewContainer');
+const saveAllBtn = document.getElementById('saveAllBtn');
+const csrfToken = document.getElementById('csrfToken').value;
+const onlyExportCheckbox = document.getElementById('onlyExportInvoice');
+
+const fileCount = document.getElementById('fileCount');
+const invoiceCount = document.getElementById('invoiceCount');
+const exportCount = document.getElementById('exportCount');
+const previewCount = document.getElementById('previewCount');
+
+const uploadStatus = document.getElementById('uploadStatus');
+const statusIcon = document.getElementById('statusIcon');
+const statusText = document.getElementById('statusText');
+
+let invoicesPreview = [];
+
+
+/* =========================
+   UI helpers
+========================= */
+
+function showStatus(type, message) {
+    uploadStatus.className = `upload-status show status-${type}`;
+
+    if (type === 'loading') {
+        statusIcon.innerHTML = '<span class="spinner"></span>';
+    } else if (type === 'success') {
+        statusIcon.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+    } else {
+        statusIcon.innerHTML = '<i class="bi bi-exclamation-circle-fill"></i>';
+    }
+
+    statusText.textContent = message;
+}
+
+
+function resetStats() {
+    fileCount.textContent = '0';
+    invoiceCount.textContent = '0';
+    exportCount.textContent = '0';
+    previewCount.textContent = '0 hóa đơn';
+}
+
+
+function updateStats(files, invoices) {
+    fileCount.textContent = files.length;
+    invoiceCount.textContent = invoices.length;
+
+    const exports = invoices.filter(
+        inv => inv.invoice && inv.invoice.loai_hd === 'XUAT'
+    );
+
+    exportCount.textContent = exports.length;
+    previewCount.textContent = `${invoices.length} hóa đơn`;
+}
+
+
+function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+
+/* =========================
+   Render preview
+========================= */
+
+function renderPreview(invoices) {
+    if (!invoices.length) {
+        previewContainer.innerHTML = `
+            <div class="empty-preview">
+                <i class="bi bi-file-earmark-text"></i>
+                <div>Không có hóa đơn phù hợp</div>
+                <small>Vui lòng kiểm tra lại file XML hoặc bộ lọc.</small>
+            </div>
+        `;
+        return;
+    }
+
+    const rows = invoices.map((item, index) => {
+        const inv = item.invoice || {};
+
+        const isExport = inv.loai_hd === 'XUAT';
+
+        return `
+            <tr>
+                <td>
+                    <span class="text-muted">${index + 1}</span>
+                </td>
+
+                <td>
+                    <span class="invoice-number">
+                        ${escapeHtml(inv.so_hoa_don || '—')}
+                    </span>
+                </td>
+
+                <td>
+                    ${escapeHtml(inv.ky_hieu || '—')}
+                </td>
+
+                <td>
+                    ${escapeHtml(inv.ma_so_thue || '—')}
+                </td>
+
+                <td>
+                    ${escapeHtml(inv.ngay_hd || '—')}
+                </td>
+
+                <td>
+                    <span class="invoice-type ${isExport ? 'export' : ''}">
+                        ${isExport
+                            ? '<i class="bi bi-box-arrow-up-right me-1"></i> Hóa đơn xuất'
+                            : '<i class="bi bi-receipt me-1"></i> Hóa đơn'}
+                    </span>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    previewContainer.innerHTML = `
+        <div class="invoice-table-wrapper">
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Số hóa đơn</th>
+                        <th>Ký hiệu</th>
+                        <th>Mã số thuế</th>
+                        <th>Ngày hóa đơn</th>
+                        <th>Loại</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+
+/* =========================
+   Upload
+========================= */
+
+function uploadFiles(files) {
+    if (!files.length) return;
+
+    resetStats();
+
+    const xmlFiles = Array.from(files).filter(
+        file => file.name.toLowerCase().endsWith('.xml')
+    );
+
+    if (!xmlFiles.length) {
+        showStatus('error', 'Vui lòng chọn file XML.');
+        return;
+    }
+
+    fileCount.textContent = xmlFiles.length;
+    showStatus('loading', `Đang xử lý ${xmlFiles.length} file XML...`);
+
+    invoicesPreview = [];
+
+    const formData = new FormData();
+
+    xmlFiles.forEach(file => {
+        formData.append('files', file);
+    });
+
+    const xhr = new XMLHttpRequest();
+
+    xhr.open('POST', "{% url 'upload_invoices' %}");
+
+    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+
+    xhr.onload = () => {
+        let res;
+
+        try {
+            res = JSON.parse(xhr.responseText);
+        } catch (e) {
+            showStatus('error', 'Server trả về dữ liệu không hợp lệ.');
+            return;
+        }
+
+        if (xhr.status !== 200) {
+            showStatus(
+                'error',
+                res.error || 'Có lỗi xảy ra khi upload file.'
+            );
+            return;
+        }
+
+        if (!res.invoices_preview) {
+            showStatus('error', 'Không tìm thấy dữ liệu hóa đơn.');
+            return;
+        }
+
+        invoicesPreview = res.invoices_preview;
+
+        applyFilter();
+
+        showStatus(
+            'success',
+            `Đã xử lý thành công ${xmlFiles.length} file XML.`
+        );
+    };
+
+    xhr.onerror = () => {
+        showStatus('error', 'Không thể kết nối tới server.');
+    };
+
+    xhr.send(formData);
+}
+
+
+/* =========================
+   Filter
+========================= */
+
+function applyFilter() {
+    let previews = [...invoicesPreview];
+
+    if (onlyExportCheckbox.checked) {
+        previews = previews.filter(
+            inv =>
+                inv.invoice &&
+                inv.invoice.loai_hd === 'XUAT'
+        );
+    }
+
+    updateStats(
+        Array.from(fileInput.files),
+        previews
+    );
+
+    renderPreview(previews);
+}
+
+
+/* =========================
+   File input
+========================= */
+
+fileInput.addEventListener('change', () => {
+    uploadFiles(fileInput.files);
+});
+
+
+/* =========================
+   Drag & Drop
+========================= */
+
+['dragenter', 'dragover'].forEach(eventName => {
+    uploadZone.addEventListener(eventName, e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        uploadZone.classList.add('dragover');
+    });
+});
+
+
+['dragleave', 'drop'].forEach(eventName => {
+    uploadZone.addEventListener(eventName, e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        uploadZone.classList.remove('dragover');
+    });
+});
+
+
+uploadZone.addEventListener('drop', e => {
+    const files = e.dataTransfer.files;
+
+    if (!files.length) return;
+
+    fileInput.files = files;
+
+    uploadFiles(files);
+});
+
+
+/* =========================
+   Filter change
+========================= */
+
+onlyExportCheckbox.addEventListener('change', () => {
+    applyFilter();
+});
+
+
+/* =========================
+   Save all
+========================= */
+
+saveAllBtn.addEventListener('click', () => {
+
+    if (invoicesPreview.length === 0) {
+        alert('Không có hóa đơn để lưu!');
+        return;
+    }
+
+    // Remove duplicates
+    invoicesPreview = invoicesPreview.filter(
+        (v, i, arr) =>
+            i === arr.findIndex(k =>
+                k.invoice.so_hoa_don === v.invoice.so_hoa_don &&
+                k.invoice.ky_hieu === v.invoice.ky_hieu &&
+                k.invoice.ma_so_thue === v.invoice.ma_so_thue &&
+                k.invoice.ngay_hd === v.invoice.ngay_hd
+            )
+    );
+
+    saveAllBtn.disabled = true;
+
+    saveAllBtn.innerHTML = `
+        <span class="spinner"></span>
+        Đang lưu hóa đơn...
+    `;
+
+    fetch("{% url 'save_multiple_invoices' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken
+        },
+        body: JSON.stringify({
+            invoices: invoicesPreview,
+            export: onlyExportCheckbox.checked
+        })
+    })
+    .then(async response => {
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.error || 'Server trả về lỗi.'
+            );
+        }
+
+        return data;
+    })
+    .then(data => {
+
+        if (data.success) {
+
+            saveAllBtn.innerHTML = `
+                <i class="bi bi-check-circle me-2"></i>
+                Đã lưu thành công
+            `;
+
+            window.location.href =
+                onlyExportCheckbox.checked
+                    ? "{% url 'invoice_export_list' %}"
+                    : "{% url 'invoice_list' %}";
+
+        } else {
+            throw new Error(
+                data.error || 'Không thể lưu hóa đơn.'
+            );
+        }
+    })
+    .catch(err => {
+
+        alert("Lỗi: " + err.message);
+
+        saveAllBtn.disabled = false;
+
+        saveAllBtn.innerHTML = `
+            <i class="bi bi-database-add me-2"></i>
+            Lưu tất cả hóa đơn
+        `;
+    });
+});
+
+
+/* =========================
+   Initial state
+========================= */
+
+resetStats();
+
+</script>
+{% endblock %}

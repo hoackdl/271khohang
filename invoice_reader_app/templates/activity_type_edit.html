@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card shadow-sm">
+
+
+<div class="card-header bg-warning">
+
+    <strong>
+        <i class="bi bi-pencil-square"></i>
+        Chỉnh sửa loại hình hoạt động
+    </strong>
+
+</div>
+
+
+<div class="card-body">
+
+    <form method="post">
+
+        {% csrf_token %}
+
+
+        <div class="row">
+
+            <!-- MÃ -->
+            <div class="col-md-3 mb-3">
+
+                <label class="form-label">
+                    Mã loại hình
+                </label>
+
+                <input
+                    type="text"
+                    name="code"
+                    class="form-control"
+                    value="{{ activity_type.code }}"
+                    required
+                >
+
+            </div>
+
+
+            <!-- TÊN -->
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label">
+                    Tên loại hình hoạt động
+                </label>
+
+                <input
+                    type="text"
+                    name="name"
+                    class="form-control"
+                    value="{{ activity_type.name }}"
+                    required
+                >
+
+            </div>
+
+
+            <!-- ACTIVE -->
+            <div class="col-md-3 mb-3">
+
+                <label class="form-label d-block">
+                    Trạng thái
+                </label>
+
+                <div class="form-check mt-2">
+
+                    <input
+                        type="checkbox"
+                        name="is_active"
+                        class="form-check-input"
+                        {% if activity_type.is_active %}
+                            checked
+                        {% endif %}
+                    >
+
+                    <label class="form-check-label">
+                        Đang sử dụng
+                    </label>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="mt-3">
+
+            <button
+                type="submit"
+                class="btn btn-primary"
+            >
+                <i class="bi bi-save"></i>
+                Lưu thay đổi
+            </button>
+
+
+            <a
+                href="{% url 'activity_type_create' %}"
+                class="btn btn-secondary"
+            >
+                <i class="bi bi-arrow-left"></i>
+                Quay lại
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+</div>
+
+{% endblock %}

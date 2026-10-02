@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+
+
+{% block navbar_title %}
+Chi tiết Trung tâm chi phí
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+    <div class="card-header bg-primary text-white">
+        Chi tiết trung tâm chi phí
+    </div>
+
+    <div class="card-body">
+
+        <table class="table table-bordered">
+
+            <tr>
+                <th width="200">
+                    Mã trung tâm
+                </th>
+                <td>
+                    {{ cost_center.code }}
+                </td>
+            </tr>
+
+            <tr>
+                <th>
+                    Tên trung tâm
+                </th>
+                <td>
+                    {{ cost_center.name }}
+                </td>
+            </tr>
+
+            <tr>
+                <th>
+                    Trạng thái
+                </th>
+                <td>
+                    {% if cost_center.is_active %}
+                        <span class="badge bg-success">
+                            Hoạt động
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary">
+                            Ngưng
+                        </span>
+                    {% endif %}
+                </td>
+            </tr>
+
+        </table>
+
+
+        <a href="{% url 'cost_center_create' %}"
+           class="btn btn-secondary">
+            Quay lại
+        </a>
+
+    </div>
+
+</div>
+<div class="card mt-3">
+
+    <div class="card-header bg-info text-white">
+        Danh sách phiếu ngân hàng
+    </div>
+
+
+    <div class="card-body">
+
+        <table class="table table-bordered table-hover">
+
+            <thead class="table-light text-center">
+                <tr>
+                    <th>Ngày</th>
+                    <th>Doc No</th>
+                    <th>Nội dung</th>
+                    <th>Debit</th>
+                    <th>Credit</th>
+                    <th>PO</th>
+                </tr>
+            </thead>
+
+<tfoot class="table-warning fw-bold">
+
+<tr>
+
+    <td colspan="3"
+        class="text-center">
+
+        TỔNG CỘNG
+
+    </td>
+
+
+    <td class="text-end">
+
+        {{ total_debit|floatformat:0|intcomma }}
+
+    </td>
+
+
+    <td class="text-end">
+
+        {{ total_credit|floatformat:0|intcomma }}
+
+    </td>
+
+
+    <td></td>
+
+
+</tr>
+
+</tfoot>
+            <tbody>
+
+            {% for p in bank_payments %}
+
+                <tr>
+
+                    <td>
+                        {{ p.payment_date|date:"d/m/Y" }}
+                    </td>
+
+                    <td>
+                        {{ p.doc_no }}
+                    </td>
+
+                    <td>
+                        {{ p.content }}
+                    </td>
+
+                    <td class="text-end">
+                        {{ p.debit|floatformat:0|intcomma }}
+                    </td>
+
+                    <td class="text-end">
+                        {{ p.credit|floatformat:0|intcomma }}
+                    </td>
+
+                    <td>
+                        {% for po in p.purchase_orders.all %}
+                            {{ po.po_number }}
+                            {% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+
+                </tr>
+
+            {% empty %}
+
+                <tr>
+                    <td colspan="6"
+                        class="text-center text-muted">
+                        Chưa có phiếu nào
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+
+
+<!-- Phân trang -->
+<div class="d-flex justify-content-between align-items-center mt-3">
+
+    <div class="text-muted">
+        Tổng:
+        <strong>{{ bank_payments.paginator.count }}</strong>
+        phiếu
+    </div>
+
+
+    <nav>
+
+        <ul class="pagination mb-0">
+
+
+            {% if bank_payments.has_previous %}
+
+            <li class="page-item">
+
+                <a class="page-link"
+                   href="?page={{ bank_payments.previous_page_number }}&per_page={{ per_page }}">
+
+                    Trước
+
+                </a>
+
+            </li>
+
+            {% else %}
+
+            <li class="page-item disabled">
+
+                <span class="page-link">
+                    Trước
+                </span>
+
+            </li>
+
+            {% endif %}
+
+
+
+            {% for num in bank_payments.paginator.page_range %}
+
+                {% if num >= bank_payments.number|add:"-2" and num <= bank_payments.number|add:"2" %}
+
+
+                <li class="page-item 
+                    {% if bank_payments.number == num %}
+                        active
+                    {% endif %}">
+
+
+                    <a class="page-link"
+                       href="?page={{ num }}&per_page={{ per_page }}">
+
+                        {{ num }}
+
+                    </a>
+
+
+                </li>
+
+
+                {% endif %}
+
+            {% endfor %}
+
+
+
+
+            {% if bank_payments.has_next %}
+
+            <li class="page-item">
+
+                <a class="page-link"
+                   href="?page={{ bank_payments.next_page_number }}&per_page={{ per_page }}">
+
+                    Sau
+
+                </a>
+
+            </li>
+
+
+            {% else %}
+
+            <li class="page-item disabled">
+
+                <span class="page-link">
+                    Sau
+                </span>
+
+            </li>
+
+            {% endif %}
+
+
+        </ul>
+
+    </nav>
+
+</div>
+    </div>
+
+</div>
+
+{% endblock %}

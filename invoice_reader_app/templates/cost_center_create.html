@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+
+{% block navbar_title %}
+Quản lý Trung tâm chi phí
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- FORM THÊM -->
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-plus-circle me-1"></i>
+            Thêm trung tâm chi phí
+        </div>
+
+
+        <div class="card-body">
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                <div class="row align-items-end">
+
+
+                    <div class="col-md-4 mb-3">
+
+                        <label class="form-label fw-bold">
+                            Mã trung tâm
+                        </label>
+
+                        {{ form.code }}
+
+                    </div>
+
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="form-label fw-bold">
+                            Tên trung tâm
+                        </label>
+
+                        {{ form.name }}
+
+                    </div>
+
+
+
+                    <div class="col-md-2 mb-3">
+
+                        <label class="form-label fw-bold d-block">
+                            Trạng thái
+                        </label>
+
+                        <div class="form-check form-switch mt-2">
+
+                            {{ form.is_active }}
+
+                            <label class="form-check-label">
+                                Hoạt động
+                            </label>
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+
+                <button type="submit"
+                        class="btn btn-primary">
+
+                    <i class="bi bi-save me-1"></i>
+                    Lưu
+
+                </button>
+
+
+            </form>
+
+
+        </div>
+
+    </div>
+
+
+
+    <!-- DANH SÁCH -->
+
+    <div class="card shadow-sm">
+
+
+        <div class="card-header bg-light">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <span class="fw-bold">
+
+                    <i class="bi bi-list-ul me-1"></i>
+                    Danh sách trung tâm chi phí
+
+                </span>
+
+
+                <span class="badge bg-primary">
+
+                    {{ cost_centers|length }} trung tâm
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="card-body p-0">
+
+
+            <div class="table-responsive">
+
+
+                <table class="table table-hover table-bordered mb-0 align-middle">
+
+
+                    <thead class="table-primary text-center">
+
+                        <tr>
+
+                            <th style="width:120px">
+                                Mã
+                            </th>
+
+
+                            <th>
+                                Tên trung tâm
+                            </th>
+
+
+                            <th style="width:140px">
+                                Trạng thái
+                            </th>
+
+
+                            <th style="width:220px">
+                                Thao tác
+                            </th>
+
+
+                        </tr>
+
+                    </thead>
+
+
+
+                    <tbody>
+
+
+                    {% for cc in cost_centers %}
+
+
+                        <tr>
+
+
+                            <td class="text-center">
+
+                                <span class="badge bg-secondary">
+
+                                    {{ cc.code }}
+
+                                </span>
+
+                            </td>
+
+
+
+                            <td>
+
+                                <strong>
+                                    {{ cc.name }}
+                                </strong>
+
+                            </td>
+
+
+
+                            <td class="text-center">
+
+
+                                {% if cc.is_active %}
+
+                                    <span class="badge bg-success">
+
+                                        <i class="bi bi-check-circle"></i>
+                                        Hoạt động
+
+                                    </span>
+
+
+                                {% else %}
+
+
+                                    <span class="badge bg-secondary">
+
+                                        <i class="bi bi-x-circle"></i>
+                                        Ngưng
+
+                                    </span>
+
+
+                                {% endif %}
+
+
+                            </td>
+
+
+
+                            <td class="text-center">
+
+
+                                <a href="{% url 'cost_center_detail' cc.id %}"
+                                   class="btn btn-sm btn-info text-white me-1">
+
+                                    <i class="bi bi-eye"></i>
+                                    Chi tiết
+
+                                </a>
+
+
+
+                                <a href="{% url 'cost_center_edit' cc.id %}"
+                                   class="btn btn-sm btn-warning">
+
+                                    <i class="bi bi-pencil"></i>
+                                    Sửa
+
+                                </a>
+
+
+                            </td>
+
+
+                        </tr>
+
+
+                    {% empty %}
+
+
+                        <tr>
+
+                            <td colspan="4"
+                                class="text-center text-muted py-4">
+
+                                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+
+                                Chưa có dữ liệu
+
+                            </td>
+
+                        </tr>
+
+
+                    {% endfor %}
+
+
+                    </tbody>
+
+
+                </table>
+
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+{% endblock %}
