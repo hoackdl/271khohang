@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ action }} khách hàng{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">{{ action }} khách hàng</h4>
+        </div>
+
+        <div class="card-body">
+
+            {% if messages %}
+              {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="ten_khach_hang" class="form-label fw-bold">Tên khách hàng</label>
+                    <input type="text" class="form-control" id="ten_khach_hang" name="ten_khach_hang"
+                           value="{{ customer.ten_khach_hang|default_if_none:'' }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="ma_so_thue" class="form-label fw-bold">Mã số thuế</label>
+                    <input type="text" class="form-control" id="ma_so_thue" name="ma_so_thue"
+                           value="{{ customer.ma_so_thue|default_if_none:'' }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="dia_chi" class="form-label fw-bold">Địa chỉ</label>
+                    <textarea class="form-control" id="dia_chi" name="dia_chi" rows="1">{{ customer.dia_chi|default_if_none:'' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-bold">Email</label>
+                    <textarea class="form-control" id="email" name="email" rows="1">{{ customer.email|default_if_none:'' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="phan_loai" class="form-label fw-bold">Phân loại</label>
+                    <select class="form-select" id="phan_loai" name="phan_loai" required>
+                        <option value="">-- Chọn loại --</option>
+                        <option value="Cung cấp dịch vụ" {% if customer.phan_loai == "Cung cấp dịch vụ" %}selected{% endif %}>Cung cấp dịch vụ</option>
+                        <option value="Cung cấp hàng hoá" {% if customer.phan_loai == "Cung cấp hàng hoá" %}selected{% endif %}>Cung cấp hàng hoá</option>
+                        <option value="Khác" {% if customer.phan_loai == "Khác" %}selected{% endif %}>Khác</option>
+                    </select>
+                </div>
+
+                {% if products %}
+                    <h5 class="mt-4">Sản phẩm đã mua</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-hover mt-2 align-middle">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>Tên hàng</th>
+                                    <th>Số lượng</th>
+                                    <th>Thành tiền</th>
+                                    <th>Tiền thuế</th>
+                                    <th>Đơn giá trung bình</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in products %}
+                                <tr>
+                                    <td>{{ p.ten_hang }}</td>
+                                    <td>{{ p.total_so_luong }}</td>
+                                    <td>{{ p.total_thanh_tien }}</td>
+                                    <td>{{ p.total_tien_thue }}</td>
+                                    <td>{{ p.avg_don_gia|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                    <button type="submit" class="btn btn-success px-4">💾 Lưu</button>
+                    <a href="{% url 'customers' %}" class="btn btn-secondary px-4">Hủy</a>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock content %}

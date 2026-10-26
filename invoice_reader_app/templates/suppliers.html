@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+{% block title %}Danh sách nhà cung cấp{% endblock %}
+
+{% block extra_head %}
+<style>
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Full height layout */
+.full-screen-container {
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+/* Grid 6 cột: TT + 5 cột dữ liệu */
+.supplier-header,
+.supplier-row {
+    display: grid;
+    grid-template-columns: 0.5fr 3fr 3fr 2fr 2fr auto; /* THÊM CỘT TT */
+    gap: 10px;
+    align-items: center;
+}
+
+/* Header cố định */
+.supplier-header {
+    font-weight: bold;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 6px;
+    margin-bottom: 5px;
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.text-wrap {
+    white-space: normal !important;
+    word-break: break-word; /* tự chia từ khi dài */
+}
+
+/* Vùng scroll danh sách */
+.supplier-list-scroll {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    border-top: 1px solid #ddd;
+}
+
+/* Remove Bootstrap padding */
+.list-group-item {
+    border: none;
+    padding: 8px 0;
+}
+
+/* Truncate long text */
+.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .supplier-header,
+    .supplier-row {
+        grid-template-columns: 0.5fr 2fr 2fr 1fr auto;
+        font-size: 14px;
+    }
+}
+</style>
+
+{% endblock %}
+
+
+
+{% block content %}
+<div class="full-screen-container">
+
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+        <h2 class="mb-0">📋 Danh sách nhà cung cấp</h2>
+
+        <a href="{% url 'supplier_add' %}" class="btn btn-success flex-shrink-0">➕ Thêm nhà cung cấp</a>
+
+        <form method="get" class="d-flex flex-grow-1 gap-2 mb-0">
+            <input type="text" name="search_supplier"
+                   placeholder="Tìm kiếm theo MST hoặc tên..."
+                   value="{{ search_supplier }}"
+                   class="form-control" />
+            <button type="submit" class="btn btn-outline-primary">Tìm</button>
+        </form>
+    </div>
+
+    <!-- Header -->
+    <div class="supplier-header text-center">
+        <div>TT</div>
+        <div>Tên nhà cung cấp</div>
+        <div>Địa chỉ</div>
+        <div>MST</div>
+      
+        <div>Nhóm</div>
+        <div>Hành động</div>
+    </div>
+
+    <!-- Danh sách scroll -->
+    <div class="supplier-list-scroll">
+        <ul class="list-group">
+            {% for supplier in suppliers %}
+            <li class="list-group-item">
+                <div class="supplier-row">
+
+                    <!-- TT = start_index + counter0 -->
+                    <div class="text-center">{{ forloop.counter0|add:suppliers.start_index }}</div>
+
+                    <div class="text-wrap">{{ supplier.ten_dv_ban }}</div>
+                    <div class="text-wrap">{{ supplier.dia_chi }}</div>
+                    <div class="text-center">{{ supplier.ma_so_thue }}</div>
+                    
+                    <div class="text-center">{{ supplier.phan_loai }}</div>
+
+                    <div class="d-flex gap-1">
+                        <a href="{% url 'supplier_edit' supplier.id %}" class="btn btn-sm btn-warning">✏️</a>
+                        <a href="{% url 'supplier_delete' supplier.id %}" class="btn btn-sm btn-danger">🗑️</a>
+                        <a href="{% url 'supplier_detail' supplier.id %}" class="btn btn-sm btn-info">📄 Chi tiết</a>
+
+                    </div>
+
+                </div>
+            </li>
+            {% empty %}
+            <li class="list-group-item text-center text-muted">Không có nhà cung cấp.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Phân trang -->
+    {% include "components/pagination.html" with data=suppliers query_params=query_params label="nhà cung cấp" %}
+
+</div>
+{% endblock %}

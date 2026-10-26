@@ -1,0 +1,565 @@
+{% extends 'base.html' %}
+
+{% block navbar_title %}
+📦 Nhập hàng đầu kỳ
+{% endblock %}
+{% block container_class %}container-fluid p-0 full-screen-container{% endblock %}
+{% block content %}
+
+<div class="container-fluid py-3">
+
+    <div class="card shadow-sm">
+
+        <div class="card-header bg-warning d-flex justify-content-between align-items-center">
+
+
+            <a href="{% url 'inventory_summary' %}"
+               class="btn btn-secondary btn-sm">
+                ← Quay lại XNT
+            </a>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <!-- ========================================= -->
+            <!-- IMPORT EXCEL -->
+            <!-- ========================================= -->
+
+            <div class="alert alert-info">
+
+                <strong>📥 Import Excel</strong>
+
+                <div class="small mt-1">
+                    File Excel cần có tối thiểu 2 cột:
+                    <strong>SKU</strong> và
+                    <strong>Số lượng</strong>.
+                </div>
+
+                <div class="small">
+                    Có thể thêm:
+                    Tên gọi chung, ĐVT, Đơn giá,
+                    Ngày, Ghi chú.
+                </div>
+
+            </div>
+
+
+            <form method="post"
+                  enctype="multipart/form-data"
+                  class="mb-4">
+
+                {% csrf_token %}
+
+                <input type="hidden"
+                       name="action"
+                       value="excel">
+
+                <div class="row g-2 align-items-end">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            File Excel
+                        </label>
+
+                        <input type="file"
+                               name="excel_file"
+                               accept=".xlsx,.xls"
+                               class="form-control">
+
+                    </div>
+
+                    <div class="col-auto">
+
+                        <button type="submit"
+                                class="btn btn-primary">
+
+                            📥 Import Excel
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+
+            <hr>
+
+
+            <!-- ========================================= -->
+            <!-- NHẬP THỦ CÔNG -->
+            <!-- ========================================= -->
+
+            <h6 class="mb-3">
+                ✏️ Nhập thủ công
+            </h6>
+
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                <input type="hidden"
+                       name="action"
+                       value="save">
+
+
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-sm align-middle"
+                           id="openingTable">
+
+                        <thead class="table-light">
+
+                            <tr class="text-center">
+
+                                <th style="width: 150px;">
+                                    SKU
+                                </th>
+
+                                <th>
+                                    Tên gọi chung
+                                </th>
+
+                                <th style="width: 100px;">
+                                    ĐVT
+                                </th>
+
+                                <th style="width: 130px;">
+                                    Số lượng
+                                </th>
+
+                                <th style="width: 140px;">
+                                    Đơn giá
+                                </th>
+
+                                <th style="width: 140px;">
+                                    Thành tiền
+                                </th>
+
+                                <th style="width: 130px;">
+                                    Ngày
+                                </th>
+
+                                <th style="width: 180px;">
+                                    Ghi chú
+                                </th>
+
+                                <th style="width: 60px;">
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="openingBody">
+
+                            <tr>
+
+<td class="position-relative">
+    <input
+        type="text"
+        name="sku[]"
+        class="form-control form-control-sm sku-input"
+        placeholder="Nhập SKU..."
+        autocomplete="off"
+        oninput="searchProduct(this)"
+    >
+
+    <div class="product-suggestions"></div>
+</td>
+
+
+<td>
+    <input
+        type="text"
+        name="ten_goi_chung[]"
+        class="form-control form-control-sm product-name"
+        placeholder="Tên hàng"
+    >
+</td>
+
+
+<td>
+    <input
+        type="text"
+        name="dvt[]"
+        class="form-control form-control-sm product-unit"
+        placeholder="ĐVT"
+    >
+</td>
+
+
+
+                                <td>
+                                    <input type="number"
+                                           step="0.01"
+                                           name="so_luong[]"
+                                           class="form-control form-control-sm qty">
+                                </td>
+
+                                <td>
+                                    <input type="number"
+                                           step="0.01"
+                                           name="don_gia[]"
+                                           class="form-control form-control-sm price">
+                                </td>
+
+                                <td>
+                                    <input type="text"
+                                           class="form-control form-control-sm amount"
+                                           readonly>
+                                </td>
+
+                                <td>
+                                    <input type="date"
+                                           name="ngay[]"
+                                           class="form-control form-control-sm">
+                                </td>
+
+                                <td>
+                                    <input type="text"
+                                           name="ghi_chu[]"
+                                           class="form-control form-control-sm">
+                                </td>
+
+                                <td class="text-center">
+
+                                    <button type="button"
+                                            class="btn btn-danger btn-sm"
+                                            onclick="removeRow(this)">
+                                        ×
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <div class="d-flex justify-content-between mt-3">
+
+                    <button type="button"
+                            class="btn btn-outline-primary"
+                            onclick="addRow()">
+
+                        ➕ Thêm dòng
+
+                    </button>
+
+
+                    <div>
+
+                        <strong>
+                            Tổng tiền:
+                        </strong>
+
+                        <span id="grandTotal">
+                            0
+                        </span>
+
+                        đ
+
+                    </div>
+
+                </div>
+
+
+                <div class="text-end mt-4">
+
+                    <button type="submit"
+                            class="btn btn-success">
+
+                        💾 Lưu hàng đầu kỳ
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function formatNumber(number) {
+
+    return new Intl.NumberFormat(
+        'vi-VN'
+    ).format(number || 0);
+
+}
+
+
+
+let searchTimers = {};
+
+function searchProduct(input) {
+
+    const keyword = input.value.trim();
+    const row = input.closest("tr");
+    const suggestionBox =
+        row.querySelector(".product-suggestions");
+
+    clearTimeout(searchTimers[input]);
+
+    if (keyword.length < 1) {
+        suggestionBox.innerHTML = "";
+        suggestionBox.style.display = "none";
+        return;
+    }
+
+    searchTimers[input] = setTimeout(() => {
+
+        fetch(
+            "{% url 'products_search_v2' %}?q="
+            + encodeURIComponent(keyword)
+        )
+        .then(response => response.json())
+        .then(data => {
+
+            suggestionBox.innerHTML = "";
+
+            if (!data.results.length) {
+                suggestionBox.style.display = "none";
+                return;
+            }
+
+            data.results.forEach(product => {
+
+                const item =
+                    document.createElement("div");
+
+                item.className =
+                    "product-suggestion";
+
+                item.innerHTML = `
+                    <strong>${escapeHtml(product.sku)}</strong>
+                    -
+                    ${escapeHtml(
+                        product.ten_goi_chung ||
+                        product.ten_hang
+                    )}
+                `;
+
+                item.onclick = function () {
+
+                    selectProduct(
+                        row,
+                        product
+                    );
+
+                };
+
+                suggestionBox.appendChild(item);
+
+            });
+
+            suggestionBox.style.display = "block";
+
+        })
+        .catch(error => {
+            console.error(
+                "Lỗi tìm sản phẩm:",
+                error
+            );
+        });
+
+    }, 250);
+}
+
+
+function selectProduct(row, product) {
+
+    row.querySelector(".sku-input").value =
+        product.sku || "";
+
+    row.querySelector(".product-name").value =
+        product.ten_goi_chung ||
+        product.ten_hang ||
+        "";
+
+    row.querySelector(".product-unit").value =
+        product.dvt ||
+        "";
+
+    row.querySelector(".product-suggestions").style.display =
+        "none";
+}
+
+
+
+function escapeHtml(text) {
+
+    const div = document.createElement("div");
+
+    div.textContent = text || "";
+
+    return div.innerHTML;
+}
+
+
+
+function calculateRow(row) {
+
+    const qtyInput =
+        row.querySelector('.qty');
+
+    const priceInput =
+        row.querySelector('.price');
+
+    const amountInput =
+        row.querySelector('.amount');
+
+
+    const qty =
+        parseFloat(qtyInput.value) || 0;
+
+    const price =
+        parseFloat(priceInput.value) || 0;
+
+
+    const amount =
+        qty * price;
+
+
+    amountInput.value =
+        formatNumber(amount);
+
+
+    calculateTotal();
+
+}
+
+
+function calculateTotal() {
+
+    let total = 0;
+
+
+    document
+        .querySelectorAll('#openingBody tr')
+        .forEach(function(row) {
+
+            const qty =
+                parseFloat(
+                    row.querySelector('.qty').value
+                ) || 0;
+
+            const price =
+                parseFloat(
+                    row.querySelector('.price').value
+                ) || 0;
+
+            total += qty * price;
+
+        });
+
+
+    document.getElementById(
+        'grandTotal'
+    ).innerText =
+        formatNumber(total);
+
+}
+
+
+function addRow() {
+
+    const body =
+        document.getElementById(
+            'openingBody'
+        );
+
+
+    const row =
+        body.querySelector('tr').cloneNode(true);
+
+
+    row.querySelectorAll('input')
+        .forEach(function(input) {
+
+            input.value = '';
+
+        });
+
+
+    body.appendChild(row);
+
+
+    bindCalculation(row);
+
+}
+
+
+function removeRow(button) {
+
+    const body =
+        document.getElementById(
+            'openingBody'
+        );
+
+
+    if (body.querySelectorAll('tr').length <= 1) {
+
+        return;
+
+    }
+
+
+    button
+        .closest('tr')
+        .remove();
+
+
+    calculateTotal();
+
+}
+
+
+function bindCalculation(row) {
+
+    row.querySelectorAll(
+        '.qty, .price'
+    ).forEach(function(input) {
+
+        input.addEventListener(
+            'input',
+            function() {
+
+                calculateRow(row);
+
+            }
+        );
+
+    });
+
+}
+
+
+document
+    .querySelectorAll('#openingBody tr')
+    .forEach(function(row) {
+
+        bindCalculation(row);
+
+    });
+
+</script>
+
+{% endblock %}

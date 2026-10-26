@@ -1,0 +1,56 @@
+{% load static %}
+{% load humanize %}
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm align-middle">
+        <thead class="table-light text-center">
+          <tr>
+            <th>File</th>
+            <th>Ký hiệu</th>
+            <th>Mẫu số</th>
+            <th>Số hoá đơn</th>
+            <th>Ngày tháng hoá đơn</th>
+            <th>Hình thức TT</th>
+            <th>Tên đơn vị bán</th>
+            <th>Mã số thuế</th>
+            <th>Địa chỉ</th>
+            <th>Nội dung HĐ</th>
+            <th>Đơn vị tính</th>
+            <th>Số lượng</th>
+            <th>Đơn giá</th>
+            <th>Thành tiền</th>
+            <th>Thuế suất</th>
+            <th>Tiền thuế GTGT</th>
+            <th>Tổng cộng</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for pack in invoices %}
+            {% for item in pack.items %}
+            <tr>
+              <td>{{ pack.file_name }}</td>
+              <td>{{ pack.invoice.ky_hieu }}</td>
+              <td>{{ pack.invoice.mau_so }}</td>
+              <td>{{ pack.invoice.so_hoa_don }}</td>
+              <td>{{ pack.invoice.ngay_hd }}</td>
+              <td>{{ pack.invoice.hinh_thuc_tt }}</td>
+              <td>{{ pack.invoice.ten_dv_ban }}</td>
+              <td>{{ pack.invoice.ma_so_thue }}</td>
+              <td>{{ pack.invoice.dia_chi }}</td>
+              <td>{{ item.ten_hang }}</td>
+              <td>{{ item.dvt }}</td>
+              <td>{{ item.so_luong|floatformat:0|intcomma }}</td>
+              <td>{{ item.don_gia|floatformat:0|intcomma }}</td>
+              <td>{{ item.thanh_tien|floatformat:0|intcomma }}</td>
+              <td>{{ item.thue_suat }}</td>
+              <td>{{ item.tien_thue|floatformat:0|intcomma }}</td>
+              <td>{{ pack.invoice.tong_tien|floatformat:0|intcomma }}</td>
+            </tr>
+            {% endfor %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block navbar_title %}
+📦 Danh sách phiếu đầu kỳ
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-3">
+
+    <div class="card shadow-sm">
+
+        <!-- HEADER -->
+        <div class="card-header bg-warning d-flex justify-content-between align-items-center">
+
+            <div class="d-flex gap-2">
+
+                <a href="{% url 'inventory_opening_import' %}"
+                   class="btn btn-primary btn-sm">
+                    ➕ Tạo phiếu đầu kỳ
+                </a>
+
+                <a href="{% url 'inventory_summary' %}"
+                   class="btn btn-secondary btn-sm">
+                    ← Quay lại XNT
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- SEARCH -->
+        <div class="card-body pb-2">
+
+            <form method="get"
+                  class="row g-2">
+
+                <div class="col-md-5">
+
+                    <input type="text"
+                           name="search"
+                           value="{{ search }}"
+                           class="form-control form-control-sm"
+                           placeholder="Tìm SKU, tên hàng...">
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <select name="per_page"
+                            class="form-select form-select-sm">
+
+                        <option value="20"
+                            {% if per_page == 20 %}selected{% endif %}>
+                            20 / trang
+                        </option>
+
+                        <option value="50"
+                            {% if per_page == 50 %}selected{% endif %}>
+                            50 / trang
+                        </option>
+
+                        <option value="100"
+                            {% if per_page == 100 %}selected{% endif %}>
+                            100 / trang
+                        </option>
+
+                    </select>
+
+                </div>
+
+<div class="col-auto">
+    <button type="submit" class="btn btn-outline-primary btn-sm">
+        🔍 Tìm
+    </button>
+
+    <a href="{% url 'inventory_opening_list' %}"
+       class="btn btn-outline-secondary btn-sm">
+        ✖ Xóa bộ lọc
+    </a>
+</div>
+
+
+
+            </form>
+
+        </div>
+
+
+        <!-- TABLE -->
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover table-sm mb-0">
+
+                <thead class="table-light">
+
+                    <tr class="text-center">
+
+                        <th >
+                            TT
+                        </th>
+
+                        <th>
+                            SKU
+                        </th>
+
+                        <th>
+                            Tên gọi chung
+                        </th>
+
+                        <th>
+                            ĐVT
+                        </th>
+
+                        <th >
+                            Số lượng
+                        </th>
+
+                        <th >
+                            Đơn giá
+                        </th>
+
+                        <th >
+                            Thành tiền
+                        </th>
+
+                        <th>
+                            Ngày
+                        </th>
+
+                        <th>
+                            Ghi chú
+                        </th>
+
+                        <th class="text-center"
+                            style="width:150px;">
+                            Thao tác
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                {% for item in page_obj %}
+
+                    <tr>
+
+                        <td class="text-center">
+                            {{ forloop.counter0|add:page_obj.start_index }}
+                        </td>
+
+                        <td>
+                            <strong>
+                                {{ item.sku }}
+                            </strong>
+                        </td>
+
+                        <td>
+                            {{ item.ten_goi_chung }}
+                        </td>
+
+                        <td>
+                            {{ item.dvt }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ item.so_luong|floatformat:2|intcomma }}
+                        </td>
+
+                        <td class="text-end">
+                            {{ item.don_gia|floatformat:2|intcomma }}
+                        </td>
+
+                        <td class="text-end fw-bold">
+                            {{ item.thanh_tien|floatformat:0|intcomma }}
+                        </td>
+
+                        <td>
+                            {{ item.ngay|date:"d/m/Y" }}
+                        </td>
+
+                        <td>
+                            {{ item.ghi_chu }}
+                        </td>
+
+                        <td class="text-center">
+
+                            <div class="d-flex justify-content-center gap-1">
+
+                                <!-- SỬA -->
+                                <a href="{% url 'inventory_opening_edit' item.pk %}"
+                                   class="btn btn-warning btn-sm"
+                                   title="Sửa">
+                                    ✏️
+                                </a>
+
+
+                                <!-- XÓA -->
+                                <form method="post"
+                                      action="{% url 'inventory_opening_delete' item.pk %}"
+                                      onsubmit="return confirm('Bạn có chắc muốn xóa phiếu đầu kỳ này?');">
+
+                                    {% csrf_token %}
+
+                                    <button type="submit"
+                                            class="btn btn-danger btn-sm"
+                                            title="Xóa">
+                                        🗑️
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                {% empty %}
+
+                    <tr>
+
+                        <td colspan="10"
+                            class="text-center text-muted py-4">
+
+                            📭 Chưa có phiếu đầu kỳ.
+
+                        </td>
+
+                    </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- PAGINATION -->
+        {% if page_obj %}
+
+        <div class="card-footer">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <div class="text-muted small">
+
+                    Tổng:
+                    <strong>
+                        {{ page_obj.paginator.count }}
+                    </strong>
+                    dòng
+
+                </div>
+
+
+                <nav>
+
+                    <ul class="pagination pagination-sm mb-0">
+
+                        {% if page_obj.has_previous %}
+
+                            <li class="page-item">
+
+                                <a class="page-link"
+                                   href="?page={{ page_obj.previous_page_number }}&search={{ search }}&per_page={{ per_page }}">
+                                    ←
+                                </a>
+
+                            </li>
+
+                        {% endif %}
+
+
+                        <li class="page-item active">
+
+                            <span class="page-link">
+
+                                {{ page_obj.number }}
+
+                                /
+
+                                {{ page_obj.paginator.num_pages }}
+
+                            </span>
+
+                        </li>
+
+
+                        {% if page_obj.has_next %}
+
+                            <li class="page-item">
+
+                                <a class="page-link"
+                                   href="?page={{ page_obj.next_page_number }}&search={{ search }}&per_page={{ per_page }}">
+                                    →
+                                </a>
+
+                            </li>
+
+                        {% endif %}
+
+                    </ul>
+
+                </nav>
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

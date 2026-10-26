@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>✏️ Sửa tên gọi xuất</h2>
+
+<form method="post" class="mt-3">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label class="form-label">Tên gọi xuất</label>
+    <input type="text" name="ten_goi_xuat" value="{{ product.ten_goi_xuat }}" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Tên gọi chung</label>
+    <input type="text" name="ten_goi_chung" value="{{ product.ten_goi_chung }}" class="form-control">
+  </div>
+  <button type="submit" class="btn btn-success">💾 Lưu</button>
+  <a href="{% url 'customer_products_name' %}" class="btn btn-secondary">⬅ Quay lại</a>
+</form>
+{% endblock %}

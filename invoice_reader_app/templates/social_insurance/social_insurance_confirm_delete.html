@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Xóa hồ sơ BHXH
+{% endblock %}
+
+{% block navbar_title %}
+    Xóa hồ sơ BHXH
+{% endblock %}
+
+{% block extra_head %}
+
+<style>
+
+body {
+    background: #f4f6fa;
+}
+
+.delete-wrapper {
+    padding: 50px 20px;
+}
+
+.delete-card {
+    max-width: 520px;
+    margin: auto;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 5px 25px rgba(0,0,0,.08);
+    overflow: hidden;
+}
+
+.delete-header {
+    background: #dc3545;
+    color: white;
+    padding: 18px 20px;
+}
+
+.delete-header h4 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.delete-body {
+    padding: 25px;
+}
+
+.delete-icon {
+    text-align: center;
+    font-size: 50px;
+    margin-bottom: 15px;
+}
+
+.delete-warning {
+    text-align: center;
+    color: #495057;
+    font-size: 14px;
+}
+
+.delete-info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.delete-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.btn-delete {
+    background: #dc3545;
+    color: white;
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+}
+
+.btn-cancel {
+    background: #e9ecef;
+    color: #495057;
+    border-radius: 8px;
+    padding: 10px 20px;
+    text-decoration: none;
+}
+
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="delete-wrapper">
+
+    <div class="delete-card">
+
+        <div class="delete-header">
+
+            <h4>
+                🗑️ Xác nhận xóa hồ sơ BHXH
+            </h4>
+
+        </div>
+
+
+        <div class="delete-body">
+
+            <div class="delete-icon">
+                ⚠️
+            </div>
+
+
+            <div class="delete-warning">
+
+                Bạn có chắc chắn muốn xóa hồ sơ BHXH này?
+
+            </div>
+
+
+            <div class="delete-info">
+
+                <strong>
+                    Họ tên:
+                </strong>
+
+                {{ insurance.employee_name }}
+
+                <br>
+
+                <strong>
+                    Mã nhân viên:
+                </strong>
+
+                {{ insurance.employee_code|default:"—" }}
+
+                <br>
+
+                <strong>
+                    Số BHXH:
+                </strong>
+
+                {{ insurance.social_insurance_number|default:"—" }}
+
+            </div>
+
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+                <div class="delete-actions">
+
+                    <a
+                        href="{% url 'social_insurance' %}"
+                        class="btn-cancel"
+                    >
+                        ← Hủy
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="btn-delete"
+                    >
+                        🗑️ Xóa hồ sơ
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

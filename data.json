@@ -1,0 +1,1 @@
+[{"model": "sessions.session", "pk": "m8dyogqukoxvicd0ewwox2jytgl0nqx3", "fields": {"session_data": "eyJmaXNjYWxfeWVhciI6MjAyNn0:1wjMSp:OJ86mkjqvst2eXrdZrs0otllte_1QNRRwwPzcRsfYPE", "expire_date": "2026-07-27T19:37:15.424Z"}}, {"model": "invoice_reader_app.supplier", "pk": 1, "fields": {"ten_dv_ban": 

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+<!doctype html>
+<html>
+<head><title>Danh sách hóa đơn</title></head>
+<body>
+  <h2>📄 Danh sách hóa đơn</h2>
+  <table border="1" cellpadding="5">
+    <thead>
+      <tr>
+        <th>STT</th><th>Số hóa đơn</th><th>Ngày</th><th>Đơn vị bán</th><th>MST</th><th>Tổng tiền</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for invoice in invoices %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ invoice.so_hoa_don }}</td>
+        <td>{{ invoice.ngay_hd | date:"d/m/y" }}</td>
+        <td>{{ invoice.ten_dv_ban }}</td>
+        <td>{{ invoice.ma_so_thue }}</td>
+        <td>{{ "{:,.0f}".format(invoice.tong_tien or 0) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <br>
+  <a href="{{ url_for('index') }}">⬅️ Quay lại upload</a>
+</body>
+</html>
